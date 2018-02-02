@@ -1,0 +1,377 @@
+package org.aion.fastvm;
+
+import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.Address;
+import org.aion.base.util.ByteUtil;
+import org.aion.core.AccountState;
+import org.aion.crypto.HashUtil;
+import org.aion.db.IBlockStoreBase;
+import org.aion.types.a0.AionInternalTx;
+import org.aion.vm.*;
+import org.aion.vm.ExecutionResult.Code;
+import org.aion.vm.PrecompiledContracts.PrecompiledContract;
+import org.aion.vm.types.DataWord;
+import org.aion.vm.types.Log;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * This class handles all callbacks from the JIT side. It is not thread-safe and
+ * should be synchronized for parallel execution.
+ * <p>
+ * All methods are static for better JNI performance.
+ *
+ * @author yulong
+ */
+public class Callback {
+
+    private static LinkedList<Pair<ExecutionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>> stack = new LinkedList<>();
+
+    /**
+     * Pushes a pair of context and repository into the callback stack.
+     *
+     * @param pair
+     */
+    public static void push(Pair<ExecutionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>> pair) {
+        stack.push(pair);
+    }
+
+    /**
+     * Pops the last <context, repository> pair
+     */
+    public static void pop() {
+        stack.pop();
+    }
+
+    /**
+     * Returns the current context.
+     *
+     * @return
+     */
+    public static ExecutionContext context() {
+        return stack.peek().getLeft();
+    }
+
+    /**
+     * Returns the current repository.
+     *
+     * @return
+     */
+    public static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo() {
+        return stack.peek().getRight();
+    }
+
+    /**
+     * Returns the hash of the given block.
+     *
+     * @param number
+     * @return
+     */
+    public static byte[] getBlockHash(long number) {
+        byte[] hash = repo().getBlockStore().getBlockHashByNumber(number);
+        return hash == null ? new byte[32] : hash;
+    }
+
+    /**
+     * Returns the code of a contract.
+     *
+     * @param address
+     * @return
+     */
+    public static byte[] getCode(byte[] address) {
+        byte[] code = repo().getCode(Address.wrap(address));
+        return code == null ? new byte[0] : code;
+    }
+
+    /**
+     * Returns the balance of an account.
+     *
+     * @param address
+     * @return
+     */
+    public static byte[] getBalance(byte[] address) {
+        BigInteger balance = repo().getBalance(Address.wrap(address));
+        return balance == null ? DataWord.ZERO.getData() : new DataWord(balance).getData();
+    }
+
+    /**
+     * Returns whether an account exists.
+     *
+     * @param address
+     * @return
+     */
+    public static boolean exists(byte[] address) {
+        return repo().hasAccountState(Address.wrap(address));
+    }
+
+    /**
+     * Returns the value that is mapped to the given key.
+     *
+     * @param address
+     * @param key
+     * @return
+     */
+    public static byte[] getStorage(byte[] address, byte[] key) {
+        DataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
+        return value == null ? DataWord.ZERO.getData() : value.getData();
+    }
+
+    /**
+     * Sets the value that is mapped to the given key.
+     *
+     * @param address
+     * @param key
+     * @param value
+     */
+    public static void putStorage(byte[] address, byte[] key, byte[] value) {
+        repo().addStorageRow(Address.wrap(address), new DataWord(key), new DataWord(value));
+    }
+
+    /**
+     * Processes SELFDESTRUCT opcode.
+     *
+     * @param owner
+     * @param beneficiary
+     */
+    public static void selfDestruct(byte[] owner, byte[] beneficiary) {
+        BigInteger balance = repo().getBalance(Address.wrap(owner));
+
+        newInternalTx(Address.wrap(owner), Address.wrap(beneficiary), repo().getNonce(Address.wrap(owner)), new DataWord(balance), ByteUtil.EMPTY_BYTE_ARRAY,
+                "selfdestruct");
+
+        repo().addBalance(Address.wrap(owner), balance.negate());
+
+        if (!owner.equals(beneficiary)) {
+            repo().addBalance(Address.wrap(beneficiary), balance);
+        }
+
+        context().result().addDeleteAccount(Address.wrap(owner));
+    }
+
+    /**
+     * Processes LOG opcode.
+     *
+     * @param address
+     * @param topics
+     * @param data
+     */
+    public static void log(byte[] address, byte[] topics, byte[] data) {
+        List<byte[]> list = new ArrayList<>();
+
+        for (int i = 0; i < topics.length; i += 32) {
+            byte[] t = Arrays.copyOfRange(topics, i, i + 32);
+            list.add(t);
+        }
+
+        context().result().addLog(new Log(Address.wrap(address), list, data));
+    }
+
+    /**
+     * Process CALL/CALLCODE/DELEGATECALL/CREATE opcode.
+     *
+     * @param message
+     * @return
+     */
+    public static byte[] call(byte[] message) {
+        ExecutionContext ctx = parseMessage(message);
+
+        // check call stack depth
+        if (ctx.depth() == Constants.MAX_CALL_DEPTH) {
+            return new ExecutionResult(Code.FAILURE, 0).toBytes();
+        }
+
+        // check value
+        BigInteger endowment = ctx.callValue().value();
+        BigInteger callersBalance = repo().getBalance(ctx.caller());
+        if (callersBalance.compareTo(endowment) < 0) {
+            return new ExecutionResult(Code.FAILURE, 0).toBytes();
+        }
+
+        // call sub-routine
+        if (ctx.kind() == ExecutionContext.CREATE) {
+            return doCreate(ctx).toBytes();
+        } else {
+            return doCall(ctx).toBytes();
+        }
+    }
+
+    /**
+     * The method handles the CALL/CALLCODE/DELEGATECALL opcode.
+     *
+     * @param ctx
+     * @return
+     */
+    private static ExecutionResult doCall(ExecutionContext ctx) {
+        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
+        ExecutionResult result = new ExecutionResult(Code.SUCCESS, ctx.nrgLimit());
+
+        // transfer balance
+        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
+        track.addBalance(ctx.address(), ctx.callValue().value());
+
+        // add internal transaction TODO: basic transaction cost?
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()),
+                ctx.callValue(), ctx.callData(), "call");
+        ctx.result().addInternalTransaction(internalTx);
+
+        PrecompiledContract pc = PrecompiledContracts.getPrecompiledContract(ctx.address(), track, ctx);
+        if (pc != null) {
+            result = pc.execute(ctx.callData(), ctx.nrgLimit());
+        } else {
+            // get the code
+            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address()) : ByteUtil.EMPTY_BYTE_ARRAY;
+
+            // execute transaction
+            if (ArrayUtils.isNotEmpty(code)) {
+                FastVM jit = new FastVM();
+                result = jit.run(code, ctx, track);
+            }
+        }
+
+        // post execution
+        if (result.getCode() != Code.SUCCESS) {
+            internalTx.reject();
+            ctx.result().rejectInternalTransactions(); // reject all
+
+            track.rollback();
+        } else {
+            track.flush();
+        }
+
+        return result;
+    }
+
+    /**
+     * This method handles the CREATE opcode.
+     *
+     * @param ctx
+     * @return
+     */
+    private static ExecutionResult doCreate(ExecutionContext ctx) {
+        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
+        ExecutionResult result = new ExecutionResult(Code.SUCCESS, ctx.nrgLimit());
+
+        // compute new address
+        byte[] nonce = track.getNonce(ctx.caller()).toByteArray();
+        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.caller().toBytes(), nonce));
+
+        // check existence
+        if (track.hasAccountState(newAddress)) {
+            return new ExecutionResult(Code.FAILURE, 0);
+        }
+
+        // Implement EIP-161?
+        // track.increaseNonce(newAddress);
+
+        // transfer balance
+        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
+        track.addBalance(newAddress, ctx.callValue().value());
+
+        // add internal transaction TODO: basic transaction cost?
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
+                ctx.callData(), "create");
+        ctx.result().addInternalTransaction(internalTx);
+
+        // execute transaction
+        if (ArrayUtils.isNotEmpty(ctx.callData())) {
+            FastVM jit = new FastVM();
+            result = jit.run(ctx.callData(), ctx, track);
+        }
+
+        // post execution
+        if (result.getCode() != Code.SUCCESS) {
+            internalTx.reject();
+            ctx.result().rejectInternalTransactions(); // reject all
+
+            track.rollback();
+        } else {
+            // charge the codedeposit
+            if (result.getNrgLeft() < Constants.NRG_CODE_DEPOSIT) {
+                result.setCodeAndNrgLeft(Code.FAILURE, 0);
+                return result;
+            }
+            byte[] code = result.getOutput();
+            track.saveCode(newAddress, code == null ? new byte[0] : code);
+
+            result.setOutput(newAddress.toBytes());
+
+            track.flush();
+        }
+
+        return result;
+    }
+
+    /**
+     * Parses the execution context from encoded message.
+     *
+     * @param message
+     * @return
+     */
+    private static ExecutionContext parseMessage(byte[] message) {
+        ExecutionContext prev = context();
+
+        ByteBuffer buffer = ByteBuffer.wrap(message);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+
+        byte[] txHash = prev.transactionHash();
+
+        byte[] address = new byte[Address.ADDRESS_LEN];
+        buffer.get(address);
+        Address origin = prev.origin();
+        byte[] caller = new byte[Address.ADDRESS_LEN];
+        buffer.get(caller);
+
+        DataWord nrgPrice = prev.nrgPrice();
+        long nrgLimit = buffer.getLong();
+        byte[] buf = new byte[16];
+        buffer.get(buf);
+        DataWord callValue = new DataWord(buf);
+        byte[] callData = new byte[buffer.getInt()];
+        buffer.get(callData);
+
+        int depth = buffer.getInt();
+        int kind = buffer.getInt();
+        int flags = buffer.getInt();
+
+        Address blockCoinbase = prev.blockCoinbase();
+        long blockNumber = prev.blockNumber();
+        long blockTimestamp = prev.blockTimestamp();
+        long blockNrgLimit = prev.blockNrgLimit();
+        DataWord blockDifficulty = prev.blockDifficulty();
+
+        TransactionResult txResult = prev.result();
+
+        return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+    }
+
+    /**
+     * Creates a new internal transaction.
+     *
+     * @param from
+     * @param to
+     * @param value
+     * @param data
+     * @param note
+     * @return
+     */
+    private static AionInternalTx newInternalTx(Address from, Address to, BigInteger nonce, DataWord value, byte[] data,
+                                                String note) {
+        // TODO: heavily test internal transaction
+
+        byte[] parentHash = context().transactionHash();
+        int deep = stack.size();
+        int idx = context().result().getInternalTransactions().size();
+
+        return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
+                note);
+    }
+}
