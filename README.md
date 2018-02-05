@@ -15,7 +15,7 @@ Operating system: Ubuntu 16.04 or above
 ### Build FastVM
 
 ```bash
-sudo apt install build-essential llvm-5.0-dev openjdk-8-jdk
+sudo apt install build-essential llvm-5.0-dev
 make
 ```
 

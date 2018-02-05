@@ -3,7 +3,7 @@ LLVM_C_INCLUDE=/usr/include/llvm-c-5.0
 LLVM_LIB_DIR=/usr/lib/llvm-5.0/lib
 LLVM_LIB_NAME=LLVM-5.0
 
-JDK_INC=/usr/lib/jvm/java-8-openjdk-amd64/include
+JDK_INC=$(JAVA_HOME)/include
 
 DIST=./dist
 
@@ -13,9 +13,9 @@ EVMJIT_TARGET=$(DIST)/$(EVMJIT_NAME)
 JNI_NAME=libfastvm.so
 JNI_TARGET=$(DIST)/$(JNI_NAME)
 
-.PHONY: all evmjit fastvm clean
+.PHONY: all evmjit jni clean
 
-all: evmjit fastvm
+all: evmjit
 
 evmjit:
 	g++ -std=c++0x -I. -I./include -I./libevmjit -I$(LLVM_INCLUDE) -I$(LLVM_C_INCLUDE) -O3 -Wall -fPIC \
@@ -39,7 +39,7 @@ evmjit:
 -L$(LLVM_LIB_DIR) -l$(LLVM_LIB_NAME) -Wl,--no-undefined -Wl,-soname=$(EVMJIT_NAME) -shared \
 -o $(EVMJIT_TARGET)
 
-fastvm:
+jni:
 	g++ -std=c++0x -I. -I./include -I$(JDK_INC) -I$(JDK_INC)/linux -O3 -Wall -fPIC \
 ./jni/org_aion_fastvm_FastVM.cpp \
 -L${DIST} -levmjit -Wl,--no-undefined -Wl,-soname=$(JNI_NAME) -shared \
