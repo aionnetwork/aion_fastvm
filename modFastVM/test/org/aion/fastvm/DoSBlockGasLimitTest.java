@@ -92,7 +92,7 @@ public class DoSBlockGasLimitTest {
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(Code.FAILURE, result.getCode());
+        assertEquals(Code.OUT_OF_NRG, result.getCode());
     }
 
     @Test
@@ -115,7 +115,7 @@ public class DoSBlockGasLimitTest {
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(Code.FAILURE, result.getCode());
+        assertEquals(Code.OUT_OF_NRG, result.getCode());
 
     }
 }
