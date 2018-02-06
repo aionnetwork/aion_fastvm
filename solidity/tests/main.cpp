@@ -350,7 +350,7 @@ void hex2bin(const char* src, uint8_t* target)
 }
 
 string loadContract(string file) {
-    std::ifstream t("tests/contracts/" + file);
+    std::ifstream t("../../solidity/tests/contracts/" + file);
     std::stringstream buffer;
     buffer << t.rdbuf();
 
