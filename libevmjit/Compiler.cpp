@@ -142,7 +142,7 @@ void Compiler::resolveJumps()
 			if (auto constant = llvm::dyn_cast<llvm::ConstantInt>(destIdx))
 			{
 				// If destination index is a constant do direct jump to the destination block.
-				auto bb = jumpTable->findCaseValue(constant)->getCaseSuccessor();
+				auto bb = jumpTable->findCaseValue(constant).getCaseSuccessor();
 				jump->setSuccessor(0, bb);
 			}
 			else

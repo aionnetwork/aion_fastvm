@@ -1,7 +1,7 @@
-LLVM_INCLUDE=/usr/include/llvm-5.0
-LLVM_C_INCLUDE=/usr/include/llvm-c-5.0
-LLVM_LIB_DIR=/usr/lib/llvm-5.0/lib
-LLVM_LIB_NAME=LLVM-5.0
+LLVM_INCLUDE=/usr/include/llvm-4.0
+LLVM_C_INCLUDE=/usr/include/llvm-c-4.0
+LLVM_LIB_DIR=/usr/lib/llvm-4.0/lib
+LLVM_LIB_NAME=LLVM-4.0
 
 JDK_INC=$(JAVA_HOME)/include
 

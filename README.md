@@ -15,7 +15,7 @@ Operating system: Ubuntu 16.04 or above
 ### Build FastVM
 
 ```bash
-sudo apt install build-essential llvm-5.0-dev
+sudo apt install build-essential llvm-4.0-dev
 make
 ```
 

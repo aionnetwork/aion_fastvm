@@ -157,7 +157,7 @@ llvm::Function* Array::createFreeFunc()
 	freeFunc->setDoesNotThrow();
 	freeFunc->addAttribute(1, llvm::Attribute::NoCapture);
 
-	llvm::Argument* arrayPtr{func->arg_begin()};
+	auto arrayPtr = &func->getArgumentList().front();
 	arrayPtr->setName("arrayPtr");
 
 	InsertPointGuard guard{m_builder};
