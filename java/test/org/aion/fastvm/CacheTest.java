@@ -25,7 +25,7 @@ import org.aion.base.util.Hex;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.TransactionResult;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;

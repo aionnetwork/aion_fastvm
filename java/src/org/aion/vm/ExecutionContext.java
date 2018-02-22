@@ -21,7 +21,7 @@
 package org.aion.vm;
 
 import org.aion.base.type.Address;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

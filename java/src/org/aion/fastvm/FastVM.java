@@ -22,12 +22,12 @@ package org.aion.fastvm;
 
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.NativeLoader;
-import org.aion.core.AccountState;
-import org.aion.db.IBlockStoreBase;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.VirtualMachine;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**

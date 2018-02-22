@@ -25,17 +25,19 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.blockchain.AionTxExecSummary;
-import org.aion.core.AccountState;
-import org.aion.db.IBlockStoreBase;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.fastvm.FastVM;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
-import org.aion.types.a0.AionTransaction;
-import org.aion.types.a0.AionTxReceipt;
-import org.aion.types.a0.IAionBlock;
+import org.aion.a0.types.AionTransaction;
+import org.aion.a0.types.AionTxReceipt;
+import org.aion.a0.types.IAionBlock;
+
 import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.PrecompiledContracts.PrecompiledContract;
-import org.aion.vm.types.DataWord;
+
+import org.aion.mcf.vm.types.DataWord;
 import org.slf4j.Logger;
 import org.spongycastle.util.Arrays;
 

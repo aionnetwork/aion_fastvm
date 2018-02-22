@@ -21,6 +21,8 @@
 package org.aion.vm.types;
 
 import org.aion.base.type.Address;
+import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.Log;
 import org.junit.Test;
 
 import java.util.ArrayList;

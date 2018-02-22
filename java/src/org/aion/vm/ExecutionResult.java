@@ -21,7 +21,7 @@
 package org.aion.vm;
 
 import org.aion.base.util.ByteUtil;
-import org.spongycastle.util.encoders.Hex;
+import org.aion.base.util.Hex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

@@ -29,10 +29,10 @@ import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
 import org.aion.solidity.SolidityType.*;
 import org.aion.types.a0.AionBlock;
-import org.aion.types.a0.AionTransaction;
-import org.aion.types.a0.AionTxReceipt;
+import org.aion.a0.types.AionTransaction;
+import org.aion.a0.types.AionTxReceipt;
 import org.aion.vm.TransactionExecutor;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 import org.junit.Test;
 
 import java.io.IOException;

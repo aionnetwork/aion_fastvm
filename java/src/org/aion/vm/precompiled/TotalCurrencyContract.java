@@ -23,13 +23,13 @@ package org.aion.vm.precompiled;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.BIUtil;
-import org.aion.core.AccountState;
+import org.aion.mcf.core.AccountState;
 import org.aion.crypto.ed25519.ECKeyEd25519;
 import org.aion.crypto.ed25519.Ed25519Signature;
-import org.aion.db.IBlockStoreBase;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.PrecompiledContracts;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 
 import java.math.BigInteger;
 
