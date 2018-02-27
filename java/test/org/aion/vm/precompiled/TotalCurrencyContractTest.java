@@ -26,7 +26,7 @@ import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.ISignature;
 import org.aion.fastvm.DummyRepository;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWord;
 import org.junit.Test;
 
 import java.math.BigInteger;

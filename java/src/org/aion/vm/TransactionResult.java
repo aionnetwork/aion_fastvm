@@ -21,8 +21,8 @@
 package org.aion.vm;
 
 import org.aion.base.type.Address;
-import org.aion.types.a0.AionInternalTx;
-import org.aion.vm.types.Log;
+import org.aion.mcf.vm.types.Log;
+import org.aion.zero.types.AionInternalTx;
 
 import java.util.*;
 

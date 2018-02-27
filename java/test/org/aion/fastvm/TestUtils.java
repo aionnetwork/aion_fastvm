@@ -22,8 +22,8 @@ package org.aion.fastvm;
 
 import org.aion.base.type.Address;
 import org.aion.types.a0.AionBlock;
-import org.aion.types.a0.AionTransaction;
-import org.aion.vm.types.DataWord;
+import org.aion.a0.types.AionTransaction;
+import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.Collections;
