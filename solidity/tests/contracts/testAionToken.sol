@@ -1,10 +1,10 @@
 /**
  * NOTE: To make the contracts below compilable for Aion's FVM. The following changes were made:
  *
- * (1) All uint256 were replaced by uint256;
+ * (1) All uint256 were replaced by uint128;
  * (2) The multimint function was slightly changed, data is represented as byte32[] instead of uint256[].
  */
- 
+
  // Copyright New Alchemy Limited, 2017. All rights reserved.
 
 pragma solidity >=0.4.10;
@@ -366,7 +366,7 @@ contract Ledger is Owned, SafeMath, Finalizable {
         for (uint i=0; i<bits.length; i++) {
             address a = address(bytes20(bits[i]));
             uint value = uint(bytes12(bits[i] << 160));
-            
+
             balanceOf[a] = balanceOf[a] + value;
             controller.ledgerTransfer(0, a, value);
             created += value;
