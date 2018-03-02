@@ -20,12 +20,12 @@
  ******************************************************************************/
 package org.aion.solidity;
 
-import com.google.common.base.Joiner;
-
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Compiler {
 
@@ -59,7 +59,7 @@ public class Compiler {
         }
         if (combinedJson) {
             commandParts.add("--combined-json");
-            commandParts.add(Joiner.on(',').join(options));
+            commandParts.add(Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(", ")));
         } else {
             for (Options option : options) {
                 commandParts.add("--" + option.getName());

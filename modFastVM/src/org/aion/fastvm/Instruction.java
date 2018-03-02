@@ -18,9 +18,9 @@
  * Contributors:
  *     Aion foundation.
  ******************************************************************************/
-package org.aion.vm;
+package org.aion.fastvm;
 
-import static org.aion.vm.Instruction.Tier.*;
+import static org.aion.fastvm.Instruction.Tier.*;
 
 /**
  * Instruction set for the Aion fast virtual machine.

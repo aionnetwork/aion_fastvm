@@ -28,11 +28,11 @@ import org.aion.fastvm.TestUtils;
 import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
 import org.aion.solidity.SolidityType.*;
-import org.aion.types.a0.AionBlock;
-import org.aion.a0.types.AionTransaction;
-import org.aion.a0.types.AionTxReceipt;
 import org.aion.vm.TransactionExecutor;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.zero.impl.types.AionBlock;
+import org.aion.zero.types.AionTransaction;
+import org.aion.zero.types.AionTxReceipt;
 import org.junit.Test;
 
 import java.io.IOException;

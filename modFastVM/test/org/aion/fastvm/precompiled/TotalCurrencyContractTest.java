@@ -18,7 +18,7 @@
  * Contributors:
  *     Aion foundation.
  ******************************************************************************/
-package org.aion.vm.precompiled;
+package org.aion.fastvm.precompiled;
 
 import org.aion.base.type.Address;
 import org.aion.crypto.ECKey;

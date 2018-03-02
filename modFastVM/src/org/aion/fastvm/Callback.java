@@ -23,6 +23,8 @@ package org.aion.fastvm;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
+import org.aion.vm.ExecutionContext;
+import org.aion.vm.ExecutionResult;
 import org.aion.mcf.core.AccountState;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.db.IBlockStoreBase;

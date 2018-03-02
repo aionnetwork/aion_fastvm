@@ -22,11 +22,10 @@ package org.aion.fastvm;
 
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
+import org.aion.fastvm.Instruction.*;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.Instruction;
-import org.aion.vm.Instruction.*;
 import org.aion.vm.TransactionResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
@@ -38,7 +37,7 @@ import org.junit.runners.MethodSorters;
 
 import java.io.ByteArrayOutputStream;
 
-import static org.aion.vm.Instruction.*;
+import static org.aion.fastvm.Instruction.*;
 import static org.junit.Assert.assertEquals;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

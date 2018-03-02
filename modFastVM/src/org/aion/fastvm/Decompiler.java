@@ -18,7 +18,9 @@
  * Contributors:
  *     Aion foundation.
  ******************************************************************************/
-package org.aion.vm;
+package org.aion.fastvm;
+
+import org.aion.fastvm.Instruction;
 
 public class Decompiler {
 
