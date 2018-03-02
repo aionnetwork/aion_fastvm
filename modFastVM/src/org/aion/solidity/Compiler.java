@@ -59,7 +59,7 @@ public class Compiler {
         }
         if (combinedJson) {
             commandParts.add("--combined-json");
-            commandParts.add(Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(", ")));
+            commandParts.add(Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
         } else {
             for (Options option : options) {
                 commandParts.add("--" + option.getName());

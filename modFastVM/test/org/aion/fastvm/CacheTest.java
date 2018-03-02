@@ -28,6 +28,7 @@ import org.aion.vm.TransactionResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -65,6 +66,7 @@ public class CacheTest {
     }
 
     @Test
+    @Ignore
     public void testCache() {
         callData = Hex.decode("8256cff3");
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,

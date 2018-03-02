@@ -18,6 +18,7 @@
     <orderEntry type="library" name="slf4j-api" level="project" />
     <orderEntry type="library" name="libnsc" level="project" />
     <orderEntry type="library" name="junit" level="project" scope="TEST" />
+    <orderEntry type="library" name="truth" level="project" scope="TEST" />
     <orderEntry type="module" module-name="modAionImpl" scope="TEST" />
   </component>
 </module>
