@@ -245,4 +245,9 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void compact() {
+        throw new UnsupportedOperationException(
+                "The tracking cache cannot be compacted. \'Compact\' should be called on the tracked repository.");
+    }
 }
