@@ -66,6 +66,7 @@ public class TransactionExecutor {
     private TransactionResult txResult;
 
     private static Object lock = new Object();
+    private boolean askNonce = true;
 
     /**
      * Create a new transaction executor. <br>
@@ -177,9 +178,13 @@ public class TransactionExecutor {
                 if (!isLocalCall) {
                     IRepositoryCache track = repo.startTracking();
                     // increase nonce
-                    track.incrementNonce(tx.getFrom());
+                    if (askNonce) {
+                        track.incrementNonce(tx.getFrom());
+                    }
 
                     // charge nrg cost
+                    // Note: if the tx is a inpool tx, it will temp charge more balance for the account
+                    // once the block info been updated. the balance in pendingPool will correct.
                     BigInteger txNrgLimit = BigInteger.valueOf(tx.nrgLimit());
                     BigInteger txNrgPrice = tx.nrgPrice().value();
                     BigInteger txNrgCost = txNrgLimit.multiply(txNrgPrice);
@@ -218,12 +223,14 @@ public class TransactionExecutor {
         }
 
         // check nonce
-        BigInteger txNonce = new BigInteger(1, tx.getNonce());
-        BigInteger nonce = repo.getNonce(tx.getFrom());
+        if (askNonce) {
+            BigInteger txNonce = new BigInteger(1, tx.getNonce());
+            BigInteger nonce = repo.getNonce(tx.getFrom());
 
-        if (!txNonce.equals(nonce)) {
-            exeResult.setCodeAndNrgLeft(Code.INVALID_NONCE, 0);
-            return false;
+            if (!txNonce.equals(nonce)) {
+                exeResult.setCodeAndNrgLeft(Code.INVALID_NONCE, 0);
+                return false;
+            }
         }
 
         // check balance
@@ -393,5 +400,9 @@ public class TransactionExecutor {
      */
     protected long getNrgUsed() {
         return tx.nrgLimit() - exeResult.getNrgLeft();
+    }
+
+    protected void setBypassNonce(boolean bypassNonce) {
+        this.askNonce = !bypassNonce;
     }
 }
