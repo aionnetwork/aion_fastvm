@@ -402,7 +402,7 @@ public class TransactionExecutor {
         return tx.nrgLimit() - exeResult.getNrgLeft();
     }
 
-    protected void setBypassNonce(boolean bypassNonce) {
+    public void setBypassNonce(boolean bypassNonce) {
         this.askNonce = !bypassNonce;
     }
 }
