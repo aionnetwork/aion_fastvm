@@ -151,7 +151,7 @@ public class TotalCurrencyContract extends PrecompiledContracts.StatefulPrecompi
         }
 
         // verify public key matches owner
-        if (!this.ownerAddress.equals(Address.wrap(sig.getPubkey(null)))) {
+        if (!this.ownerAddress.equals(Address.wrap(sig.getAddress()))) {
             return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, 0);
         }
 
