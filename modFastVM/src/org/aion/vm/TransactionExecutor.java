@@ -41,6 +41,8 @@ import org.spongycastle.util.Arrays;
 
 import java.math.BigInteger;
 
+import static org.aion.mcf.valid.TxNrgRule.isValidNrgContractCreate;
+import static org.aion.mcf.valid.TxNrgRule.isValidNrgTx;
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 
@@ -217,6 +219,19 @@ public class TransactionExecutor {
         // check nrg limit
         BigInteger txNrgPrice = tx.nrgPrice().value();
         long txNrgLimit = tx.nrgLimit();
+
+        if (tx.isContractCreation()) {
+            if (!isValidNrgContractCreate(txNrgLimit)) {
+                exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
+                return false;
+            } else {
+                if (!isValidNrgTx(txNrgLimit)) {
+                    exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
+                    return false;
+                }
+            }
+        }
+        
         if (txNrgLimit > blockRemainingNrg || ctx.nrgLimit() < 0) {
             exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, 0);
             return false;
