@@ -20,14 +20,19 @@
  ******************************************************************************/
 package org.aion.fastvm;
 
+import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
+import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.fastvm.Instruction.*;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.TransactionResult;
-import org.aion.mcf.vm.types.DataWord;
+import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -398,6 +403,65 @@ public class NrgCostTest {
                     && inst.tier() != Tier.MID && inst.tier() != Tier.HIGH) {
                 System.out.println(inst.name() + "\t" + inst.tier());
             }
+        }
+    }
+
+    /**
+     * The following test case benchmarks database performance. It maximizes database read/write and
+     * minimizes cache usage.
+     * <p>
+     * It simulate the situation where there are <code>X</code> blocks, each of which contains
+     * <code>Y</code> transactions. Each transaction reads/writes one storage entry of an unique account.
+     * This whole process is repeated <code>Z</code> time.
+     * <p>
+     * There will be <code>X * Y</code> accounts created. Trie serialization/deserialization is expected
+     * to happen during the test.
+     * <p>
+     * NOTE: Before you run this test, make sure the database is empty, to get consistent results.
+     */
+    @Test
+    public void testDB() {
+        AionRepositoryImpl db = AionRepositoryImpl.inst();
+        byte[] zeros28 = new byte[28];
+
+        int repeat = 1000;
+        int blocks = 32;
+        int transactions = 1024;
+
+        long totalWrite = 0;
+        long totalRead = 0;
+        for (int r = 1; r <= repeat; r++) {
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < blocks; i++) {
+                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                for (int j = 0; j < transactions; j++) {
+                    Address address = Address.wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
+                    repo.addStorageRow(address, new DataWord(RandomUtils.nextBytes(16)),
+                            new DataWord(RandomUtils.nextBytes(16)));
+                }
+                repo.flush();
+                db.flush();
+            }
+            long t2 = System.nanoTime();
+
+            long t3 = System.nanoTime();
+            for (int i = 0; i < blocks; i++) {
+                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                for (int j = 0; j < transactions; j++) {
+                    Address address = Address.wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
+                    repo.getStorageValue(address, new DataWord(RandomUtils.nextBytes(16)));
+                }
+                repo.flush();
+                db.flush();
+            }
+            long t4 = System.nanoTime();
+
+            totalWrite += (t2 - t1);
+            totalRead += (t4 - t3);
+            System.out.printf("write = %7d,  read = %7d,  avg. write = %7d,  avg. read = %7d\n",
+                    (t2 - t1) / (blocks * transactions), (t4 - t3) / (blocks * transactions),
+                    totalWrite / (r * blocks * transactions), totalRead / (r * blocks * transactions));
         }
     }
 }
