@@ -23,6 +23,7 @@ package org.aion.fastvm;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
+import org.aion.base.util.Hex;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.mcf.core.AccountState;
@@ -144,6 +145,9 @@ public class Callback {
      */
     public static byte[] getStorage(byte[] address, byte[] key) {
         DataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
+
+        // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
+
         return value == null ? DataWord.ZERO.getData() : value.getData();
     }
 
@@ -155,6 +159,9 @@ public class Callback {
      * @param value
      */
     public static void putStorage(byte[] address, byte[] key, byte[] value) {
+
+        // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
+
         repo().addStorageRow(Address.wrap(address), new DataWord(key), new DataWord(value));
     }
 
