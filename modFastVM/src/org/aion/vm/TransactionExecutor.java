@@ -224,11 +224,11 @@ public class TransactionExecutor {
             if (!isValidNrgContractCreate(txNrgLimit)) {
                 exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
                 return false;
-            } else {
-                if (!isValidNrgTx(txNrgLimit)) {
-                    exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
-                    return false;
-                }
+            }
+        } else {
+            if (!isValidNrgTx(txNrgLimit)) {
+                exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
+                return false;
             }
         }
         
