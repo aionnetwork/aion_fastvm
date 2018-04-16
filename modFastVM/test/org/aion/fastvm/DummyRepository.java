@@ -30,10 +30,7 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
 
@@ -129,16 +126,6 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public int getStorageSize(Address address) {
-        throw new RuntimeException("Not supported");
-    }
-
-    @Override
-    public Set<DataWord> getStorageKeys(Address address) {
-        throw new RuntimeException("Not supported");
-    }
-
-    @Override
     public void addStorageRow(Address addr, DataWord key, DataWord value) {
         Map<String, byte[]> map = storage.get(addr);
         if (map == null) {
@@ -157,6 +144,16 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
         } else {
             return DataWord.ZERO;
         }
+    }
+
+    @Override
+    public List<byte[]> getPoolTx() {
+        return null;
+    }
+
+    @Override
+    public List<byte[]> getCacheTx() {
+        return null;
     }
 
     @Override
@@ -243,6 +240,16 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     @Override
     public IBlockStoreBase<?, ?> getBlockStore() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addTxBatch(Map<byte[], byte[]> pendingTx, boolean isPool) {
+
+    }
+
+    @Override
+    public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {
+
     }
 
     @Override
