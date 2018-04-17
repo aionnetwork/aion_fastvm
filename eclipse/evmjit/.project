@@ -28,17 +28,17 @@
 		<link>
 			<name>include</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/include</location>
+			<location>$%7BPARENT-2-PROJECT_LOC%7D/include</location>
 		</link>
 		<link>
 			<name>libevmjit</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/libevmjit</location>
+			<location>$%7BPARENT-2-PROJECT_LOC%7D/libevmjit</location>
 		</link>
 		<link>
 			<name>tests</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/tests</location>
+			<location>$%7BPARENT-2-PROJECT_LOC%7D/tests</location>
 		</link>
 	</linkedResources>
 </projectDescription>

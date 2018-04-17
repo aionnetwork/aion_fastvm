@@ -115,7 +115,7 @@
                         						
                         <entry excluding="tests|libevmjit|include" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+                        <entry excluding="../include" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="include"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="libevmjit"/>
                         						
