@@ -29,7 +29,6 @@ jmethodID cb_log;
 jmethodID cb_call;
 
 // do you need a stack for recursive call?
-struct evm_message msg;
 struct evm_tx_context ctx;
 
 /* forward declaration */
@@ -299,30 +298,30 @@ void write_long(jbyte *b, uint64_t num) {
 /**
  * Parse the JNI execution context
  */
-void parse_context(JNIEnv *env, jbyte *b)
+void parse_context(JNIEnv *env, jbyte *b, struct evm_message *msg, struct evm_tx_context *ctx)
 {
     unsigned address_len = 32;
     unsigned offset = 0;
-    memcpy(msg.address.bytes, b + offset, address_len); offset += address_len; // address
-    memcpy(ctx.tx_origin.bytes, b + offset, address_len); offset += address_len; // origin
-    memcpy(msg.caller.bytes, b + offset, address_len); offset += address_len; // caller
+    memcpy(msg->address.bytes, b + offset, address_len); offset += address_len; // address
+    memcpy(ctx->tx_origin.bytes, b + offset, address_len); offset += address_len; // origin
+    memcpy(msg->caller.bytes, b + offset, address_len); offset += address_len; // caller
 
     offset += 16; // gas price
-    msg.gas = read_long(b + offset); offset += 8; // gas limit
+    msg->gas = read_long(b + offset); offset += 8; // gas limit
 
-    memcpy(msg.value.bytes, b + offset, 16); offset += 16; // call value
-    msg.input_size = read_int(b + offset); offset += 4;
-    msg.input = (const unsigned char*)(b + offset); offset += msg.input_size; // call data
+    memcpy(msg->value.bytes, b + offset, 16); offset += 16; // call value
+    msg->input_size = read_int(b + offset); offset += 4;
+    msg->input = (const unsigned char*)(b + offset); offset += msg->input_size; // call data
 
-    msg.depth = read_int(b + offset); offset += 4; // depth
-    msg.kind = static_cast<evm_call_kind>(read_int(b + offset)); offset += 4; // kind
-    msg.flags = read_int(b + offset); offset += 4; // flags
+    msg->depth = read_int(b + offset); offset += 4; // depth
+    msg->kind = static_cast<evm_call_kind>(read_int(b + offset)); offset += 4; // kind
+    msg->flags = read_int(b + offset); offset += 4; // flags
 
-    memcpy(ctx.block_coinbase.bytes, b + offset, address_len); offset += address_len; // block coinbase
-    ctx.block_number = read_long(b + offset); offset += 8; // block number
-    ctx.block_timestamp = read_long(b + offset); offset += 8; // block timestamp
-    ctx.block_gas_limit = read_long(b + offset); offset += 8; // block gas limit
-    memcpy(ctx.block_difficulty.bytes, b + offset, 16); offset += 16; // call value
+    memcpy(ctx->block_coinbase.bytes, b + offset, address_len); offset += address_len; // block coinbase
+    ctx->block_number = read_long(b + offset); offset += 8; // block number
+    ctx->block_timestamp = read_long(b + offset); offset += 8; // block timestamp
+    ctx->block_gas_limit = read_long(b + offset); offset += 8; // block gas limit
+    memcpy(ctx->block_difficulty.bytes, b + offset, 16); offset += 16; // call value
 }
 
 /**
@@ -444,8 +443,9 @@ JNIEXPORT jbyteArray JNICALL Java_org_aion_fastvm_FastVM_run
     jsize code_size = env->GetArrayLength(code);
 
     // parse execution context and compute code hash
+    struct evm_message msg;
     jbyte *context_ptr = (jbyte *)env->GetByteArrayElements(context, NULL);
-    parse_context(env, context_ptr);
+    parse_context(env, context_ptr, &msg, &ctx);
     dev::evmjit::keccak((const uint8_t*) code_ptr, code_size, msg.code_hash.bytes);
 
     // execute
