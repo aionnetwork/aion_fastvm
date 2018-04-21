@@ -37,7 +37,7 @@ public class PrecompiledContracts {
     // total currency address definition
     public static final Address totalCurrencyAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000000000100");
     // TODO: move these to a configurable location (BlockConstants?)
-    public static final Address totalCurrencyOwnerAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000000000100");
+    public static final Address totalCurrencyOwnerAddress = Address.wrap("a07030c19eb46355ee5720556e6f5c2b7c45628d87b8242894995413eadf66ce");
 
     /**
      * Returns a precompiled contract by address. For a reader with only knowledge regarding
