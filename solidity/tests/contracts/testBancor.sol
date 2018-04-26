@@ -1613,30 +1613,13 @@ contract BancorQuickConverter is IBancorQuickConverter, TokenHolder {
         IERC20Token fromToken = _path[0];
         require(uint128(msg.value) == 0 || (_amount == uint128(msg.value) && etherTokens[fromToken]));
 
-        ISmartToken smartToken;
-        IERC20Token toToken;
-        ITokenConverter converter;
-        uint128 pathLength = uint128(_path.length);
-
         // if ETH was sent with the call, the source is an ether token - deposit the ETH in it
         // otherwise, we assume we already have the tokens
         if (uint128(msg.value) > 0)
             IEtherToken(fromToken).deposit.value(uint128(msg.value))();
 
         // iterate over the conversion path
-        for (uint128 i = 1; i < pathLength; i += 2) {
-            smartToken = ISmartToken(_path[i]);
-            toToken = _path[i + 1];
-            converter = ITokenConverter(smartToken.owner());
-
-            // if the smart token isn't the source (from token), the converter doesn't have control over it and thus we need to approve the request
-            if (smartToken != fromToken)
-                ensureAllowance(fromToken, converter, _amount);
-
-            // make the conversion - if it's the last one, also provide the minimum return value
-            _amount = converter.change(fromToken, toToken, _amount, i == pathLength - 2 ? _minReturn : 1);
-            fromToken = toToken;
-        }
+        IERC20Token toToken = _path[iterateConversionPath(_path, _amount, _minReturn)];
 
         // finished the conversion, transfer the funds to the target account
         // if the target token is an ether token, withdraw the tokens and send them as ETH
@@ -1647,6 +1630,33 @@ contract BancorQuickConverter is IBancorQuickConverter, TokenHolder {
             assert(toToken.transfer(_for, _amount));
 
         return _amount;
+    }
+
+    function iterateConversionPath(IERC20Token[] _path, uint128 _amount, uint128 _minReturn)
+    private
+    returns (uint128)
+    {
+        uint128 to = 2;
+
+        for (; to < _path.length; to += 2) {
+            // The following variables have been replaced with expressions to save stack space
+            /*
+            IERC20Token fromToken = _path[to - 2];
+            ISmartToken smartToken = ISmartToken(_path[to - 1]);
+            IERC20Token toToken = _path[to];
+            */
+
+            ITokenConverter converter = ITokenConverter(ISmartToken(_path[to - 1]).owner());
+
+            // if the smart token isn't the source (from token), the converter doesn't have control over it and thus we need to approve the request
+            if (ISmartToken(_path[to - 1]) != _path[to - 2])
+                ensureAllowance(_path[to - 2], converter, _amount);
+
+            // make the conversion - if it's the last one, also provide the minimum return value
+            _amount = converter.change(_path[to - 2], _path[to], _amount, to == _path.length - 1 ? _minReturn : 1);
+        }
+
+        return to;
     }
 
     /**
