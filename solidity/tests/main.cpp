@@ -12,6 +12,7 @@
 
 #include <libsolidity/interface/CompilerStack.h>
 
+#include <iostream>
 using namespace std;
 
 namespace dev

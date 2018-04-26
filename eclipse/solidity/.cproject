@@ -47,13 +47,13 @@
                                 								
                                 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.251593827" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
                                 								
-                                <option id="gnu.cpp.compiler.option.dialect.std.1790023933" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.dialect.std.1790023933" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
                                 								
                                 <option id="gnu.cpp.compiler.option.include.paths.1154861856" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/../../include&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/evmjit/include}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/../../solidity&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/solidity}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="/usr/include/jsoncpp"/>
                                     								
@@ -77,7 +77,7 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1912134290" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
                                 								
-                                <option id="gnu.cpp.link.option.libs.1161343326" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+                                <option id="gnu.cpp.link.option.libs.1161343326" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="boost_filesystem"/>
                                     									
@@ -99,7 +99,7 @@
                                     								
                                 </option>
                                 								
-                                <option id="gnu.cpp.link.option.paths.1711229422" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+                                <option id="gnu.cpp.link.option.paths.1711229422" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/../../dist&quot;"/>
                                     								

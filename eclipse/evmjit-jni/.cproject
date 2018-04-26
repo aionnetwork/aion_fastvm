@@ -85,9 +85,9 @@
                                 								
                                 <option id="gnu.c.compiler.option.dialect.std.1633802042" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.files.1938817505" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" useByScannerDiscovery="false" valueType="includeFiles"/>
+                                <option id="gnu.c.compiler.option.include.files.1938817505" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" useByScannerDiscovery="false"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.1325543845" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath"/>
+                                <option id="gnu.c.compiler.option.include.paths.1325543845" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.373153219" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -111,7 +111,7 @@
                                 								
                                 <option id="gnu.cpp.link.option.paths.449533627" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/evmjit/Debug}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/../../dist&quot;"/>
                                     								
                                 </option>
                                 								
