@@ -20,6 +20,7 @@
  ******************************************************************************/
 package org.aion.fastvm;
 
+import java.util.List;
 import org.aion.base.db.IContractDetails;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
@@ -128,23 +129,17 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
         throw new RuntimeException("Not supported");
     }
 
-    @Override
     public int getStorageSize(Address address) {
         throw new RuntimeException("Not supported");
     }
 
-    @Override
     public Set<DataWord> getStorageKeys(Address address) {
         throw new RuntimeException("Not supported");
     }
 
     @Override
     public void addStorageRow(Address addr, DataWord key, DataWord value) {
-        Map<String, byte[]> map = storage.get(addr);
-        if (map == null) {
-            map = new HashMap<>();
-            storage.put(addr, map);
-        }
+        Map<String, byte[]> map = storage.computeIfAbsent(addr, k -> new HashMap<>());
 
         map.put(key.toString(), value.getData());
     }
@@ -157,6 +152,16 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
         } else {
             return DataWord.ZERO;
         }
+    }
+
+    @Override
+    public List<byte[]> getPoolTx() {
+        return null;
+    }
+
+    @Override
+    public List<byte[]> getCacheTx() {
+        return null;
     }
 
     @Override
@@ -219,6 +224,11 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
+    public boolean isIndexed(byte[] hash, long level) {
+        return false;
+    }
+
+    @Override
     public void updateBatch(Map<Address, AccountState> accountStates,
                             Map<Address, IContractDetails<DataWord>> contractDetailes) {
         throw new UnsupportedOperationException();
@@ -241,8 +251,23 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
+    public boolean isSnapshot() {
+        return false;
+    }
+
+    @Override
     public IBlockStoreBase<?, ?> getBlockStore() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addTxBatch(Map<byte[], byte[]> pendingTx, boolean isPool) {
+
+    }
+
+    @Override
+    public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {
+
     }
 
     @Override
