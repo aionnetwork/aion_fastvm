@@ -34,10 +34,7 @@ import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 
 import java.io.ByteArrayOutputStream;
@@ -420,6 +417,7 @@ public class NrgCostTest {
      * NOTE: Before you run this test, make sure the database is empty, to get consistent results.
      */
     @Test
+    @Ignore
     public void testDB() {
         AionRepositoryImpl db = AionRepositoryImpl.inst();
         byte[] zeros28 = new byte[28];

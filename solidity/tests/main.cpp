@@ -12,6 +12,7 @@
 
 #include <libsolidity/interface/CompilerStack.h>
 
+#include <iostream>
 using namespace std;
 
 namespace dev
@@ -1722,6 +1723,18 @@ TEST(test, Ticker) {
 TEST(test, Wallet) {
     string file = "testWallet.sol";
     string name = "Wallet";
+    string contract = loadContract(file);
+
+    dev::solidity::CompilerStack compiler;
+    compiler.addSource(file, contract);
+    ASSERT_TRUE(compiler.compile());
+
+    printAsm(file, name, contract, compiler);
+}
+
+TEST(test, Bancor) {
+    string file = "testBancor.sol";
+    string name = "BancorQuickConverter";
     string contract = loadContract(file);
 
     dev::solidity::CompilerStack compiler;

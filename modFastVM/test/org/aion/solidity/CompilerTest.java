@@ -52,4 +52,34 @@ public class CompilerTest {
         assertNotNull(result.output.contains("bin"));
         assertTrue(result.output.contains("abi"));
     }
+
+    @Test
+    public void testPayable() throws IOException {
+        String contract = "pragma solidity ^0.4.0;\n" +
+                "\n" +
+                "contract Register {\n" +
+                "    mapping (address => bool) registeredAddresses;\n" +
+                "    uint price;\n" +
+                "\n" +
+                "    function Register(uint initialPrice) public { price = initialPrice; }\n" +
+                "\n" +
+                "    function register() public payable {\n" +
+                "        registeredAddresses[msg.sender] = true;\n" +
+                "    }\n" +
+                "\n" +
+                "    function changePrice(uint _price) public {\n" +
+                "        price = _price;\n" +
+                "    }\n" +
+                "}\n";
+        System.out.println(contract);
+
+        Compiler.Result r = Compiler.getInstance().compile(contract.getBytes(), Options.ABI, Options.BIN);
+        CompilationResult cr = CompilationResult.parse(r.output);
+
+        Abi abi = Abi.fromJSON(cr.contracts.get("Register").abi);
+        Abi.Function func = abi.findFunction(f -> f.name.equals("register"));
+
+        System.out.println("Method: name = " + func.name + ", payable = " + func.payable);
+        assertTrue(func.payable);
+    }
 }

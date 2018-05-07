@@ -47,7 +47,7 @@
                                 								
                                 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1279162546" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
                                 								
-                                <option id="gnu.cpp.compiler.option.dialect.std.2056281632" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++1y" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.dialect.std.2056281632" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
                                 								
                                 <option id="gnu.cpp.compiler.option.include.paths.2059197724" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
                                     									
@@ -55,9 +55,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libevmjit}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/usr/include/llvm-5.0"/>
+                                    <listOptionValue builtIn="false" value="/usr/include/llvm-4.0"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/usr/include/llvm-c-5.0"/>
+                                    <listOptionValue builtIn="false" value="/usr/include/llvm-c-4.0"/>
                                     								
                                 </option>
                                 								
@@ -81,7 +81,7 @@
                                 								
                                 <option id="gnu.cpp.link.option.libs.1580107364" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
-                                    <listOptionValue builtIn="false" value="LLVM-5.0"/>
+                                    <listOptionValue builtIn="false" value="LLVM-4.0"/>
                                     									
                                     <listOptionValue builtIn="false" value="gtest"/>
                                     									
@@ -115,7 +115,7 @@
                         						
                         <entry excluding="tests|libevmjit|include" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
+                        <entry excluding="../include" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="include"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="libevmjit"/>
                         						
@@ -229,36 +229,6 @@
         	
     </storageModule>
     	
-    <storageModule moduleId="scannerConfiguration">
-        		
-        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.664316084;cdt.managedbuild.config.gnu.exe.release.664316084.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.92402369;cdt.managedbuild.tool.gnu.c.compiler.input.2085406250">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.3860182;cdt.managedbuild.config.gnu.exe.debug.3860182.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.263861189;cdt.managedbuild.tool.gnu.c.compiler.input.343776323">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.664316084;cdt.managedbuild.config.gnu.exe.release.664316084.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1836375451;cdt.managedbuild.tool.gnu.cpp.compiler.input.1101274455">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.3860182;cdt.managedbuild.config.gnu.exe.debug.3860182.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.186657577;cdt.managedbuild.tool.gnu.cpp.compiler.input.336575347">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        	
-    </storageModule>
-    	
     <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
     	
     <storageModule moduleId="refreshScope" versionNumber="2">
@@ -280,5 +250,9 @@
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     	
     <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+    	
+    <storageModule moduleId="scannerConfiguration"/>
+    	
+    <storageModule moduleId="org.eclipse.cdt.core.pathentry"/>
     
 </cproject>

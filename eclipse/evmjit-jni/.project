@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>solidity</name>
+	<name>evmjit-jni</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -26,34 +26,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>libdevcore</name>
+			<name>jni</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libdevcore</location>
-		</link>
-		<link>
-			<name>libevmasm</name>
-			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libevmasm</location>
-		</link>
-		<link>
-			<name>libjulia</name>
-			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libjulia</location>
-		</link>
-		<link>
-			<name>libsolidity</name>
-			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libsolidity</location>
-		</link>
-		<link>
-			<name>solidity</name>
-			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity</location>
-		</link>
-		<link>
-			<name>tests</name>
-			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/tests</location>
+			<locationURI>$%7BPARENT-2-PROJECT_LOC%7D/jni</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

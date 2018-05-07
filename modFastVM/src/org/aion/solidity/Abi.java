@@ -205,6 +205,7 @@ public final class Abi {
         public JSONObject toJSON() {
             JSONObject obj = new JSONObject();
             obj.put("anonymous", anonymous);
+            obj.put("payable", payable);
             obj.put("constant", constant);
             obj.put("name", name);
             JSONArray arr = new JSONArray();
