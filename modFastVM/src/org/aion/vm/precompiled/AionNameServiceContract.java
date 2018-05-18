@@ -22,11 +22,8 @@ package org.aion.vm.precompiled;
 
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
-//import org.aion.crypto.ECKey;
-//import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.ed25519.ECKeyEd25519;
 import org.aion.crypto.ed25519.Ed25519Signature;
-//import org.aion.fastvm.*;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
@@ -48,6 +45,7 @@ import static org.aion.crypto.HashUtil.blake128;
  *      time-to-live for all records under the domain
  * Resolvers are responsible for the actual process of translating names into address
  *
+ * @author William
  */
 
 
@@ -58,9 +56,10 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     //public final static long COST = 30000L;
     private final static long SET_COST = 1000;
     private final static long TRANSFER_COST = 2000;
+    private final static String DEFAULT_ADDRESS = "0101010111000000010000000000001111010111110001001111101010101011";
 
     private Address address; // of contract
-    //private Address domainAddress;
+    private Address domainAddress;
     private Address ownerAddress;
     private Address resolverAddressKey;
     private Address TTLKey;
@@ -75,18 +74,17 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         super(track);
         this.address = address;
         this.ownerAddress = ownerAddress;
+        //this.resolverAddressKey = Address.wrap(DEFAULT_ADDRESS);
     }
 
     /**
-     *
-     * Input is defined as:
+     * input is defined as:
      * [ <1b chainID> |<1b operation> | <32b address> | <96b signature>]
      *      total: 1 + 1 + 32 + 96 = 130
      *
      *      Where the chainId is intended to be our current chainId, in the case of the first AION network this should
      *      be set to 1. operation checks for which contract operation the user wishes to execute. The address represent
      *      the new address to be used, and lastly the signature for security.
-     *
      */
 
     public ExecutionResult execute(byte[] input, long nrg) {
@@ -102,7 +100,6 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         byte operation = input[1];
         offset++;
 
-        //byte[] address = new byte[32];
         byte[] addressFirstPart = new byte[16];
         byte[] addressSecondPart = new byte[16];
         byte[] addressCombined = new byte[32];
@@ -143,7 +140,7 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
 
         // operation: {1-setResolver, 2-setTTL, 3-transferOwnership, 4-transferSubdomainOwnership}
         switch (operation){
-            case 1: return setResolver(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
+            case 1: return setResolver(HashFirstPart, HashSecondPart, addressFirstPart, addressSecondPart, nrg);
             case 2: return setTTL(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
             case 3: return transferOwnership(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
             case 4: return transferSubdomainOwnership(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
@@ -154,14 +151,11 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     /**
      * Set Resolver for this domain
      */
-
     private ExecutionResult setResolver (byte[] hash1, byte[] hash2, byte[] addr1, byte[] addr2, long nrg){
         if (nrg < SET_COST)
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
 
-        // store result
-        this.track.addStorageRow(this.address, new DataWord(hash1), new DataWord(addr1));
-        this.track.addStorageRow(this.address, new DataWord(hash2), new DataWord(addr2));
+        storeResult(hash1, hash2, addr1, addr2);
 
         //set the key
         byte[] combined = new byte[32];
@@ -179,9 +173,7 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         if (nrg < SET_COST)
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
 
-        // store result
-        this.track.addStorageRow(this.address, new DataWord(hash1), new DataWord(addr1));
-        this.track.addStorageRow(this.address, new DataWord(hash2), new DataWord(addr2));
+        storeResult(hash1, hash2, addr1, addr2);
 
         //set the key
         byte[] combined = new byte[32];
@@ -199,10 +191,7 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         if (nrg < TRANSFER_COST)
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
 
-
-        // store result
-        this.track.addStorageRow(this.address, new DataWord(hash1), new DataWord(addr1));
-        this.track.addStorageRow(this.address, new DataWord(hash2), new DataWord(addr2));
+        storeResult(hash1, hash2, addr1, addr2);
 
         //set the key
         byte[] combined = new byte[32];
@@ -224,15 +213,48 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         return null;
     }
 
+    /**
+     * Helper functions
+     *
+     * operations on hashes and addresses
+     */
+
+    private void storeResult(byte[] hash1, byte[] hash2, byte[] addr1, byte[] addr2){
+        this.track.addStorageRow(this.address, new DataWord(hash1), new DataWord(addr1));
+        this.track.addStorageRow(this.address, new DataWord(hash2), new DataWord(addr2));
+    }
+
+    private Address getValueFromStorage(Address key){
+        if(key == null)
+            return  null;
+        byte[] byteKey = key.toBytes();
+        byte[] key1 = new byte[16];
+        byte[] key2 = new byte[16];
+        System.arraycopy(byteKey, 0, key1, 0, 16);
+        System.arraycopy(byteKey, 16, key2, 0, 16);
+
+        DataWord data1 = this.track.getStorageValue(this.address, new DataWord(key1));
+        DataWord data2 = this.track.getStorageValue(this.address, new DataWord(key2));
+
+        byte[] addr1 = data1.getData();
+        byte[] addr2 = data2.getData();
+
+        //String addr1 = data1.toString();
+        //String addr2 = data2.toString();
+
+        byte[] addrCombined = new byte[32];
+        System.arraycopy(addr1, 0, addrCombined, 0, 16);
+        System.arraycopy(addr2, 0, addrCombined, 16, 16);
+
+        return (new Address(addrCombined));
+    }
 
     // getter functions
-    public Address getResolverAddress() { return this.track.getStorageValue(); }
+    public Address getResolverAddress() { return getValueFromStorage(this.resolverAddressKey); }
 
-    public Address getDomainAddress(){ return  this.address; }
+    public Address getDomainAddress(){ return getValueFromStorage(this.domainAddress); }
 
-    public Address getTTL(){ return this.TTL; }
+    public Address getTTL(){ return getValueFromStorage(this.TTLKey);}
 
-    public Address getOwnerAddress(){ return ownerAddress; }
+    public Address getOwnerAddress(){ return getValueFromStorage(this.ownerAddress); }
 }
-
-

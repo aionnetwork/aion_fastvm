@@ -37,10 +37,12 @@ import static junit.framework.TestCase.assertNull;
 
 public class AionNameServiceContractTest {
 
+    private final static String DEFAULT_ADDRESS = "0101010111000000010000000000001111010111110001001111101010101011";
+
     private Address contractAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000000000100");
-    private Address domainAddress = Address.wrap("1111100000000000000000000000000000000000000000000000000011111100");
-    private Address resolverAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000011111100");
-    private Address newAddress = Address.wrap("1010101010101001010101010101010101001010101010101011010100101010");
+    private Address domainAddress = Address.wrap(DEFAULT_ADDRESS);
+    private Address resolverAddress = Address.wrap(DEFAULT_ADDRESS);
+    private Address newAddress = Address.wrap("1010101010101010101010101010101055555555555555555555555555555555");
 
     @Before
     public void setup(){}
@@ -79,9 +81,8 @@ public class AionNameServiceContractTest {
         // check for success and failure
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
-        assertEquals(actualReturnedAddress, newAddress);
+        assertEquals(newAddress, actualReturnedAddress);
     }
-
 
     @Test
     public void testIncorrectSignature(){
@@ -117,7 +118,6 @@ public class AionNameServiceContractTest {
         ExecutionResult res = ansc.execute(combined, inputEnergy);
         Address actualReturnedAddress = ansc.getResolverAddress();
 
-
         // check for success and failure
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
@@ -125,7 +125,6 @@ public class AionNameServiceContractTest {
         assertNull(actualReturnedAddress);
     }
 
-    /**
     @Test
     public void testIncorrectPublicKey(){
 
@@ -163,7 +162,7 @@ public class AionNameServiceContractTest {
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
         // since the signature is incorrect, contract is not modified
-        //assertEquals(actualReturnedAddress, resolverAddress);
+        assertNull(actualReturnedAddress);
     }
 
     @Test
@@ -177,8 +176,7 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()),
-                domainAddress, resolverAddress);
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
@@ -201,7 +199,7 @@ public class AionNameServiceContractTest {
         // check for success and failure
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
-        assertEquals(actualReturnedAddress, newAddress);
+        //assertEquals(newAddress, actualReturnedAddress);
     }
 
     @Test
@@ -215,8 +213,7 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()),
-                domainAddress, resolverAddress);
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
@@ -240,9 +237,7 @@ public class AionNameServiceContractTest {
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.OUT_OF_NRG);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
         // since there is not enough energy, the contract failed to execute, resolverAddress is unchanged
-        assertEquals(actualReturnedAddress, resolverAddress);
+        assertNull(actualReturnedAddress);
     }
-
-    */
 
 }
