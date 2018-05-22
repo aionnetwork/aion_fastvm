@@ -35,7 +35,7 @@ import static org.aion.crypto.HashUtil.blake128;
 //import java.nio.ByteBuffer;
 
 /**
- * Aion Name Service
+ * Aion Name Service Contract
  *
  * Architecture:
  * Registry consists of a single central contract that maintains a list of all domains and
@@ -56,11 +56,14 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     //public final static long COST = 30000L;
     private final static long SET_COST = 1000;
     private final static long TRANSFER_COST = 2000;
-    private final static String DEFAULT_ADDRESS = "0101010111000000010000000000001111010111110001001111101010101011";
+    private final static String RESOLVER_HASH = "ResolverHash";
+    private final static String OWNER_HASH = "OwnerHash";
+    private final static String TTL_HASH = "TTLHash";
 
     private Address address; // of contract
-    private Address domainAddress;
+    //private Address domainAddress;
     private Address ownerAddress;
+    private Address ownerAddressKey;
     private Address resolverAddressKey;
     private Address TTLKey;
 
@@ -102,10 +105,10 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
 
         byte[] addressFirstPart = new byte[16];
         byte[] addressSecondPart = new byte[16];
-        byte[] addressCombined = new byte[32];
+        //byte[] addressCombined = new byte[32];
         byte[] sign = new byte[96];
 
-        System.arraycopy(input, offset, addressCombined, 0, 32);
+        //System.arraycopy(input, offset, addressCombined, 0, 32);
         System.arraycopy(input, offset, addressFirstPart, 0, 16);
         offset +=16;
         System.arraycopy(input, offset, addressSecondPart, 0, 16);
@@ -135,15 +138,25 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         }
 
         // hashes of the name, 16 bytes each
-        byte[] HashFirstPart = blake128(this.address.toBytes());
-        byte[] HashSecondPart = blake128(HashFirstPart);
+        byte[] addressHash1 = blake128(this.address.toBytes());
+        byte[] addressHash2 = blake128(addressHash1);
+
+        byte[] resolverHash1 = blake128(RESOLVER_HASH.getBytes());
+        byte[] resolverHash2 = blake128(resolverHash1);
+
+        byte[] TTLHash1 = blake128(TTL_HASH.getBytes());
+        byte[] TTLHash2 = blake128(TTLHash1);
+
+        byte[] ownerHash1 = blake128(OWNER_HASH.getBytes());
+        byte[] ownerHash2 = blake128(ownerHash1);
+
 
         // operation: {1-setResolver, 2-setTTL, 3-transferOwnership, 4-transferSubdomainOwnership}
         switch (operation){
-            case 1: return setResolver(HashFirstPart, HashSecondPart, addressFirstPart, addressSecondPart, nrg);
-            case 2: return setTTL(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
-            case 3: return transferOwnership(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
-            case 4: return transferSubdomainOwnership(HashFirstPart, HashSecondPart, addressFirstPart, addressFirstPart, nrg);
+            case 1: return setResolver(resolverHash1, resolverHash2, addressFirstPart, addressSecondPart, nrg);
+            case 2: return setTTL(TTLHash1, TTLHash2, addressFirstPart, addressSecondPart, nrg);
+            case 3: return transferOwnership(ownerHash1, ownerHash2, addressFirstPart, addressSecondPart, nrg);
+            case 4: return transferSubdomainOwnership(addressHash1, addressHash2, addressFirstPart, addressSecondPart, nrg);
             default: return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg); // unsupported operation
         }
     }
@@ -197,7 +210,7 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         byte[] combined = new byte[32];
         System.arraycopy(hash1, 0, combined, 0, 16);
         System.arraycopy(hash2, 0, combined, 16, 16);
-        this.ownerAddress = new Address(combined);
+        this.ownerAddressKey = new Address(combined);
 
         return new ExecutionResult(ExecutionResult.Code.SUCCESS, nrg - TRANSFER_COST);
     }
@@ -252,9 +265,9 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     // getter functions
     public Address getResolverAddress() { return getValueFromStorage(this.resolverAddressKey); }
 
-    public Address getDomainAddress(){ return getValueFromStorage(this.domainAddress); }
+    //public Address getDomainAddress(){ return getValueFromStorage(this.domainAddress); }
 
     public Address getTTL(){ return getValueFromStorage(this.TTLKey);}
 
-    public Address getOwnerAddress(){ return getValueFromStorage(this.ownerAddress); }
+    public Address getOwnerAddress(){ return getValueFromStorage(this.ownerAddressKey); }
 }

@@ -37,15 +37,126 @@ import static junit.framework.TestCase.assertNull;
 
 public class AionNameServiceContractTest {
 
-    private final static String DEFAULT_ADDRESS = "0101010111000000010000000000001111010111110001001111101010101011";
+    //private final static String DEFAULT_ADDRESS = "0101010111000000010000000000001111010111110001001111101010101011";
+    //private Address domainAddress = Address.wrap(DEFAULT_ADDRESS);
+    //private Address resolverAddress = Address.wrap(DEFAULT_ADDRESS);
 
-    private Address contractAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000000000100");
-    private Address domainAddress = Address.wrap(DEFAULT_ADDRESS);
-    private Address resolverAddress = Address.wrap(DEFAULT_ADDRESS);
-    private Address newAddress = Address.wrap("1010101010101010101010101010101055555555555555555555555555555555");
+    private Address contractAddress1 = Address.wrap("1111111111111111111111111111111101010101010101010101010101010101");
+    private Address contractAddress2 = Address.wrap("2222222222222222222222222222222202020202020202020202020202020202");
+    private Address contractAddress3 = Address.wrap("3333333333333333333333333333333303030303030303030303030303030303");
+
+    private Address newAddress1 = Address.wrap("1000000000000000000000000000000000000000000000000000000000000001");
+    private Address newAddress2 = Address.wrap("0100000000000000000000000000000000000000000000000000000000000010");
+    private Address newAddress3 = Address.wrap("0010000000000000000000000000000000000000000000000000000000000100");
+    private Address newAddress4 = Address.wrap("0001000000000000000000000000000000000000000000000000000000001000");
+    private Address newAddress5 = Address.wrap("0000100000000000000000000000000000000000000000000000000000010000");
+    private Address newAddress6 = Address.wrap("0000010000000000000000000000000000000000000000000000000000100000");
+    private Address newAddress7 = Address.wrap("0000001000000000000000000000000000000000000000000000000001000000");
+    private Address newAddress8 = Address.wrap("0000000100000000000000000000000000000000000000000000000010000000");
 
     @Before
     public void setup(){}
+
+    /**
+     * Test functions of ANS with multiple instances of ans in the database
+     *
+     * Test the transfer of ownership
+     *
+     * Initial set up:
+     * Storage:    contract1: contractAddress1
+     *                      resolver - newAddress1
+     *                      ttl - newAddress2
+     *                      owner - newAddress3
+     *             contract2: contractAddress2
+     *                      resolver - newAddress4
+     *                      ttl -
+     *                      owner -
+     *
+     */
+    @Test
+    public void bigTest(){
+        // initialize input parameters
+        final long inputEnergy = 5000L;
+        ECKey k = ECKeyFac.inst().create();
+        DummyRepository repo = new DummyRepository();
+
+        // create ANS contracts
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc2 = new AionNameServiceContract(repo, contractAddress2, Address.wrap(k.getAddress()));
+
+        // setup the inputs 1: set resolver-----------------------------------------------------------------------------
+        ByteBuffer bb = ByteBuffer.allocate(34);
+        bb.put((byte) 0x0)          // chainID
+                .put((byte) 0x1)    // OPERATION HERE
+                .put(newAddress1.toBytes(), 0, 32);
+        byte[] data = bb.array();
+        ISignature signature1 = k.sign(data);
+        bb = ByteBuffer.allocate(34 + 96);
+        bb.put(data);
+        bb.put(signature1.toBytes());
+        byte[] combined = bb.array();
+
+        // setup the inputs 2: set TTL
+        ByteBuffer bb2 = ByteBuffer.allocate(34);
+        bb2.put((byte) 0x0)          // chainID
+                .put((byte) 0x2)    // OPERATION HERE
+                .put(newAddress2.toBytes(), 0, 32);
+        byte[] data2 = bb2.array();
+        ISignature signature2 = k.sign(data2);
+        bb2 = ByteBuffer.allocate(34 + 96);
+        bb2.put(data2);
+        bb2.put(signature2.toBytes());
+        byte[] combined2 = bb2.array();
+
+        // setup the inputs 3: Transfer(set) owner
+        ByteBuffer bb3 = ByteBuffer.allocate(34);
+        bb3.put((byte) 0x0)          // chainID
+                .put((byte) 0x3)    // OPERATION HERE
+                .put(newAddress3.toBytes(), 0, 32);
+        byte[] data3 = bb3.array();
+        ISignature signature3 = k.sign(data3);
+        bb3 = ByteBuffer.allocate(34 + 96);
+        bb3.put(data3);
+        bb3.put(signature3.toBytes());
+        byte[] combined3 = bb3.array();
+
+        // setup the inputs 4: set Resolver
+        ByteBuffer bb4 = ByteBuffer.allocate(34);
+        bb4.put((byte) 0x0)          // chainID
+                .put((byte) 0x1)    // OPERATION HERE
+                .put(newAddress4.toBytes(), 0, 32);
+        byte[] data4 = bb4.array();
+        ISignature signature4 = k.sign(data4);
+        bb4 = ByteBuffer.allocate(34 + 96);
+        bb4.put(data4);
+        bb4.put(signature4.toBytes());
+        byte[] combined4 = bb4.array();
+
+        // execute contract --------------------------------------------------------------------------------------------
+        ExecutionResult res1 = ansc.execute(combined, inputEnergy);
+        ExecutionResult res2 = ansc.execute(combined2, inputEnergy);
+        ExecutionResult res3 = ansc.execute(combined3, inputEnergy);
+
+        // basic checks
+        assertThat(res1.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res1.getNrgLeft()).isEqualTo(4000);
+        assertThat(res2.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res2.getNrgLeft()).isEqualTo(4000);
+        assertThat(res3.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res3.getNrgLeft()).isEqualTo(3000);
+
+        // storage checks
+        assertEquals(newAddress1, ansc.getResolverAddress());
+        assertEquals(newAddress2, ansc.getTTL());
+        assertEquals(newAddress3, ansc.getOwnerAddress());
+
+        // contract2
+        ExecutionResult res4 = ansc2.execute(combined4, inputEnergy);
+        assertThat(res4.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res4.getNrgLeft()).isEqualTo(4000);
+        assertEquals(newAddress4, ansc2.getResolverAddress());
+    }
+
 
     @Test
     public void testSetResolver(){
@@ -58,13 +169,13 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
         bb.put((byte) 0x0)          // chainID
                 .put((byte) 0x1)    // OPERATION HERE
-                .put(newAddress.toBytes(), 0, 32);
+                .put(newAddress1.toBytes(), 0, 32);
 
         byte[] payload = bb.array();
         ISignature signature = k.sign(payload);
@@ -81,7 +192,7 @@ public class AionNameServiceContractTest {
         // check for success and failure
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
-        assertEquals(newAddress, actualReturnedAddress);
+        assertEquals(newAddress1, actualReturnedAddress);
     }
 
     @Test
@@ -95,13 +206,13 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
         bb.put((byte) 0x0)          // chainID
                 .put((byte) 0x1)    // OPERATION HERE
-                .put(newAddress.toBytes(), 0, 32);
+                .put(newAddress1.toBytes(), 0, 32);
 
         byte[] payload = bb.array();
         ISignature signature = k.sign(payload);
@@ -138,13 +249,13 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
         bb.put((byte) 0x0)          // chainID
                 .put((byte) 0x1)    // OPERATION HERE
-                .put(newAddress.toBytes(), 0, 32);
+                .put(newAddress1.toBytes(), 0, 32);
 
         byte[] payload = bb.array();
         ISignature signature = notk.sign(payload);
@@ -176,13 +287,13 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
         bb.put((byte) 0x0)          // chainID
                 .put((byte) 0x3)    // OPERATION HERE
-                .put(newAddress.toBytes(), 0, 32);
+                .put(newAddress1.toBytes(), 0, 32);
 
         byte[] payload = bb.array();
         ISignature signature = k.sign(payload);
@@ -213,13 +324,13 @@ public class AionNameServiceContractTest {
         DummyRepository repo = new DummyRepository();
 
         // create ANS contract
-        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
 
         // setup the inputs
         ByteBuffer bb = ByteBuffer.allocate(34);
         bb.put((byte) 0x0)          // chainID
                 .put((byte) 0x1)    // OPERATION HERE
-                .put(newAddress.toBytes(), 0, 32);
+                .put(newAddress1.toBytes(), 0, 32);
 
         byte[] payload = bb.array();
         ISignature signature = k.sign(payload);
