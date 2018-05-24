@@ -132,6 +132,25 @@ public class AionNameServiceContractTest {
         assertEquals(newAddress5, ansc.getOwnerAddress());
     }
 
+    /**
+     * Set contract2 and contract3 as a subdomain of contract1
+     * Through contract1, change owner of contract 2 from Address4 to Address 5
+     *
+     * Initial set up:                                  After Transfer:
+     * Storage:    contract1: contractAddress1          Storage:    contract1: contractAddress1
+     *                      resolver - newAddress1                          resolver - newAddress1
+     *                      ttl - newAddress2                               ttl - newAddress2
+     *                      owner - newAddress3                             owner - newAddress3
+     *             contract2: contractAddress2                      contract2: contractAddress2
+     *                      resolver -                                      resolver -
+     *                      ttl -                                           ttl -
+     *                      owner - newAddress4                             owner - newAddress5
+     *             contract3: contractAddress3 (ttc)                contract3: contractAddress3 (ttc)
+     *                      resolver -                                      resolver -
+     *                      ttl -                                           ttl -
+     *                      owner - newAddress6                             owner - newAddress7
+     *
+     */
     @Test
     public void testTransferSubdomainOwnership(){
         // initialize input parameters
@@ -152,6 +171,7 @@ public class AionNameServiceContractTest {
         AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
         AionNameServiceContract ansc2 = new AionNameServiceContract(repo, contractAddress2, Address.wrap(k.getAddress()));
         //AionNameServiceContract ansc3 = new AionNameServiceContract(repo, contractAddress3, Address.wrap(k.getAddress()));
+        //TotalCurrencyContract ttc = new TotalCurrencyContract(repo, contractAddress3, Address.wrap(k.getAddress()));
 
         repo.addStorageRow(contractAddress1, new DataWord(resolverHash1), new DataWord("10000000000000000000000000000000"));
         repo.addStorageRow(contractAddress1, new DataWord(resolverHash2), new DataWord("00000000000000000000000000000001"));
@@ -172,7 +192,6 @@ public class AionNameServiceContractTest {
 
         ansc.addToSubdomain(contractAddress2);
         ExecutionResult res = ansc.execute(addSubdomainAddress, inputEnergy);
-
         Address actualReturnedAddress = ansc2.getOwnerAddress(Address.wrap(combineTwoBytes(ownerHash1,ownerHash2)));
 
         // check for success and failure
@@ -180,7 +199,57 @@ public class AionNameServiceContractTest {
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
         assertEquals(newAddress5, actualReturnedAddress);
 
+        /**
+        repo.addStorageRow(contractAddress3, new DataWord(ownerHash1), new DataWord("00000100000000000000000000000000"));
+        repo.addStorageRow(contractAddress3, new DataWord(ownerHash2), new DataWord("00000000000000000000000000100000"));
+
+        byte[] combined2 = setupInputs(newAddress7, (byte)0x0,(byte)0x4, k);
+        byte[] addSubdomainAddress2 = new byte[162];
+        System.arraycopy(combined2, 0, addSubdomainAddress2, 0, 130);
+        System.arraycopy(contractAddress3.toBytes(), 0, addSubdomainAddress2, 130, 32);
+
+        ansc.addToSubdomain(contractAddress3);
+        ExecutionResult res2 = ansc.execute(addSubdomainAddress, inputEnergy);
+        Address actualReturnedAddress2 = ttc.getOwnerAddress(Address.wrap(combineTwoBytes(ownerHash1,ownerHash2)));
+
+        // check for success and failure
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
+        assertEquals(newAddress5, actualReturnedAddress);
+        */
     }
+
+    /**
+    @Test
+    public void nullSignature(){
+        // initialize input parameters
+        final long inputEnergy = 5000L;
+        final long expectedEnergyLeft = 5000L;
+
+
+        ECKey k = ECKeyFac.inst().create();
+        DummyRepository repo = new DummyRepository();
+
+        // create ANS contract
+        AionNameServiceContract ansc  = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
+
+        ByteBuffer bb = ByteBuffer.allocate(130);
+        bb.put((byte) 0x0)          // chainID
+                .put((byte) 0x1)    // OPERATION HERE
+                .put(newAddress1.toBytes(), 0, 32);
+
+        byte[] combined = bb.array();
+
+        // execute ANS contract
+        ExecutionResult res = ansc.execute(combined, inputEnergy);
+        Address actualReturnedAddress = ansc.getResolverAddress();
+
+        // check for success and failure
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
+        assertNull(actualReturnedAddress);
+    }
+    */
 
     @Test
     public void incorrectInputLength(){
@@ -275,6 +344,30 @@ public class AionNameServiceContractTest {
     }
 
     @Test
+    public void testUnsupportedOperation(){
+        // initialize input parameters
+        final long inputEnergy = 5000L;
+        final long expectedEnergyLeft = 5000;
+
+        ECKey k = ECKeyFac.inst().create();
+        DummyRepository repo = new DummyRepository();
+
+        // create ANS contract
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
+
+        byte[] combined = setupInputs(newAddress1, (byte)0x0,(byte)0x6, k); //put (byte) 6 into input as the invalid
+
+        // execute ANS contract
+        ExecutionResult res = ansc.execute(combined, inputEnergy);
+        Address actualReturnedAddress = ansc.getResolverAddress();
+
+        // check for success and failure
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
+        assertNull(actualReturnedAddress);
+    }
+
+    @Test
     public void testIncorrectPublicKey(){
 
         // initialize input parameters
@@ -339,19 +432,26 @@ public class AionNameServiceContractTest {
 
         // create ANS contract
         AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
+        AionNameServiceContract ansc2 = new AionNameServiceContract(repo, contractAddress2, Address.wrap(k.getAddress()));
 
         byte[] combined = setupInputs(newAddress1, (byte)0x0,(byte)0x1, k);
         byte[] combined2 = setupInputs(newAddress2, (byte)0x0,(byte)0x2, k);
         byte[] combined3 = setupInputs(newAddress3, (byte)0x0,(byte)0x3, k);
+        byte[] combined4 = setupInputs(newAddress3, (byte)0x0,(byte)0x4, k);
+        byte[] addSubdomainAddress = new byte[162];
+        System.arraycopy(combined4, 0, addSubdomainAddress, 0, 130);
+        System.arraycopy(contractAddress2.toBytes(), 0, addSubdomainAddress, 130, 32);
 
         // execute ANS contract
         ExecutionResult res = ansc.execute(combined, inputEnergy);
         ExecutionResult res2 = ansc.execute(combined2, inputEnergy);
         ExecutionResult res3 = ansc.execute(combined3, inputEnergy);
+        ExecutionResult res4 = ansc.execute(addSubdomainAddress, inputEnergy);
 
         Address actualReturnedAddress = ansc.getResolverAddress();
-        Address actualReturnedAddress2 = ansc.getResolverAddress();
-        Address actualReturnedAddress3 = ansc.getResolverAddress();
+        Address actualReturnedAddress2 = ansc.getTTL();
+        Address actualReturnedAddress3 = ansc.getOwnerAddress();
+        Address actualReturnedAddress4 = ansc2.getOwnerAddress();
 
         // check for success and failure
         assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.OUT_OF_NRG);
@@ -370,6 +470,42 @@ public class AionNameServiceContractTest {
         assertThat(res3.getNrgLeft()).isEqualTo(expectedEnergyLeft);
         // since there is not enough energy, the contract failed to execute, resolverAddress is unchanged
         assertNull(actualReturnedAddress3);
+
+        // check for success and failure
+        assertThat(res4.getCode()).isEqualTo(ExecutionResult.Code.OUT_OF_NRG);
+        assertThat(res4.getNrgLeft()).isEqualTo(expectedEnergyLeft);
+        // since there is not enough energy, the contract failed to execute, resolverAddress is unchanged
+        assertNull(actualReturnedAddress4);
+    }
+
+    @Test
+    public void testSubdomainDoesNotExist(){
+
+        // initialize input parameters
+        final long inputEnergy = 5000L;
+        final long expectedEnergyLeft = 3000L;
+        final long expectedEnergyLeft2 = 0L;
+
+        ECKey k = ECKeyFac.inst().create();
+        DummyRepository repo = new DummyRepository();
+
+        // create ANS contract
+        AionNameServiceContract ansc = new AionNameServiceContract(repo, contractAddress1, Address.wrap(k.getAddress()));
+
+        byte[] combined = setupInputs(newAddress1, (byte)0x0,(byte)0x3, k);
+        byte[] combined2 = setupInputs(newAddress2, (byte)0x0,(byte)0x4, k);
+        byte[] addSubdomainAddress = new byte[162];
+        System.arraycopy(combined2, 0, addSubdomainAddress, 0, 130);
+        System.arraycopy(contractAddress2.toBytes(), 0, addSubdomainAddress, 130, 32);
+
+        ExecutionResult res = ansc.execute(combined, inputEnergy);
+        ExecutionResult res2 = ansc.execute(addSubdomainAddress, inputEnergy);
+
+        // check for success and failure
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
+        assertThat(res2.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res2.getNrgLeft()).isEqualTo(expectedEnergyLeft2);
     }
 
     private byte[] setupInputs(Address newAddress, byte id, byte operation, ECKey k){
@@ -384,9 +520,7 @@ public class AionNameServiceContractTest {
         bb = ByteBuffer.allocate(34 + 96);
         bb.put(payload);
         bb.put(signature.toBytes());
-        byte[] combined = bb.array();
-
-        return combined;
+        return bb.array();
     }
 
     private byte[] combineTwoBytes(byte[] byte1, byte[] byte2){
