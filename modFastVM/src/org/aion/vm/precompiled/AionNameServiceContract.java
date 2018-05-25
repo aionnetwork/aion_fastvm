@@ -30,7 +30,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.PrecompiledContracts;
 
-import java.util.ArrayList;
+
 
 import static org.aion.crypto.HashUtil.blake128;
 
@@ -61,22 +61,23 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     private final static String TTL_HASH = "TTLHash";
 
     private Address address; // of contract
-    //private Address domainAddress;
     private Address ownerAddress;
     private Address ownerAddressKey;
     private Address resolverAddressKey;
     private Address TTLKey;
-    private ArrayList<Address> subdomains = new ArrayList<>();
+    private String domainName;
 
     /**
      * Construct a new ANS Contract
      */
 
     public AionNameServiceContract(IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track, Address
-            address, Address ownerAddress){
+            address, Address ownerAddress, String domainName){
         super(track);
         this.address = address;
         this.ownerAddress = ownerAddress;
+        this.domainName = domainName;
+        setUpKeys();
     }
 
     /**
@@ -92,8 +93,11 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
      *      be set to 1. operation checks for which contract operation the user wishes to execute. The address represent
      *      the new address to be used, and lastly the signature for security.
      */
-
     public ExecutionResult execute(byte[] input, long nrg) {
+        return execute(input, nrg, "");
+    }
+
+    public ExecutionResult execute(byte[] input, long nrg, String subdomain) {
 
         // check for correct input format
         if (input.length != 130 && input.length != 162)
@@ -154,7 +158,7 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
             case 4:
                 System.arraycopy(input, offset, subdomainAddress, 0, 32);
                 return transferSubdomainOwnership(subdomainAddress, nrg, ownerHash1, ownerHash2,
-                    addressFirstPart, addressSecondPart);
+                    addressFirstPart, addressSecondPart, subdomain);
             default: return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg); // unsupported operation
         }
     }
@@ -210,13 +214,13 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     /**
      * Transfer the ownership of subdomain
      */
-    private ExecutionResult transferSubdomainOwnership(byte[] subdomainAddress, long nrg, byte[] hash1, byte[] hash2, byte[] addr1, byte[] addr2 ){
+    private ExecutionResult transferSubdomainOwnership(byte[] subdomainAddress, long nrg, byte[] hash1, byte[] hash2, byte[] addr1, byte[] addr2, String subdomain){
         if(nrg < TRANSFER_COST)
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG,0);
 
         Address sdAddress = Address.wrap(subdomainAddress);
 
-        if (this.subdomains.contains(sdAddress)){
+        if (isSubdomain(subdomain)){
             this.track.addStorageRow(sdAddress, new DataWord(hash1), new DataWord(addr1));
             this.track.addStorageRow(sdAddress, new DataWord(hash2), new DataWord(addr2));
             return  new ExecutionResult(ExecutionResult.Code.SUCCESS, nrg - TRANSFER_COST);
@@ -227,10 +231,29 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     /**
      * Helper functions:
      *
-     * processes on hashes and addresses, converting, concatenating, partitioning
+     * processes on hashes, domain name, and addresses, converting, concatenating, partitioning
      *
-     * data types: byte[], Address, Dataword
+     * data types: byte[], Address, Dataword, String
      */
+
+    private void setUpKeys(){
+        byte[] resolverHash1 = blake128(RESOLVER_HASH.getBytes());
+        byte[] resolverHash2 = blake128(resolverHash1);
+
+        byte[] TTLHash1 = blake128(TTL_HASH.getBytes());
+        byte[] TTLHash2 = blake128(TTLHash1);
+
+        byte[] ownerHash1 = blake128(OWNER_HASH.getBytes());
+        byte[] ownerHash2 = blake128(ownerHash1);
+
+        byte[] combined = combineTwoBytes(resolverHash1, resolverHash2);
+        byte[] combined2 = combineTwoBytes(TTLHash1, TTLHash2);
+        byte[] combined3 = combineTwoBytes(ownerHash1, ownerHash2);
+
+        this.resolverAddressKey = new Address(combined);
+        this.TTLKey = new Address(combined2);
+        this.ownerAddressKey = new Address(combined3);
+    }
 
     private byte[] combineTwoBytes(byte[] byte1, byte[] byte2){
         byte[] combined = new byte[32];
@@ -263,7 +286,24 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         return (new Address(addrCombined));
     }
 
-    // getter functions
+    private boolean isSubdomain (String subdomainName){
+        String[] domainPartitioned = this.domainName.split("\\.");
+        String[] subdomainPartitioned = subdomainName.split("\\.");
+
+        if (domainPartitioned.length >= subdomainPartitioned.length )
+            return false;
+
+        for (int i = 0; i <domainPartitioned.length; i ++){
+            if (!domainPartitioned[i].equals(subdomainPartitioned[i]))
+                return false;
+
+        }
+        return true;
+    }
+
+    /**
+     *  getter functions
+     */
     public Address getResolverAddress() { return getValueFromStorage(this.resolverAddressKey); }
 
     public Address getTTL(){ return getValueFromStorage(this.TTLKey);}
@@ -272,8 +312,4 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
 
     public Address getOwnerAddress(Address key){ return getValueFromStorage(key); }
 
-    // here now just for testing purposes
-    public void addToSubdomain(Address addr){
-        this.subdomains.add(addr);
-    }
 }
