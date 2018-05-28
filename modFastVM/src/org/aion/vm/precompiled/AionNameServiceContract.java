@@ -124,9 +124,9 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
 
         // verify signature is correct
         Ed25519Signature sig = Ed25519Signature.fromBytes(sign);
-        if (sig == null){
-            return  new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg);
-        }
+        //if (sig == null){
+        //    return  new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg);
+        // }
 
         byte[] payload = new byte[34];
         System.arraycopy(input, 0, payload, 0, 34);
@@ -141,23 +141,25 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
             return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, 0);
         }
 
-        byte[] resolverHash1 = blake128(RESOLVER_HASH.getBytes());
-        byte[] resolverHash2 = blake128(resolverHash1);
-
-        byte[] TTLHash1 = blake128(TTL_HASH.getBytes());
-        byte[] TTLHash2 = blake128(TTLHash1);
-
-        byte[] ownerHash1 = blake128(OWNER_HASH.getBytes());
-        byte[] ownerHash2 = blake128(ownerHash1);
-
         // operation: {1-setResolver, 2-setTTL, 3-transferOwnership, 4-transferSubdomainOwnership}
         switch (operation){
-            case 1: return setResolver(resolverHash1, resolverHash2, addressFirstPart, addressSecondPart, nrg);
-            case 2: return setTTL(TTLHash1, TTLHash2, addressFirstPart, addressSecondPart, nrg);
-            case 3: return transferOwnership(ownerHash1, ownerHash2, addressFirstPart, addressSecondPart, nrg);
+            case 1:
+                byte[] resolverHash1 = blake128(RESOLVER_HASH.getBytes());
+                byte[] resolverHash2 = blake128(resolverHash1);
+                return setResolver(resolverHash1, resolverHash2, addressFirstPart, addressSecondPart, nrg);
+            case 2:
+                byte[] TTLHash1 = blake128(TTL_HASH.getBytes());
+                byte[] TTLHash2 = blake128(TTLHash1);
+                return setTTL(TTLHash1, TTLHash2, addressFirstPart, addressSecondPart, nrg);
+            case 3:
+                byte[] ownerHash1 = blake128(OWNER_HASH.getBytes());
+                byte[] ownerHash2 = blake128(ownerHash1);
+                return transferOwnership(ownerHash1, ownerHash2, addressFirstPart, addressSecondPart, nrg);
             case 4:
+                byte[] subownerHash1 = blake128(OWNER_HASH.getBytes());
+                byte[] subownerHash2 = blake128(subownerHash1);
                 System.arraycopy(input, offset, subdomainAddress, 0, 32);
-                return transferSubdomainOwnership(subdomainAddress, nrg, ownerHash1, ownerHash2,
+                return transferSubdomainOwnership(subdomainAddress, nrg, subownerHash1, subownerHash2,
                     addressFirstPart, addressSecondPart, subdomain);
             default: return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg); // unsupported operation
         }
@@ -235,7 +237,6 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
      *
      * data types: byte[], Address, Dataword, String
      */
-
     private void setUpKeys(){
         byte[] resolverHash1 = blake128(RESOLVER_HASH.getBytes());
         byte[] resolverHash2 = blake128(resolverHash1);
