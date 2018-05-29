@@ -74,6 +74,12 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
     public AionNameServiceContract(IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track, Address
             address, Address ownerAddress, String domainName){
         super(track);
+        if (!isValidDomainAddress(address)) {
+            throw new IllegalArgumentException("Invalid domain address, check for aion prefix: 0xa0(66char) or a0(64char)\n") ;
+        }
+        if (!isValidOwnerAddress(ownerAddress)){
+            throw new IllegalArgumentException("The owner address does not exist in the given repository\n");
+        }
         this.address = address;
         this.ownerAddress = ownerAddress;
         this.domainName = domainName;
@@ -204,6 +210,10 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
         if (nrg < TRANSFER_COST)
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
 
+        if (!isValidOwnerAddress(Address.wrap(combineTwoBytes(addr1, addr2))))
+            return new ExecutionResult(ExecutionResult.Code.INTERNAL_ERROR, nrg);
+
+        Address.wrap(combineTwoBytes(addr1,addr2));
         storeResult(hash1, hash2, addr1, addr2);
 
         //set the key
@@ -300,6 +310,19 @@ public class AionNameServiceContract extends PrecompiledContracts.StatefulPrecom
 
         }
         return true;
+    }
+
+    // checks if the given domain address is valid under the aion domain
+    private boolean isValidDomainAddress(Address domainAddress){
+        String rawAddress = domainAddress.toString();
+        return rawAddress.charAt(0) == 'a' && rawAddress.charAt(1) == '0';
+    }
+
+    // checks if the owner address is registered in the repository
+    private boolean isValidOwnerAddress(Address ownerAddress){
+        if (this.track.hasAccountState(ownerAddress))
+            return true;
+        return  (this.track.hasContractDetails(ownerAddress));
     }
 
     /**
