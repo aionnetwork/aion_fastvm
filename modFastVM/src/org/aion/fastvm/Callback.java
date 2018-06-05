@@ -23,7 +23,6 @@ package org.aion.fastvm;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.mcf.core.AccountState;
@@ -32,7 +31,6 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
 import org.aion.vm.*;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.PrecompiledContracts.PrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
@@ -252,18 +250,13 @@ public class Callback {
                 ctx.callValue(), ctx.callData(), "call");
         ctx.result().addInternalTransaction(internalTx);
 
-        PrecompiledContract pc = PrecompiledContracts.getPrecompiledContract(ctx.address(), track, ctx);
-        if (pc != null) {
-            result = pc.execute(ctx.callData(), ctx.nrgLimit());
-        } else {
-            // get the code
-            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address()) : ByteUtil.EMPTY_BYTE_ARRAY;
+        // get the code
+        byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address()) : ByteUtil.EMPTY_BYTE_ARRAY;
 
-            // execute transaction
-            if (ArrayUtils.isNotEmpty(code)) {
-                FastVM jit = new FastVM();
-                result = jit.run(code, ctx, track);
-            }
+        // execute transaction
+        if (ArrayUtils.isNotEmpty(code)) {
+            FastVM jit = new FastVM();
+            result = jit.run(code, ctx, track);
         }
 
         // post execution
