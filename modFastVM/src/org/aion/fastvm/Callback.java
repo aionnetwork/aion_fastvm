@@ -23,6 +23,10 @@ package org.aion.fastvm;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
+import org.aion.precompiled.ContractExecutionResult;
+import org.aion.precompiled.ContractExecutor;
+import org.aion.precompiled.ContractFactory;
+import org.aion.precompiled.type.IPrecompiledContract;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.mcf.core.AccountState;
@@ -250,13 +254,19 @@ public class Callback {
                 ctx.callValue(), ctx.callData(), "call");
         ctx.result().addInternalTransaction(internalTx);
 
-        // get the code
-        byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address()) : ByteUtil.EMPTY_BYTE_ARRAY;
+        if (ContractFactory.isPrecompiledContract(ctx.address())) {
+            IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx.address(), track);
+            result = toExecutionResult(pc.execute(ctx.callData(), ctx.nrgLimit()));
+        } else {
+            // get the code
+            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address())
+                : ByteUtil.EMPTY_BYTE_ARRAY;
 
-        // execute transaction
-        if (ArrayUtils.isNotEmpty(code)) {
-            FastVM jit = new FastVM();
-            result = jit.run(code, ctx, track);
+            // execute transaction
+            if (ArrayUtils.isNotEmpty(code)) {
+                FastVM jit = new FastVM();
+                result = jit.run(code, ctx, track);
+            }
         }
 
         // post execution
@@ -396,5 +406,22 @@ public class Callback {
 
         return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
                 note);
+    }
+
+    /**
+     * Converts a ContractExecutionResult into an equivalent ExecutionResult so that the FVM can handle
+     * precompiled contract outputs.
+     *
+     * @param result A pre-compiled contract execution result.
+     * @return the equivalent ExecutionResult.
+     */
+    private static ExecutionResult toExecutionResult(ContractExecutionResult result) {
+        Code code = Code.fromInt(result.getCode().toInt());
+
+        if (result.getOutput().length > 0) {
+            return new ExecutionResult(code, result.getNrgLeft(), result.getOutput());
+        } else {
+            return new ExecutionResult(code, result.getNrgLeft());
+        }
     }
 }
