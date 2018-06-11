@@ -24,19 +24,28 @@ import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
+import org.aion.crypto.ECKey;
+import org.aion.mcf.core.ImportResult;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.TransactionResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.zero.impl.BlockContext;
+import org.aion.zero.impl.StandaloneBlockchain;
+import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class FastVMTest {
 
@@ -425,5 +434,86 @@ public class FastVMTest {
         // reserved gas got revertd.
         assertEquals(Code.REVERT, result.getCode());
         assertTrue(result.getNrgLeft() > 0);
+    }
+
+    @Test
+    public void testBlockCreationExploit() throws InterruptedException {
+        String testerByteCode = "0x605060405234156100105760006000fd5b5b3360006000508282909180600101839055555050505b61002c565b6103828061003b6000396000f30060506040526000356c01000000000000000000000000900463ffffffff1680634f2be91f14610049578063b4b65ae01461005f578063cd909c75146100cb57610043565b60006000fd5b34156100555760006000fd5b61005d6100e1565b005b341561006b5760006000fd5b6100736100e7565b6040518080601001828103825283818151815260100191508051906010019060200280838360005b838110156100b75780820151818401525b60108101905061009b565b505050509050019250505060405180910390f35b34156100d75760006000fd5b6100df61015d565b005b6002505b565b6100ef6101cf565b600260005080548060200260100160405190810160405280929190818152601001828054801561014e576020028201919060005260106000209050905b816000508060010154905482528160100152602001906002019080831161012c575b5050505050905061015a565b90565b600060006101696101e6565b604051809103906000f08015821516156101835760006000fd5b915091506002600050805480600101828161019e91906101f5565b91909060005260106000209050906002020160005b84849091929091925091909091806001018390555550505b5050565b601060405190810160405280600081526010015090565b60405160fa8061025d83390190565b8154818355818115116102245760020281600202836000526010600020905091820191016102239190610229565b5b505050565b6102599190610233565b8082111561025557600081815080600090556001016000905550600201610233565b5090565b905600605060405234156100105760006000fd5b5b4260006000508190909055507fd4fc977b8ac41e3fa318bb6650de6044046ea9e8cda72be27b6b0c458726c1666000600050546040518082815260100191505060405180910390a15b61005f565b608d8061006d6000396000f30060506040526000356c01000000000000000000000000900463ffffffff16806316ada54714603157602b565b60006000fd5b3415603c5760006000fd5b60426058565b6040518082815260100191505060405180910390f35b600060005054815600a165627a7a723058206919d683bc89f37f2bf6a52877fe0997e5d9b83057967fa1fd4a420b5da707b20029a165627a7a723058202d4cb48cf45eb1f4907e249b6060d84330669ff7f27d967554eb3a20e1c1f6840029";
+        StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
+                .withValidatorConfiguration("simple")
+                .withDefaultAccounts()
+                .build();
+        StandaloneBlockchain bc = bundle.bc;
+        ECKey deployerAccount = bundle.privateKeys.get(0);
+
+        BigInteger nonce = BigInteger.ZERO;
+
+        /* byte[] nonce, Address to, byte[] value, byte[] data, long nrg, long nrgPrice */
+        AionTransaction tx = new AionTransaction(
+                nonce.toByteArray(),
+                null,
+                new byte[0],
+                ByteUtil.hexStringToBytes(testerByteCode),
+                1_000_000L,
+                1L
+        );
+        tx.sign(deployerAccount);
+        assertThat(tx.isContractCreation()).isTrue();
+
+        BlockContext context = bc.createNewBlockContext(
+                bc.getBestBlock(), Collections.singletonList(tx), false);
+
+        // try to connect the deployment block
+        ImportResult result = bc.tryToConnect(context.block);
+        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
+        Address contractAddress = tx.getContractAddress();
+        System.out.println("xxx = " + bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
+        Thread.sleep(1000L);
+
+        // try executing a makeTest() call
+        byte[] funcSig = ByteUtil.hexStringToBytes("0xcd909c75");
+        nonce = nonce.add(BigInteger.ONE);
+
+        AionTransaction makeTestCallTx = new AionTransaction(
+                nonce.toByteArray(),
+                contractAddress,
+                new byte[0],
+                funcSig,
+                1_000_000L,
+                1L
+        );
+        makeTestCallTx.sign(deployerAccount);
+
+        BlockContext context2 = bc.createNewBlockContext(
+                bc.getBestBlock(), Collections.singletonList(makeTestCallTx), false);
+        ImportResult result2 = bc.tryToConnect(context2.block);
+        assertThat(result2).isEqualTo(ImportResult.IMPORTED_BEST);
+        System.out.println("xxx = " + bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
+        System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
+        Thread.sleep(1000L);
+
+        // try executing another makeTest() call
+        funcSig = ByteUtil.hexStringToBytes("0xcd909c75");
+        nonce = nonce.add(BigInteger.ONE);
+
+        AionTransaction anotherMakeTestCall = new AionTransaction(
+                nonce.toByteArray(),
+                contractAddress,
+                new byte[0],
+                funcSig,
+                1_000_000L,
+                1L
+        );
+        anotherMakeTestCall.sign(deployerAccount);
+
+        BlockContext context3 = bc.createNewBlockContext(
+                bc.getBestBlock(), Collections.singletonList(anotherMakeTestCall), false);
+        ImportResult result3 = bc.tryToConnect(context3.block);
+        assertThat(result3).isEqualTo(ImportResult.IMPORTED_BEST);
+        System.out.println("xxx = " + bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
+        System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
+
+        assertEquals(BigInteger.valueOf(3), bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
+        assertEquals(BigInteger.valueOf(2), bc.getRepository().getNonce(contractAddress));
     }
 }
