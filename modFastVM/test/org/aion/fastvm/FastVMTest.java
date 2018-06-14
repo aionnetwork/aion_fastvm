@@ -38,6 +38,7 @@ import org.aion.zero.impl.types.AionTxInfo;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -594,8 +595,8 @@ public class FastVMTest {
         System.out.println("xxx = " + bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
         System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
 
-        assertEquals(3L, bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
-        assertEquals(1L, bc.getRepository().getNonce(contractAddress));
+        assertEquals(BigInteger.valueOf(3L), bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
+        assertEquals(BigInteger.valueOf(1L), bc.getRepository().getNonce(contractAddress));
     }
 
     @Test
@@ -660,6 +661,7 @@ public class FastVMTest {
         assertThat(result3).isEqualTo(ImportResult.IMPORTED_BEST);
     }
 
+    @Ignore
     @Test
     public void testModifer() throws InterruptedException {
         String testerByteCode = "0x605060405234156100105760006000fd5b5b3360006000508282909180600101839055555050505b61002c565b61016e8061003b6000396000f30060506040526000356c01000000000000000000000000900463ffffffff1680630acf8c2e14610049578063421b2d8b14610073578063e61a60bb1461009f57610043565b60006000fd5b34156100555760006000fd5b61005d6100c9565b6040518082815260100191505060405180910390f35b341561007f5760006000fd5b61009d600480808060100135903590916020019091929050506100d7565b005b34156100ab5760006000fd5b6100b3610113565b6040518082815260100191505060405180910390f35b6000600a90506100d4565b90565b600060005080600101549054339091149190141615156100f75760006000fd5b818160026000508282909180600101839055555050505b5b5050565b6000600260005080600101549054339091149190141615156101355760006000fd5b600b905061013e565b5b905600a165627a7a723058201d8c8bf193120213679831363ac65fecb0dcb5be8b65e6c0a1c97f4a7d3d3ef20029";
