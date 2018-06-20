@@ -25,6 +25,7 @@ import org.aion.base.util.Hex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import org.aion.precompiled.ContractExecutionResult;
 
 /**
  * A ExecutionResult is the result of a VM execution. It contains the VM status
@@ -206,6 +207,55 @@ public class ExecutionResult {
      */
     public void setOutput(byte[] output) {
         this.output = output;
+    }
+
+    /**
+     * Converts the ContractExecutionResult result into an equivalent ExecutionResult.
+     *
+     * @param result The result to convert.
+     * @return the converted result.
+     */
+    public static ExecutionResult fromContractResult(ContractExecutionResult result) {
+        long nrg = result.getNrgLeft();
+        byte[] output = result.getOutput();
+        Code code;
+
+        // TODO: find more elegant solution.
+        ContractExecutionResult.ResultCode contCode = result.getCode();
+        switch (contCode) {
+            case SUCCESS:
+                code = Code.SUCCESS;
+                break;
+            case OUT_OF_NRG:
+                code = Code.OUT_OF_NRG;
+                break;
+            case INVALID_NRG_LIMIT:
+                code = Code.INVALID_NRG_LIMIT;
+                break;
+            case INSUFFICIENT_BALANCE:
+                code = Code.INSUFFICIENT_BALANCE;
+                break;
+            case REVERT:
+                code = Code.REVERT;
+                break;
+            case FAILURE:
+                code = Code.FAILURE;
+                break;
+            case INVALID_NONCE:
+                code = Code.INVALID_NONCE;
+                break;
+            case INTERNAL_ERROR:
+                code = Code.INTERNAL_ERROR;
+                break;
+            default:
+                code = Code.INTERNAL_ERROR;
+        }
+
+        if ((output == null) || (output.length == 0)) {
+            return new ExecutionResult(code, nrg);
+        } else {
+            return new ExecutionResult(code, nrg, output);
+        }
     }
 
     @Override

@@ -30,6 +30,9 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.precompiled.ContractExecutionResult;
+import org.aion.precompiled.ContractFactory;
+import org.aion.precompiled.type.IPrecompiledContract;
 import org.aion.vm.ExecutionResult.Code;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
@@ -265,11 +268,16 @@ public class TransactionExecutor {
      * Prepares contract call.
      */
     protected void call() {
-        // execute code
-        byte[] code = repoTrack.getCode(tx.getTo());
-        if (!isEmpty(code)) {
-            VirtualMachine fvm = new FastVM();
-            exeResult = fvm.run(code, ctx, repoTrack);
+        if (ContractFactory.isPrecompiledContract(tx.getTo())) {
+            IPrecompiledContract pc = ContractFactory.getPrecompiledContract(tx.getTo(), tx.getFrom(), repoTrack);
+            exeResult = ExecutionResult.fromContractResult(pc.execute(tx.getData(), tx.nrgLimit()));
+        } else {
+            // execute code
+            byte[] code = repoTrack.getCode(tx.getTo());
+            if (!isEmpty(code)) {
+                VirtualMachine fvm = new FastVM();
+                exeResult = fvm.run(code, ctx, repoTrack);
+            }
         }
 
         // transfer value
