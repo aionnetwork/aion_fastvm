@@ -32,7 +32,6 @@ jmethodID cb_call;
 struct evm_tx_context ctx;
 
 /* forward declaration */
-void parse_context(JNIEnv *env, jbyte *b);
 jbyteArray encode_message(JNIEnv *env, const struct evm_message *msg);
 jbyteArray encode_message(JNIEnv *env, const struct evm_message *msg);
 jbyteArray encode_result(JNIEnv *env, const struct evm_result *result);

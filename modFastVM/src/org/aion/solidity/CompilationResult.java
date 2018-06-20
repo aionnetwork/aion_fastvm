@@ -39,9 +39,8 @@ public class CompilationResult {
      *
      * @param json
      * @return
-     * @throws IOException
      */
-    public static CompilationResult parse(String json) throws IOException {
+    public static CompilationResult parse(String json) {
         if (json == null || json.isEmpty()) {
             CompilationResult empty = new CompilationResult();
             empty.contracts = Collections.emptyMap();
