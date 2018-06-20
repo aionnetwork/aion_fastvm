@@ -5,6 +5,7 @@ module aion.fastvm {
     requires slf4j.api;
     requires aion.crypto;
     requires aion.zero;
+    requires aion.precompiled;
 
     exports org.aion.vm;
     exports org.aion.solidity;
