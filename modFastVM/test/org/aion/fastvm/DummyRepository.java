@@ -142,12 +142,12 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public DataWord getStorageValue(Address addr, DataWord key) {
+    public Optional<DataWord> getStorageValue(Address addr, DataWord key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
-            return new DataWord(map.get(key.toString()));
+            return Optional.of(new DataWord(map.get(key.toString())));
         } else {
-            return DataWord.ZERO;
+            return Optional.empty();
         }
     }
 

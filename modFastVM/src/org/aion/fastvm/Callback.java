@@ -20,6 +20,7 @@
  ******************************************************************************/
 package org.aion.fastvm;
 
+import java.util.Optional;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
@@ -144,11 +145,11 @@ public class Callback {
      * @return
      */
     public static byte[] getStorage(byte[] address, byte[] key) {
-        DataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
+        Optional<DataWord> value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
 
         // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 
-        return value == null ? DataWord.ZERO.getData() : value.getData();
+        return !value.isPresent() ? DataWord.ZERO.getData() : value.get().getData();
     }
 
     /**

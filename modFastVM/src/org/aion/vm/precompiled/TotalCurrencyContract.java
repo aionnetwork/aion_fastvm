@@ -20,6 +20,7 @@
  ******************************************************************************/
 package org.aion.vm.precompiled;
 
+import java.util.Optional;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.BIUtil;
@@ -107,8 +108,8 @@ public class TotalCurrencyContract extends PrecompiledContracts.StatefulPrecompi
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
         }
 
-        DataWord balanceData = this.track.getStorageValue(this.address, new DataWord(input));
-        return new ExecutionResult(ExecutionResult.Code.SUCCESS, nrg - COST, balanceData.getData());
+        Optional<DataWord> balanceData = this.track.getStorageValue(this.address, new DataWord(input));
+        return new ExecutionResult(ExecutionResult.Code.SUCCESS, nrg - COST, balanceData.get().getData());
     }
 
     private ExecutionResult executeUpdateTotalBalance(byte[] input, long nrg) {
@@ -156,8 +157,8 @@ public class TotalCurrencyContract extends PrecompiledContracts.StatefulPrecompi
         }
 
         // payload processing
-        DataWord totalCurr = this.track.getStorageValue(this.address, chainId);
-        BigInteger totalCurrBI = totalCurr == null ? BigInteger.ZERO : BIUtil.toBI(totalCurr.getData());
+        Optional<DataWord> totalCurr = this.track.getStorageValue(this.address, chainId);
+        BigInteger totalCurrBI = !totalCurr.isPresent() ? BigInteger.ZERO : BIUtil.toBI(totalCurr.get().getData());
         BigInteger value = BIUtil.toBI(amount);
 
         if (signum != 0x0 && signum != 0x1) {
