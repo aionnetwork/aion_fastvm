@@ -20,12 +20,10 @@
  ******************************************************************************/
 package org.aion.vm;
 
-import org.aion.base.type.Address;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.TransactionResult;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import org.aion.base.type.Address;
+import org.aion.mcf.vm.types.DataWord;
 
 /**
  * Execution context, including both transaction and block information.

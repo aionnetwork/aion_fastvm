@@ -20,19 +20,18 @@
  ******************************************************************************/
 package org.aion.vm.precompiled;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import org.aion.base.type.Address;
 import org.aion.crypto.ECKey;
 import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.ISignature;
 import org.aion.fastvm.DummyRepository;
-import org.aion.vm.ExecutionResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.ExecutionResult;
 import org.junit.Test;
-
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class TotalCurrencyContractTest {
 
@@ -66,7 +65,7 @@ public class TotalCurrencyContractTest {
         byte[] combined = bb.array();
         ExecutionResult res = tcc.execute(combined, inputEnergy);
 
-        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.SUCCESS);
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.ResultCode.SUCCESS);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
     }
 
@@ -98,7 +97,7 @@ public class TotalCurrencyContractTest {
         bb.put(signature.toBytes());
         byte[] combined = bb.array();
         ExecutionResult res = tcc.execute(combined, 21000);
-        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.ResultCode.INTERNAL_ERROR);
     }
 
     @Test
@@ -128,7 +127,7 @@ public class TotalCurrencyContractTest {
         byte[] combined = bb.array();
         ExecutionResult res = tcc.execute(combined, inputEnergy);
 
-        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.OUT_OF_NRG);
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.ResultCode.OUT_OF_NRG);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
     }
 
@@ -163,7 +162,7 @@ public class TotalCurrencyContractTest {
 
         ExecutionResult res = tcc.execute(combined, inputEnergy);
 
-        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.ResultCode.INTERNAL_ERROR);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
     }
 
@@ -198,7 +197,7 @@ public class TotalCurrencyContractTest {
         byte[] combined = bb.array();
         ExecutionResult res = tcc.execute(combined, inputEnergy);
 
-        assertThat(res.getCode()).isEqualTo(ExecutionResult.Code.INTERNAL_ERROR);
+        assertThat(res.getCode()).isEqualTo(ExecutionResult.ResultCode.INTERNAL_ERROR);
         assertThat(res.getNrgLeft()).isEqualTo(expectedEnergyLeft);
     }
 

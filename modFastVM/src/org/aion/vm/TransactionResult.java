@@ -21,6 +21,7 @@
 package org.aion.vm;
 
 import org.aion.base.type.Address;
+import org.aion.mcf.vm.AbstractExecutionResult;
 import org.aion.mcf.vm.types.Log;
 import org.aion.zero.types.AionInternalTx;
 
@@ -41,7 +42,7 @@ import java.util.*;
  *
  * @author yulong
  */
-public class TransactionResult {
+public class TransactionResult extends AbstractExecutionResult {
 
     public static class Call {
         final byte[] data;

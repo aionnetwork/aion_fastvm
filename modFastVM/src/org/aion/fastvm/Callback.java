@@ -1,44 +1,26 @@
-/*******************************************************************************
- *
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     This file is part of the aion network project.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.fastvm;
-
-import java.util.Optional;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
-import org.aion.mcf.core.AccountState;
-import org.aion.crypto.HashUtil;
-import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.Constants;
-import org.aion.vm.*;
-import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.PrecompiledContracts.PrecompiledContract;
-import org.aion.zero.types.AionInternalTx;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -47,6 +29,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.Address;
+import org.aion.base.util.ByteUtil;
+import org.aion.crypto.HashUtil;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.Constants;
+import org.aion.mcf.vm.IExecutionContext;
+import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.Log;
+import org.aion.vm.ExecutionContext;
+import org.aion.vm.ExecutionResult;
+import org.aion.vm.ExecutionResult.Code;
+import org.aion.vm.PrecompiledContracts;
+import org.aion.vm.PrecompiledContracts.PrecompiledContract;
+import org.aion.vm.TransactionResult;
+import org.aion.zero.types.AionInternalTx;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * This class handles all callbacks from the JIT side. It is not thread-safe and
@@ -145,7 +147,8 @@ public class Callback {
      * @return
      */
     public static byte[] getStorage(byte[] address, byte[] key) {
-        Optional<DataWord> value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
+        Optional<DataWord> value = Optional
+            .ofNullable(repo().getStorageValue(Address.wrap(address), new DataWord(key)));
 
         // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 
@@ -263,7 +266,7 @@ public class Callback {
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
                 FastVM jit = new FastVM();
-                result = jit.run(code, ctx, track);
+                result = (ExecutionResult) jit.run(code, (IExecutionContext) ctx, track);
             }
         }
 
@@ -314,7 +317,7 @@ public class Callback {
         // execute transaction
         if (ArrayUtils.isNotEmpty(ctx.callData())) {
             FastVM jit = new FastVM();
-            result = jit.run(ctx.callData(), ctx, track);
+            result = (ExecutionResult) jit.run(ctx.callData(), (IExecutionContext) ctx, track);
         }
 
         // post execution

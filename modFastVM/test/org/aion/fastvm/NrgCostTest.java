@@ -1,46 +1,98 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017 Aion foundation.
+ *     This file is part of the aion network project.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.fastvm;
 
+import static org.aion.fastvm.Instruction.ADD;
+import static org.aion.fastvm.Instruction.ADDMOD;
+import static org.aion.fastvm.Instruction.ADDRESS;
+import static org.aion.fastvm.Instruction.AND;
+import static org.aion.fastvm.Instruction.BYTE;
+import static org.aion.fastvm.Instruction.CALLDATALOAD;
+import static org.aion.fastvm.Instruction.CALLDATASIZE;
+import static org.aion.fastvm.Instruction.CALLER;
+import static org.aion.fastvm.Instruction.CALLVALUE;
+import static org.aion.fastvm.Instruction.CODESIZE;
+import static org.aion.fastvm.Instruction.COINBASE;
+import static org.aion.fastvm.Instruction.DIFFICULTY;
+import static org.aion.fastvm.Instruction.DIV;
+import static org.aion.fastvm.Instruction.DUP1;
+import static org.aion.fastvm.Instruction.EQ;
+import static org.aion.fastvm.Instruction.EXP;
+import static org.aion.fastvm.Instruction.GAS;
+import static org.aion.fastvm.Instruction.GASLIMIT;
+import static org.aion.fastvm.Instruction.GASPRICE;
+import static org.aion.fastvm.Instruction.GT;
+import static org.aion.fastvm.Instruction.ISZERO;
+import static org.aion.fastvm.Instruction.JUMPI;
+import static org.aion.fastvm.Instruction.LT;
+import static org.aion.fastvm.Instruction.MLOAD;
+import static org.aion.fastvm.Instruction.MOD;
+import static org.aion.fastvm.Instruction.MSIZE;
+import static org.aion.fastvm.Instruction.MSTORE;
+import static org.aion.fastvm.Instruction.MSTORE8;
+import static org.aion.fastvm.Instruction.MUL;
+import static org.aion.fastvm.Instruction.MULMOD;
+import static org.aion.fastvm.Instruction.NOT;
+import static org.aion.fastvm.Instruction.NUMBER;
+import static org.aion.fastvm.Instruction.OR;
+import static org.aion.fastvm.Instruction.ORIGIN;
+import static org.aion.fastvm.Instruction.PC;
+import static org.aion.fastvm.Instruction.POP;
+import static org.aion.fastvm.Instruction.PUSH1;
+import static org.aion.fastvm.Instruction.SDIV;
+import static org.aion.fastvm.Instruction.SGT;
+import static org.aion.fastvm.Instruction.SHA3;
+import static org.aion.fastvm.Instruction.SIGNEXTEND;
+import static org.aion.fastvm.Instruction.SLT;
+import static org.aion.fastvm.Instruction.SMOD;
+import static org.aion.fastvm.Instruction.SUB;
+import static org.aion.fastvm.Instruction.SWAP1;
+import static org.aion.fastvm.Instruction.TIMESTAMP;
+import static org.aion.fastvm.Instruction.XOR;
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayOutputStream;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
-import org.aion.fastvm.Instruction.*;
+import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
+import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import java.io.ByteArrayOutputStream;
-
-import static org.aion.fastvm.Instruction.*;
-import static org.junit.Assert.assertEquals;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NrgCostTest {
@@ -66,7 +118,7 @@ public class NrgCostTest {
 
     private TransactionResult txResult;
 
-    public NrgCostTest() throws CloneNotSupportedException {
+    public NrgCostTest() {
     }
 
     @BeforeClass
@@ -91,7 +143,7 @@ public class NrgCostTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
-            new FastVM().run(code, ctx, repo);
+            new FastVM().run(code, (IExecutionContext) ctx, repo);
         }
     }
 
@@ -143,12 +195,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -184,12 +236,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -222,12 +274,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -260,12 +312,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -298,12 +350,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -336,13 +388,13 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
             System.out.println(result);
-            assertEquals(Code.SUCCESS, result.getCode());
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -376,12 +428,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(Code.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, (IExecutionContext) ctx, repo);
             }
             long t2 = System.nanoTime();
 
