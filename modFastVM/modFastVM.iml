@@ -20,6 +20,5 @@
     <orderEntry type="library" name="junit" level="project" scope="TEST" />
     <orderEntry type="library" name="truth" level="project" scope="TEST" />
     <orderEntry type="module" module-name="modAionImpl" scope="TEST" />
-    <orderEntry type="module" module-name="modPrecompiled" />
   </component>
 </module>
