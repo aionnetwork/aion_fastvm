@@ -22,18 +22,21 @@
  */
 package org.aion.fastvm;
 
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.aion.base.db.IContractDetails;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
+import org.aion.base.vm.IDataWord;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
-
-import java.math.BigInteger;
-import java.util.*;
 
 public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
 
@@ -144,12 +147,12 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public Optional<DataWord> getStorageValue(Address addr, DataWord key) {
+    public IDataWord getStorageValue(Address addr, DataWord key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
-            return Optional.of(new DataWord(map.get(key.toString())));
+            return new DataWord(map.get(key.toString()));
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 

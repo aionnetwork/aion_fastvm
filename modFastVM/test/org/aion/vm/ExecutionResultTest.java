@@ -38,8 +38,8 @@ public class ExecutionResultTest {
         byte[] output = RandomUtils.nextBytes(32);
 
         byte[] encoded = new ExecutionResult(code, nrgLeft, output).toBytes();
-        ExecutionResult decoded = (ExecutionResult) ExecutionResult.parse(encoded);
-        assertEquals(code, decoded.getCode());
+        ExecutionResult decoded = ExecutionResult.parse(encoded);
+        assertEquals(code, decoded.getResultCode());
         assertEquals(nrgLeft, decoded.getNrgLeft());
         assertArrayEquals(output, decoded.getOutput());
     }

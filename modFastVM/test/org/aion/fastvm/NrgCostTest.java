@@ -80,7 +80,6 @@ import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
-import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
@@ -143,7 +142,7 @@ public class NrgCostTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
-            new FastVM().run(code, (IExecutionContext) ctx, repo);
+            new FastVM().run(code, ctx, repo);
         }
     }
 
@@ -195,12 +194,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -236,12 +235,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -274,12 +273,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -312,12 +311,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -350,12 +349,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -388,13 +387,13 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
             System.out.println(result);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code,  ctx, repo);
             }
             long t2 = System.nanoTime();
 
@@ -428,12 +427,12 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, (IExecutionContext) ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, (IExecutionContext) ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 

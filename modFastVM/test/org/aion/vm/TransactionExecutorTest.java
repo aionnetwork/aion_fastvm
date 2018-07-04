@@ -34,6 +34,8 @@ import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKeyFac;
 import org.aion.fastvm.DummyRepository;
 import org.aion.fastvm.TestUtils;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
@@ -44,8 +46,11 @@ import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
 import org.junit.Test;
+import org.slf4j.Logger;
 
 public class TransactionExecutorTest {
+
+    static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
     @Test
     public void testCallTransaction() throws IOException {
@@ -72,7 +77,7 @@ public class TransactionExecutorTest {
         repo.addBalance(from, BigInteger.valueOf(100_000).multiply(tx.nrgPrice().value()));
         repo.addContract(to, Hex.decode(contract));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -103,7 +108,7 @@ public class TransactionExecutorTest {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -140,7 +145,7 @@ public class TransactionExecutorTest {
         long t1 = System.nanoTime();
         long repeat = 1000;
         for (int i = 0; i < repeat; i++) {
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
             exec.execute();
         }
         long t2 = System.nanoTime();
@@ -165,7 +170,7 @@ public class TransactionExecutorTest {
         DummyRepository repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(1_000_000_000L));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 

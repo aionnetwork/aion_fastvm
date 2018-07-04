@@ -27,14 +27,13 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.math.BigInteger;
 import org.aion.base.type.Address;
+import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
-import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
 import org.aion.vm.TransactionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -91,9 +90,9 @@ public class DoSBlockGasLimitTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
     }
 
     @Test
@@ -115,9 +114,9 @@ public class DoSBlockGasLimitTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG, result.getCode());
+        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
     }
 
     @Test
@@ -139,9 +138,9 @@ public class DoSBlockGasLimitTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG, result.getCode());
+        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
 
     }
 }

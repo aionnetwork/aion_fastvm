@@ -39,6 +39,8 @@ import org.aion.crypto.ECKey;
 import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.ECKeyFac.ECKeyType;
 import org.aion.crypto.SignatureFac;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
@@ -49,6 +51,7 @@ import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.aion.zero.types.AionTxReceipt;
 import org.apache.commons.lang3.RandomUtils;
+import org.slf4j.Logger;
 
 public class Benchmark {
 
@@ -68,6 +71,8 @@ public class Benchmark {
     private static long timeValidateTransactions;
     private static long timeExecuteTransactions;
     private static long timeFlush;
+
+    private static Logger LOGGER = AionLoggerFactory.getLogger(LogEnum.VM.name());
 
     private static void prepare() throws IOException {
         long t1 = System.currentTimeMillis();
@@ -94,7 +99,7 @@ public class Benchmark {
         contract = tx.getContractAddress();
 
         // deploy contract
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
         AionTxExecSummary summary = exec.execute();
         assertFalse(summary.isFailed());
 
@@ -163,7 +168,7 @@ public class Benchmark {
         List<AionTxReceipt> list = new ArrayList<>();
 
         for (AionTransaction tx : txs) {
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
@@ -200,7 +205,7 @@ public class Benchmark {
             long nrgPrice = 1L;
             AionTransaction tx = new AionTransaction(nonce, from, to, value, data, nrg, nrgPrice);
 
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 

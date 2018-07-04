@@ -22,6 +22,8 @@
  */
 package org.aion.vm;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.aion.mcf.vm.AbstractExecutionResult;
 
 /**
@@ -38,5 +40,17 @@ public class ExecutionResult extends AbstractExecutionResult {
 
     public ExecutionResult(ResultCode code, long nrgLeft) {
         super(code, nrgLeft);
+    }
+
+    public static ExecutionResult parse(byte[] result) {
+        ByteBuffer buffer = ByteBuffer.wrap(result);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+
+        ResultCode code = ResultCode.fromInt(buffer.getInt());
+        long nrgLeft = buffer.getLong();
+        byte[] output = new byte[buffer.getInt()];
+        buffer.get(output);
+
+        return new ExecutionResult(code, nrgLeft, output);
     }
 }

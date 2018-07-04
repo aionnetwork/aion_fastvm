@@ -21,13 +21,10 @@
 package org.aion.fastvm;
 
 import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.NativeLoader;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.IExecutionContext;
-import org.aion.mcf.vm.AbstractExecutionResult;
 import org.aion.mcf.vm.VirtualMachine;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.apache.commons.lang3.tuple.Pair;
@@ -59,18 +56,6 @@ public class FastVM implements VirtualMachine {
     public FastVM() {
     }
 
-    @Override
-    public AbstractExecutionResult run(byte[] code, IExecutionContext ctx,
-                               IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo) {
-        Callback.push(Pair.of((ExecutionContext)ctx, repo));
-        long instance = create();
-        byte[] result = run(instance, code, ((ExecutionContext)ctx).toBytes(), REVISION_AION);
-        destroy(instance);
-        Callback.pop();
-
-        return ExecutionResult.parse(result);
-    }
-
     /**
      * Initializes library. One time
      */
@@ -85,13 +70,27 @@ public class FastVM implements VirtualMachine {
 
     /**
      * Executes the given code and returns the execution results.
-     *
      */
     private native static byte[] run(long instance, byte[] code, byte[] context, int revision);
 
     /**
      * Destroys the given VM instance.
-     *
      */
     private native static void destroy(long instance);
+
+    @SuppressWarnings("unchecked")
+    public IExecutionResult run(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
+        Callback.push(Pair.of(ctx, repo));
+        long instance = create();
+        byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
+        destroy(instance);
+        Callback.pop();
+
+        return ExecutionResult.parse(result);
+    }
+
+    @Override
+    public IExecutionResult run(byte[] code, IExecutionContext ctx, IRepositoryCache track) {
+        return run(code, (ExecutionContext) ctx, track);
+    }
 }

@@ -28,15 +28,14 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import org.aion.base.type.Address;
+import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
-import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
 import org.aion.vm.TransactionResult;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
@@ -94,9 +93,9 @@ public class ContractTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
 
         callData = Hex.decode("e2179b8e");
         nrgLimit = 1_000_000L;
@@ -106,9 +105,9 @@ public class ContractTest {
             kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
             txResult);
         vm = new FastVM();
-        result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
 
         assertEquals(
             "000000000000000000000000000000100000000000000000000000000000040061000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062",
@@ -129,9 +128,9 @@ public class ContractTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
 
         callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWord(6L).getData());
@@ -141,9 +140,9 @@ public class ContractTest {
             kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
             txResult);
         vm = new FastVM();
-        result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
 
         callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWord(6L).getData());
@@ -153,9 +152,9 @@ public class ContractTest {
             kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
             txResult);
         vm = new FastVM();
-        result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
 
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(6L).getData());
@@ -165,9 +164,9 @@ public class ContractTest {
             kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
             txResult);
         vm = new FastVM();
-        result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
 
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(1024L).getData());
@@ -177,9 +176,9 @@ public class ContractTest {
             kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
             txResult);
         vm = new FastVM();
-        result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        result = vm.run(contract,  ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.REVERT, result.getCode());
+        assertEquals(ResultCode.REVERT.toInt(), result.getCode());
         assertTrue(result.getNrgLeft() > 0);
     }
 
@@ -199,11 +198,11 @@ public class ContractTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
@@ -237,11 +236,11 @@ public class ContractTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.SUCCESS, result.getCode());
+        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
@@ -269,10 +268,10 @@ public class ContractTest {
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty, txResult);
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, (IExecutionContext) ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.REVERT, result.getCode());
+        assertEquals(ResultCode.REVERT.toInt(), result.getCode());
     }
 }
