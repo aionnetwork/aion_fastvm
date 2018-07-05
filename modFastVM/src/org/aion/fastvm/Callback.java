@@ -215,10 +215,13 @@ public class Callback {
         track.addBalance(ctx.caller(), ctx.callValue().value().negate());
         track.addBalance(ctx.address(), ctx.callValue().value());
 
+        // update nonce
+        track.incrementNonce(ctx.caller());
         // add internal transaction TODO: basic transaction cost?
         AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(),
             track.getNonce(ctx.caller()),
             ctx.callValue(), ctx.callData(), "call");
+
         ctx.result().addInternalTransaction(internalTx);
 
         IPrecompiledContract pc = ContractFactory
@@ -261,29 +264,35 @@ public class Callback {
         // compute new address
         byte[] nonce = track.getNonce(ctx.caller()).toByteArray();
         Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.caller().toBytes(), nonce));
+        ctx.setAddress(newAddress);
 
-        // check existence
-        if (track.hasAccountState(newAddress)) {
-            return new ExecutionResult(ResultCode.FAILURE, 0);
-        }
-
-        // Implement EIP-161?
-        // track.increaseNonce(newAddress);
+        // in case of hashing collisions
+        boolean alreadyExsits = track.hasAccountState(newAddress);
+        BigInteger oldBalance = track.getBalance(newAddress);
+        track.createAccount(newAddress);
+        track.incrementNonce(newAddress); // EIP-161
+        track.addBalance(newAddress, oldBalance);
 
         // transfer balance
         track.addBalance(ctx.caller(), ctx.callValue().value().negate());
         track.addBalance(newAddress, ctx.callValue().value());
 
-        // add internal transaction TODO: basic transaction cost?
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()),
-            ctx.callValue(),
-            ctx.callData(), "create");
+        // update nonce
+        track.incrementNonce(ctx.caller());
+
+        // add internal transaction
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
+                ctx.callData(), "create");
         ctx.result().addInternalTransaction(internalTx);
 
         // execute transaction
-        if (ArrayUtils.isNotEmpty(ctx.callData())) {
-            FastVM jit = new FastVM();
-            result = (ExecutionResult) jit.run(ctx.callData(), ctx, track);
+        if (alreadyExsits) {
+            result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
+        } else {
+            if (ArrayUtils.isNotEmpty(ctx.callData())) {
+                FastVM jit = new FastVM();
+                result = (ExecutionResult) jit.run(ctx.callData(), ctx, track);
+            }
         }
 
         // post execution

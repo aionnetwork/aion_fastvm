@@ -159,6 +159,10 @@ public class ExecutionContext {
         return address;
     }
 
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
     /**
      * Returns the origination address, which is the sender of original
      * transaction.
