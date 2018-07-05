@@ -184,7 +184,7 @@ public class Callback {
         ExecutionContext ctx = parseMessage(message);
 
         // check call stack depth
-        if (ctx.depth() == Constants.MAX_CALL_DEPTH) {
+        if (ctx.depth() >= Constants.MAX_CALL_DEPTH) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
 

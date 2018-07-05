@@ -21,12 +21,10 @@
 package org.aion.fastvm;
 
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.NativeLoader;
-import org.aion.mcf.vm.IExecutionContext;
-import org.aion.mcf.vm.VirtualMachine;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
+import org.aion.vm.VirtualMachine;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -79,7 +77,7 @@ public class FastVM implements VirtualMachine {
     private native static void destroy(long instance);
 
     @SuppressWarnings("unchecked")
-    public IExecutionResult run(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
+    public ExecutionResult run(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
         Callback.push(Pair.of(ctx, repo));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
@@ -89,8 +87,4 @@ public class FastVM implements VirtualMachine {
         return ExecutionResult.parse(result);
     }
 
-    @Override
-    public IExecutionResult run(byte[] code, IExecutionContext ctx, IRepositoryCache track) {
-        return run(code, (ExecutionContext) ctx, track);
-    }
 }

@@ -169,7 +169,7 @@ public class TransactionExecutor extends AbstractExecutor {
             // execute code
             byte[] code = repoTrack.getCode(tx.getTo());
             if (!isEmpty(code)) {
-                FastVM fvm = new FastVM();
+                VirtualMachine fvm = new FastVM();
                 exeResult = fvm.run(code, ctx, repoTrack);
             }
         }
@@ -196,7 +196,7 @@ public class TransactionExecutor extends AbstractExecutor {
 
         // execute contract deployer
         if (!isEmpty(tx.getData())) {
-            FastVM fvm = new FastVM();
+            VirtualMachine fvm = new FastVM();
             exeResult = fvm.run(tx.getData(),  ctx, repoTrack);
 
             if (exeResult.getCode() == ResultCode.SUCCESS.toInt()) {
@@ -221,7 +221,7 @@ public class TransactionExecutor extends AbstractExecutor {
             .internalTransactions(txResult.getInternalTransactions()) //
             .result(exeResult.getOutput());
 
-        switch (ResultCode.fromInt(exeResult.getCode())) {
+        switch (((ExecutionResult)exeResult).getResultCode()) {
             case SUCCESS:
                 repoTrack.flush();
                 break;

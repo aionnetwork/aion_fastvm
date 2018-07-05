@@ -26,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
-import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
@@ -81,8 +80,8 @@ public class CacheTest {
         int repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
-            ExecutionResult result = (ExecutionResult) vm.run(code, (IExecutionContext) ctx, new DummyRepository());
-            assertEquals(ExecutionResult.ResultCode.SUCCESS, result.getCode());
+            ExecutionResult result = (ExecutionResult) vm.run(code, ctx, new DummyRepository());
+            assertEquals(ExecutionResult.ResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {
                 System.out.println(i + "/" + repeat);

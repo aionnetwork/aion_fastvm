@@ -35,7 +35,6 @@ import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
-import org.aion.mcf.vm.IExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
@@ -101,8 +100,8 @@ public class MultiThreadTest {
                 DummyRepository repo = new DummyRepository();
 
                 FastVM vm = new FastVM();
-                ExecutionResult result = (ExecutionResult) vm.run(code, (IExecutionContext) ctx, repo);
-                assertEquals(ResultCode.SUCCESS, result.getCode());
+                ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+                assertEquals(ResultCode.SUCCESS, result.getResultCode());
             });
         }
 
