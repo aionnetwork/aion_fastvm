@@ -29,7 +29,7 @@ import org.aion.mcf.core.ImportResult;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
@@ -72,7 +72,7 @@ public class FastVMTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
+    private ExecutionHelper txResult;
 
     public FastVMTest() throws CloneNotSupportedException {
     }
@@ -83,7 +83,7 @@ public class FastVMTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
+        txResult = new ExecutionHelper();
     }
 
     @Test

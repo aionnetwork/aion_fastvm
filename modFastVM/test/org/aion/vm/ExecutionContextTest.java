@@ -55,7 +55,7 @@ public class ExecutionContextTest {
         long blockNrgLimit = 0x000000000000000e;
         DataWord blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
 
-        TransactionResult txResult = new TransactionResult();
+        ExecutionHelper txResult = new ExecutionHelper();
         ExecutionContext ctx = new ExecutionContext(txHash, Address.wrap(address), Address.wrap(origin), Address.wrap(caller), nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, Address.wrap(blockCoinbase), blockNumber, blockTimestamp, blockNrgLimit,
                 blockDifficulty, txResult);
