@@ -226,11 +226,17 @@ public class Callback {
         }
 
         // call sub-routine
+        ExecutionResult result;
         if (ctx.kind() == ExecutionContext.CREATE) {
-            return doCreate(ctx).toBytes();
+            result = doCreate(ctx);
         } else {
-            return doCall(ctx).toBytes();
+            result = doCall(ctx);
         }
+
+        // merge the effects
+        context().result().merge(ctx.result(), result.getCode() == Code.SUCCESS);
+
+        return result.toBytes();
     }
 
     /**
@@ -387,7 +393,7 @@ public class Callback {
         long blockNrgLimit = prev.blockNrgLimit();
         DataWord blockDifficulty = prev.blockDifficulty();
 
-        TransactionResult txResult = prev.result();
+        TransactionResult txResult = new TransactionResult();
 
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
                 kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
