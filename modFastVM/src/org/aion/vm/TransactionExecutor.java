@@ -62,8 +62,6 @@ public class TransactionExecutor {
 
     private static final Logger logger = AionLoggerFactory.getLogger(LogEnum.VM.name());
 
-    private static boolean XXX_FORK = true;
-
     private AionTransaction tx;
     private IAionBlock block;
     private IRepository<AccountState, DataWord, IBlockStoreBase<?, ?>> repo;
@@ -324,7 +322,7 @@ public class TransactionExecutor {
     protected AionTxExecSummary finish() {
 
         ExecutionHelper h = new ExecutionHelper();
-        h.merge(ctx.helper(), XXX_FORK ? result.getCode() == Code.SUCCESS : true);
+        h.merge(ctx.helper(), result.getCode() == Code.SUCCESS);
 
         AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(h.getLogs())) //
                 .logs(h.getLogs()) //
