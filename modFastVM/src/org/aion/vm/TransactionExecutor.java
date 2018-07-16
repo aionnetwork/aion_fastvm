@@ -322,7 +322,9 @@ public class TransactionExecutor {
     protected AionTxExecSummary finish() {
 
         ExecutionHelper h = new ExecutionHelper();
-        h.merge(ctx.helper(), result.getCode() == Code.SUCCESS);
+        h.merge(ctx.helper(), Forks.isSeptemberForkEnabled(ctx.blockNumber())
+                ? result.getCode() == Code.SUCCESS
+                : true);
 
         AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(h.getLogs())) //
                 .logs(h.getLogs()) //

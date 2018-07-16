@@ -233,7 +233,9 @@ public class Callback {
         }
 
         // merge the effects
-        context().helper().merge(ctx.helper(), result.getCode() == Code.SUCCESS);
+        context().helper().merge(ctx.helper(), Forks.isSeptemberForkEnabled(context().blockNumber())
+                ? result.getCode() == Code.SUCCESS
+                : true);
 
         return result.toBytes();
     }
@@ -253,7 +255,9 @@ public class Callback {
         track.addBalance(ctx.address(), ctx.callValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.caller());
+        if (Forks.isJuneForkEnabled(context().blockNumber())) {
+            track.incrementNonce(ctx.caller());
+        }
 
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()),
@@ -314,7 +318,9 @@ public class Callback {
         track.addBalance(newAddress, ctx.callValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.caller());
+        if (Forks.isJuneForkEnabled(context().blockNumber())) {
+            track.incrementNonce(ctx.caller());
+        }
 
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),

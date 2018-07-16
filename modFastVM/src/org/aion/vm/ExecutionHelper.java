@@ -198,7 +198,7 @@ public class ExecutionHelper {
      */
     public void merge(ExecutionHelper another, boolean success) {
         addInternalTransactions(another.getInternalTransactions());
-        if (!Constants.NOVEMBER_FORK || success) {
+        if (success) {
             addDeleteAccounts(another.getDeleteAccounts());
             addLogs(another.getLogs());
         }

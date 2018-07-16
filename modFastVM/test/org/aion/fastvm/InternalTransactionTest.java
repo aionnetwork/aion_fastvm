@@ -5,10 +5,12 @@ import org.aion.base.util.ByteUtil;
 import org.aion.crypto.ECKey;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.Forks;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionTxInfo;
 import org.aion.zero.types.AionTransaction;
+import org.junit.After;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -160,7 +162,37 @@ contract B {
 
         info = bc.getTransactionInfo(tx5.getHash());
         System.out.println(info.getReceipt());
+        assertEquals(2, info.getReceipt().getLogInfoList().size());
+        Thread.sleep(1000);
+
+        //======================
+        // CALL A (calls B, 20k)
+        //======================
+        Forks.TEST_SEPTEMBER_FORK = true; // enable fork
+
+        nonce = nonce.add(BigInteger.ONE);
+        AionTransaction tx6 = new AionTransaction(
+                nonce.toByteArray(),
+                addressA,
+                new byte[0],
+                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
+                1_000_000L,
+                1L
+        );
+        tx6.sign(deployerAccount);
+
+        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx6), false);
+        result = bc.tryToConnect(context.block);
+        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
+
+        info = bc.getTransactionInfo(tx6.getHash());
+        System.out.println(info.getReceipt());
         assertEquals(1, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
+    }
+
+    @After
+    public void teardown() {
+        Forks.clearTestState();
     }
 }
