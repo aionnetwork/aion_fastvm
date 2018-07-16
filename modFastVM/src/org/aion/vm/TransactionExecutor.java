@@ -30,6 +30,8 @@ import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
 
 import java.math.BigInteger;
+import java.util.List;
+
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
@@ -40,6 +42,7 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.Log;
 import org.aion.vm.ExecutionResult.Code;
 import org.aion.vm.PrecompiledContracts.PrecompiledContract;
 import org.aion.zero.types.AionTransaction;
@@ -59,6 +62,8 @@ public class TransactionExecutor {
 
     private static final Logger logger = AionLoggerFactory.getLogger(LogEnum.VM.name());
 
+    private static boolean XXX_FORK = true;
+
     private AionTransaction tx;
     private IAionBlock block;
     private IRepository<AccountState, DataWord, IBlockStoreBase<?, ?>> repo;
@@ -68,7 +73,6 @@ public class TransactionExecutor {
 
     private ExecutionContext ctx;
     private ExecutionResult exeResult;
-    private TransactionResult txResult;
 
     private static Object lock = new Object();
     private boolean askNonce = true;
@@ -135,16 +139,13 @@ public class TransactionExecutor {
         }
         DataWord blockDifficulty = new DataWord(diff);
 
-        /*
-          execution and transaction result
+        /**
+         * execution context and results
          */
+        ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
+                new TransactionResult());
         exeResult = new ExecutionResult(Code.SUCCESS, nrgLimit);
-        txResult = new TransactionResult();
-
-        ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-            callData, depth,
-            kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
-            txResult);
     }
 
     /**
@@ -294,7 +295,7 @@ public class TransactionExecutor {
         Address contractAddress = tx.getContractAddress();
 
         if (repoTrack.hasAccountState(contractAddress)) {
-            exeResult.setCode(Code.CONTRACT_ALREADY_EXISTS);
+            exeResult.setCodeAndNrgLeft(Code.CONTRACT_ALREADY_EXISTS, 0);
             return;
         }
 
@@ -322,11 +323,14 @@ public class TransactionExecutor {
      */
     protected AionTxExecSummary finish() {
 
-        AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt()) //
-            .logs(txResult.getLogs()) //
-            .deletedAccounts(txResult.getDeleteAccounts()) //
-            .internalTransactions(txResult.getInternalTransactions()) //
-            .result(exeResult.getOutput());
+        TransactionResult h = new TransactionResult();
+        h.merge(ctx.result(), XXX_FORK ? exeResult.getCode() == Code.SUCCESS : true);
+
+        AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(h.getLogs())) //
+                .logs(h.getLogs()) //
+                .deletedAccounts(h.getDeleteAccounts()) //
+                .internalTransactions(h.getInternalTransactions()) //
+                .result(exeResult.getOutput());
 
         switch (exeResult.getCode()) {
             case SUCCESS:
@@ -368,7 +372,7 @@ public class TransactionExecutor {
 
             if (exeResult.getCode() == Code.SUCCESS) {
                 // Delete accounts
-                for (Address addr : txResult.getDeleteAccounts()) {
+                for (Address addr : h.getDeleteAccounts()) {
                     track.deleteAccount(addr);
                 }
             }
@@ -386,10 +390,10 @@ public class TransactionExecutor {
     /**
      * Returns the transaction receipt.
      */
-    protected AionTxReceipt getReceipt() {
+    protected AionTxReceipt getReceipt(List<Log> logs) {
         AionTxReceipt receipt = new AionTxReceipt();
         receipt.setTransaction(tx);
-        receipt.setLogs(txResult.getLogs());
+        receipt.setLogs(logs);
         receipt.setNrgUsed(getNrgUsed());
         receipt.setExecutionResult(exeResult.getOutput());
         receipt.setError(exeResult.getCode() == Code.SUCCESS ? "" : exeResult.getCode().name());

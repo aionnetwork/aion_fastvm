@@ -27,17 +27,15 @@ import org.aion.zero.types.AionInternalTx;
 import java.util.*;
 
 /**
- * TransacitonResults wraps the result of a transaction execution. It mainly
- * includes:
+ * TODO: rename to ExecutionHelper.
+ *
+ * An internal helper class which holds all the dynamically generated effects:
  * <p>
  * <ol>
  * <li>logs created</li>
- * <li>return(revert) data</li>
  * <li>internal txs created</li>
  * <li>account deleted</li>
- * <li>future refund</li>
  * <p>
- * All the above info could be used to build TransactionReceipt.
  *
  * @author yulong
  */
@@ -197,11 +195,14 @@ public class TransactionResult {
     /**
      * Merge another execution result.
      *
-     * @param another
+     * @param another another transaction result
+     * @param success whether the other transaction is success or not
      */
-    public void merge(TransactionResult another) {
+    public void merge(TransactionResult another, boolean success) {
         addInternalTransactions(another.getInternalTransactions());
-        addDeleteAccounts(another.getDeleteAccounts());
-        addLogs(another.getLogs());
+        if (success) {
+            addDeleteAccounts(another.getDeleteAccounts());
+            addLogs(another.getLogs());
+        }
     }
 }
