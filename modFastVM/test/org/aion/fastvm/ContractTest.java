@@ -27,7 +27,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.zero.types.AionInternalTx;
@@ -63,7 +63,7 @@ public class ContractTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
+    private ExecutionHelper txResult;
 
     public ContractTest() throws CloneNotSupportedException {
     }
@@ -74,7 +74,7 @@ public class ContractTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
+        txResult = new ExecutionHelper();
     }
 
     @Test
@@ -192,14 +192,14 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.result().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
         for (AionInternalTx tx : txs) {
             System.out.println(tx);
         }
 
         // verify logs
-        List<Log> logs = ctx.result().getLogs();
+        List<Log> logs = ctx.helper().getLogs();
         assertEquals(n, logs.size());
         for (Log log : logs) {
             System.out.println(log);
@@ -229,11 +229,11 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.result().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<Log> logs = ctx.result().getLogs();
+        List<Log> logs = ctx.helper().getLogs();
         assertEquals(n, logs.size());
     }
 

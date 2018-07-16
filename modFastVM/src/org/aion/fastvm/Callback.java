@@ -23,7 +23,6 @@ package org.aion.fastvm;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.mcf.core.AccountState;
@@ -183,7 +182,7 @@ public class Callback {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
 
-        context().result().addDeleteAccount(Address.wrap(owner));
+        context().helper().addDeleteAccount(Address.wrap(owner));
     }
 
     /**
@@ -201,7 +200,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().result().addLog(new Log(Address.wrap(address), list, data));
+        context().helper().addLog(new Log(Address.wrap(address), list, data));
     }
 
     /**
@@ -234,7 +233,7 @@ public class Callback {
         }
 
         // merge the effects
-        context().result().merge(ctx.result(), result.getCode() == Code.SUCCESS);
+        context().helper().merge(ctx.helper(), result.getCode() == Code.SUCCESS);
 
         return result.toBytes();
     }
@@ -259,7 +258,7 @@ public class Callback {
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()),
                 ctx.callValue(), ctx.callData(), "call");
-        ctx.result().addInternalTransaction(internalTx);
+        ctx.helper().addInternalTransaction(internalTx);
 
         PrecompiledContract pc = PrecompiledContracts.getPrecompiledContract(ctx.address(), track, ctx);
         if (pc != null) {
@@ -278,7 +277,7 @@ public class Callback {
         // post execution
         if (result.getCode() != Code.SUCCESS) {
             internalTx.reject();
-            ctx.result().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -320,7 +319,7 @@ public class Callback {
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
                 ctx.callData(), "create");
-        ctx.result().addInternalTransaction(internalTx);
+        ctx.helper().addInternalTransaction(internalTx);
 
         // execute transaction
         if (alreadyExsits) {
@@ -335,7 +334,7 @@ public class Callback {
         // post execution
         if (result.getCode() != Code.SUCCESS) {
             internalTx.reject();
-            ctx.result().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -393,7 +392,7 @@ public class Callback {
         long blockNrgLimit = prev.blockNrgLimit();
         DataWord blockDifficulty = prev.blockDifficulty();
 
-        TransactionResult txResult = new TransactionResult();
+        ExecutionHelper txResult = new ExecutionHelper();
 
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
                 kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
@@ -415,7 +414,7 @@ public class Callback {
 
         byte[] parentHash = context().transactionHash();
         int deep = stack.size();
-        int idx = context().result().getInternalTransactions().size();
+        int idx = context().helper().getInternalTransactions().size();
 
         return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
                 note);

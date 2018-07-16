@@ -22,7 +22,6 @@ package org.aion.vm;
 
 import org.aion.base.type.Address;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.TransactionResult;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -60,7 +59,7 @@ public class ExecutionContext {
     private long blockNrgLimit;
     private DataWord blockDifficulty;
 
-    private TransactionResult result;
+    private ExecutionHelper result;
 
     /**
      * Create a VM execution context.
@@ -86,7 +85,7 @@ public class ExecutionContext {
     public ExecutionContext(byte[] txHash, Address address, Address origin, Address caller, DataWord nrgPrice,
                             long nrgLimit, DataWord callValue, byte[] callData, int depth, int kind, int flags, Address blockCoinbase,
                             long blockNumber, long blockTimestamp, long blockNrgLimit, DataWord blockDifficulty,
-                            TransactionResult result) {
+                            ExecutionHelper result) {
         super();
         this.address = address;
         this.origin = origin;
@@ -305,7 +304,7 @@ public class ExecutionContext {
      *
      * @return
      */
-    public TransactionResult result() {
+    public ExecutionHelper helper() {
         return result;
     }
 }

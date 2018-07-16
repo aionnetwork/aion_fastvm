@@ -24,7 +24,7 @@ import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class CacheTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
+    private ExecutionHelper txResult;
 
     @Before
     public void setup() {
@@ -62,7 +62,7 @@ public class CacheTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
+        txResult = new ExecutionHelper();
     }
 
     @Test

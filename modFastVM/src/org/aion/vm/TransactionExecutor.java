@@ -72,7 +72,7 @@ public class TransactionExecutor {
     private long blockRemainingNrg;
 
     private ExecutionContext ctx;
-    private ExecutionResult exeResult;
+    private ExecutionResult result;
 
     private static Object lock = new Object();
     private boolean askNonce = true;
@@ -144,8 +144,8 @@ public class TransactionExecutor {
          */
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
                 kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
-                new TransactionResult());
-        exeResult = new ExecutionResult(Code.SUCCESS, nrgLimit);
+                new ExecutionHelper());
+        result = new ExecutionResult(Code.SUCCESS, nrgLimit);
     }
 
     /**
@@ -218,7 +218,7 @@ public class TransactionExecutor {
 
         long txNrgLimit = tx.nrgLimit();
         if (txNrgLimit > blockRemainingNrg || ctx.nrgLimit() < 0) {
-            exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, 0);
+            result.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, 0);
             return false;
         }
 
@@ -228,7 +228,7 @@ public class TransactionExecutor {
             BigInteger nonce = repo.getNonce(tx.getFrom());
 
             if (!txNonce.equals(nonce)) {
-                exeResult.setCodeAndNrgLeft(Code.INVALID_NONCE, 0);
+                result.setCodeAndNrgLeft(Code.INVALID_NONCE, 0);
                 return false;
             }
         }
@@ -239,7 +239,7 @@ public class TransactionExecutor {
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
         BigInteger balance = repo.getBalance(tx.getFrom());
         if (txTotal.compareTo(balance) > 0) {
-            exeResult.setCodeAndNrgLeft(Code.INSUFFICIENT_BALANCE, 0);
+            result.setCodeAndNrgLeft(Code.INSUFFICIENT_BALANCE, 0);
             return false;
         }
 
@@ -252,12 +252,12 @@ public class TransactionExecutor {
         long txNrgLimit = tx.nrgLimit();
         if (tx.isContractCreation()) {
             if (!isValidNrgContractCreate(txNrgLimit)) {
-                exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
+                result.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
                 return false;
             }
         } else {
             if (!isValidNrgTx(txNrgLimit)) {
-                exeResult.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
+                result.setCodeAndNrgLeft(Code.INVALID_NRG_LIMIT, txNrgLimit);
                 return false;
             }
         }
@@ -272,13 +272,13 @@ public class TransactionExecutor {
             .getPrecompiledContract(tx.getTo(), this.repoTrack, ctx);
 
         if (pc != null) {
-            exeResult = pc.execute(tx.getData(), ctx.nrgLimit());
+            result = pc.execute(tx.getData(), ctx.nrgLimit());
         } else {
             // execute code
             byte[] code = repoTrack.getCode(tx.getTo());
             if (!isEmpty(code)) {
                 VirtualMachine fvm = new FastVM();
-                exeResult = fvm.run(code, ctx, repoTrack);
+                result = fvm.run(code, ctx, repoTrack);
             }
         }
 
@@ -295,7 +295,7 @@ public class TransactionExecutor {
         Address contractAddress = tx.getContractAddress();
 
         if (repoTrack.hasAccountState(contractAddress)) {
-            exeResult.setCodeAndNrgLeft(Code.CONTRACT_ALREADY_EXISTS, 0);
+            result.setCodeAndNrgLeft(Code.CONTRACT_ALREADY_EXISTS, 0);
             return;
         }
 
@@ -305,10 +305,10 @@ public class TransactionExecutor {
         // execute contract deployer
         if (!isEmpty(tx.getData())) {
             VirtualMachine fvm = new FastVM();
-            exeResult = fvm.run(tx.getData(), ctx, repoTrack);
+            result = fvm.run(tx.getData(), ctx, repoTrack);
 
-            if (exeResult.getCode() == Code.SUCCESS) {
-                repoTrack.saveCode(contractAddress, exeResult.getOutput());
+            if (result.getCode() == Code.SUCCESS) {
+                repoTrack.saveCode(contractAddress, result.getOutput());
             }
         }
 
@@ -323,16 +323,16 @@ public class TransactionExecutor {
      */
     protected AionTxExecSummary finish() {
 
-        TransactionResult h = new TransactionResult();
-        h.merge(ctx.result(), XXX_FORK ? exeResult.getCode() == Code.SUCCESS : true);
+        ExecutionHelper h = new ExecutionHelper();
+        h.merge(ctx.helper(), XXX_FORK ? result.getCode() == Code.SUCCESS : true);
 
         AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(h.getLogs())) //
                 .logs(h.getLogs()) //
                 .deletedAccounts(h.getDeleteAccounts()) //
                 .internalTransactions(h.getInternalTransactions()) //
-                .result(exeResult.getOutput());
+                .result(result.getOutput());
 
-        switch (exeResult.getCode()) {
+        switch (result.getCode()) {
             case SUCCESS:
                 repoTrack.flush();
                 break;
@@ -361,7 +361,7 @@ public class TransactionExecutor {
         if (!isLocalCall && !summary.isRejected()) {
             IRepositoryCache track = repo.startTracking();
             // refund nrg left
-            if (exeResult.getCode() == Code.SUCCESS || exeResult.getCode() == Code.REVERT) {
+            if (result.getCode() == Code.SUCCESS || result.getCode() == Code.REVERT) {
                 track.addBalance(tx.getFrom(), summary.getRefund());
             }
 
@@ -370,7 +370,7 @@ public class TransactionExecutor {
             // Transfer fees to miner
             track.addBalance(block.getCoinbase(), summary.getFee());
 
-            if (exeResult.getCode() == Code.SUCCESS) {
+            if (result.getCode() == Code.SUCCESS) {
                 // Delete accounts
                 for (Address addr : h.getDeleteAccounts()) {
                     track.deleteAccount(addr);
@@ -395,8 +395,8 @@ public class TransactionExecutor {
         receipt.setTransaction(tx);
         receipt.setLogs(logs);
         receipt.setNrgUsed(getNrgUsed());
-        receipt.setExecutionResult(exeResult.getOutput());
-        receipt.setError(exeResult.getCode() == Code.SUCCESS ? "" : exeResult.getCode().name());
+        receipt.setExecutionResult(result.getOutput());
+        receipt.setError(result.getCode() == Code.SUCCESS ? "" : result.getCode().name());
 
         return receipt;
     }
@@ -405,14 +405,14 @@ public class TransactionExecutor {
      * Returns the nrg left after execution.
      */
     protected long getNrgLeft() {
-        return exeResult.getNrgLeft();
+        return result.getNrgLeft();
     }
 
     /**
      * Returns the nrg used after execution.
      */
     protected long getNrgUsed() {
-        return tx.nrgLimit() - exeResult.getNrgLeft();
+        return tx.nrgLimit() - result.getNrgLeft();
     }
 
     public void setBypassNonce(boolean bypassNonce) {

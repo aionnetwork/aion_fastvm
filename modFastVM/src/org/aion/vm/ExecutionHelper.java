@@ -27,8 +27,6 @@ import org.aion.zero.types.AionInternalTx;
 import java.util.*;
 
 /**
- * TODO: rename to ExecutionHelper.
- *
  * An internal helper class which holds all the dynamically generated effects:
  * <p>
  * <ol>
@@ -39,7 +37,7 @@ import java.util.*;
  *
  * @author yulong
  */
-public class TransactionResult {
+public class ExecutionHelper {
 
     public static class Call {
         final byte[] data;
@@ -73,7 +71,7 @@ public class TransactionResult {
     /**
      * Create a new execution result.
      */
-    public TransactionResult() {
+    public ExecutionHelper() {
     }
 
     /**
@@ -198,7 +196,7 @@ public class TransactionResult {
      * @param another another transaction result
      * @param success whether the other transaction is success or not
      */
-    public void merge(TransactionResult another, boolean success) {
+    public void merge(ExecutionHelper another, boolean success) {
         addInternalTransactions(another.getInternalTransactions());
         if (success) {
             addDeleteAccounts(another.getDeleteAccounts());
