@@ -43,9 +43,12 @@
         <pathelement location="${dir.mod}/modAion.jar"/>
         <pathelement location="${dir.mod}/modAionBase.jar"/>
         <pathelement location="${dir.mod}/modCrypto.jar"/>
-        <pathelement location="${dir.mod}/modLogger.jar"/>
         <pathelement location="${dir.mod}/modMcf.jar"/>
+<<<<<<< HEAD
         <pathelement location="${dir.mod}/modPrecompiled.jar"/>
+=======
+	<pathelement location="${dir.mod}/modPrecompiled.jar"/>
+>>>>>>> origin/module_refactor
         <pathelement location="${dir.lib}/libJson.jar"/>
         <pathelement location="${dir.lib}/libnsc.jar"/>
         <pathelement location="${dir.lib}/slf4j-api-1.7.25.jar"/>

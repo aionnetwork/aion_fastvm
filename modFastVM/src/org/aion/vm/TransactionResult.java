@@ -1,26 +1,29 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017 Aion foundation.
+ *     This file is part of the aion network project.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.vm;
 
 import org.aion.base.type.Address;
+import org.aion.mcf.vm.AbstractExecutionResult;
 import org.aion.mcf.vm.types.Log;
 import org.aion.zero.types.AionInternalTx;
 
@@ -41,7 +44,7 @@ import java.util.*;
  *
  * @author yulong
  */
-public class TransactionResult {
+public class TransactionResult extends AbstractExecutionResult {
 
     public static class Call {
         final byte[] data;
@@ -76,6 +79,7 @@ public class TransactionResult {
      * Create a new execution result.
      */
     public TransactionResult() {
+        super(ResultCode.SUCCESS, 0);
     }
 
     /**

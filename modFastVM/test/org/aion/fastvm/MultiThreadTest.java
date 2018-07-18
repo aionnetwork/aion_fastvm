@@ -1,37 +1,28 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017 Aion foundation.
+ *     This file is part of the aion network project.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.fastvm;
 
-import org.aion.base.type.Address;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
-import org.aion.contract.ContractUtils;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
-import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.TransactionResult;
-import org.aion.mcf.vm.types.DataWord;
-import org.apache.commons.lang3.RandomUtils;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,8 +30,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.assertEquals;
+import org.aion.base.type.Address;
+import org.aion.base.util.ByteUtil;
+import org.aion.base.util.Hex;
+import org.aion.contract.ContractUtils;
+import org.aion.mcf.vm.AbstractExecutionResult.ResultCode;
+import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.ExecutionContext;
+import org.aion.vm.ExecutionResult;
+import org.aion.vm.TransactionResult;
+import org.apache.commons.lang3.RandomUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 public class MultiThreadTest {
 
@@ -66,7 +67,7 @@ public class MultiThreadTest {
 
     private TransactionResult txResult;
 
-    public MultiThreadTest() throws CloneNotSupportedException {
+    public MultiThreadTest() {
     }
 
     @Before
@@ -88,22 +89,19 @@ public class MultiThreadTest {
         long t1 = System.nanoTime();
         int repeat = 100;
         for (int i = 0; i < repeat; i++) {
-            es.submit(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] code = generateContract(count.incrementAndGet());
+            es.submit(() -> {
+                byte[] code = generateContract(count.incrementAndGet());
 
-                    callData = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(64).getData());
+                callData = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(64).getData());
 
-                    ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit,
-                            callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
-                            blockNrgLimit, blockDifficulty, txResult);
-                    DummyRepository repo = new DummyRepository();
+                ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit,
+                        callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                        blockNrgLimit, blockDifficulty, txResult);
+                DummyRepository repo = new DummyRepository();
 
-                    FastVM vm = new FastVM();
-                    ExecutionResult result = vm.run(code, ctx, repo);
-                    assertEquals(Code.SUCCESS, result.getCode());
-                }
+                FastVM vm = new FastVM();
+                ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+                assertEquals(ResultCode.SUCCESS, result.getResultCode());
             });
         }
 
