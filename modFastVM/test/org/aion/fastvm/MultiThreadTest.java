@@ -64,7 +64,7 @@ public class MultiThreadTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private ExecutionHelper txResult;
+    private ExecutionHelper helper;
 
     public MultiThreadTest() throws CloneNotSupportedException {
     }
@@ -75,7 +75,7 @@ public class MultiThreadTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new ExecutionHelper();
+        helper = new ExecutionHelper();
     }
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -97,7 +97,7 @@ public class MultiThreadTest {
 
                     ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit,
                             callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
-                            blockNrgLimit, blockDifficulty, txResult);
+                            blockNrgLimit, blockDifficulty);
                     DummyRepository repo = new DummyRepository();
 
                     FastVM vm = new FastVM();

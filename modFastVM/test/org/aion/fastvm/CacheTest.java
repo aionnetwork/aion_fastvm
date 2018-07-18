@@ -54,7 +54,7 @@ public class CacheTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private ExecutionHelper txResult;
+    private ExecutionHelper helper;
 
     @Before
     public void setup() {
@@ -62,7 +62,7 @@ public class CacheTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new ExecutionHelper();
+        helper = new ExecutionHelper();
     }
 
     @Test
@@ -71,7 +71,7 @@ public class CacheTest {
         callData = Hex.decode("8256cff3");
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         long t1 = System.currentTimeMillis();

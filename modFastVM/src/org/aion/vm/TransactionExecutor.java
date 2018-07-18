@@ -141,8 +141,7 @@ public class TransactionExecutor {
          * execution context and results
          */
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty,
-                new ExecutionHelper());
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         result = new ExecutionResult(Code.SUCCESS, nrgLimit);
     }
 
@@ -321,15 +320,15 @@ public class TransactionExecutor {
      */
     protected AionTxExecSummary finish() {
 
-        ExecutionHelper h = new ExecutionHelper();
-        h.merge(ctx.helper(), Forks.isSeptemberForkEnabled(ctx.blockNumber())
+        ExecutionHelper rootHelper = new ExecutionHelper();
+        rootHelper.merge(ctx.helper(), Forks.isSeptemberForkEnabled(ctx.blockNumber())
                 ? result.getCode() == Code.SUCCESS
                 : true);
 
-        AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(h.getLogs())) //
-                .logs(h.getLogs()) //
-                .deletedAccounts(h.getDeleteAccounts()) //
-                .internalTransactions(h.getInternalTransactions()) //
+        AionTxExecSummary.Builder builder = AionTxExecSummary.builderFor(getReceipt(rootHelper.getLogs())) //
+                .logs(rootHelper.getLogs()) //
+                .deletedAccounts(rootHelper.getDeleteAccounts()) //
+                .internalTransactions(rootHelper.getInternalTransactions()) //
                 .result(result.getOutput());
 
         switch (result.getCode()) {
@@ -372,7 +371,7 @@ public class TransactionExecutor {
 
             if (result.getCode() == Code.SUCCESS) {
                 // Delete accounts
-                for (Address addr : h.getDeleteAccounts()) {
+                for (Address addr : rootHelper.getDeleteAccounts()) {
                     track.deleteAccount(addr);
                 }
             }

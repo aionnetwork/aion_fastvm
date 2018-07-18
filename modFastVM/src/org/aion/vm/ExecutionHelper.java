@@ -193,14 +193,14 @@ public class ExecutionHelper {
     /**
      * Merge another execution result.
      *
-     * @param another another transaction result
+     * @param other another transaction result
      * @param success whether the other transaction is success or not
      */
-    public void merge(ExecutionHelper another, boolean success) {
-        addInternalTransactions(another.getInternalTransactions());
+    public void merge(ExecutionHelper other, boolean success) {
+        addInternalTransactions(other.getInternalTransactions());
         if (success) {
-            addDeleteAccounts(another.getDeleteAccounts());
-            addLogs(another.getLogs());
+            addDeleteAccounts(other.getDeleteAccounts());
+            addLogs(other.getLogs());
         }
     }
 }

@@ -398,10 +398,8 @@ public class Callback {
         long blockNrgLimit = prev.blockNrgLimit();
         DataWord blockDifficulty = prev.blockDifficulty();
 
-        ExecutionHelper txResult = new ExecutionHelper();
-
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
     }
 
     /**
