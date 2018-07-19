@@ -21,5 +21,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="modAionImpl" scope="TEST" />
     <orderEntry type="module" module-name="modPrecompiled" />
+    <orderEntry type="module" module-name="modVM" />
   </component>
 </module>
