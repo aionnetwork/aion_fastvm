@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.TransactionResult;

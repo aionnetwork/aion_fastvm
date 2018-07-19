@@ -31,7 +31,7 @@ import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.fastvm.DummyRepository;
+import org.aion.vm.DummyRepository;
 import org.aion.fastvm.TestUtils;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;

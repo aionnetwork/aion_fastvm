@@ -20,7 +20,7 @@
  * Contributors:
  *     Aion foundation.
  */
-package org.aion.fastvm;
+package org.aion.vm;
 
 import java.math.BigInteger;
 import java.util.Collection;
