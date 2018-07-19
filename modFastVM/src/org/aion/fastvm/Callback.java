@@ -242,7 +242,7 @@ public class Callback {
      * @return
      */
     private static IExecutionResult doCall(ExecutionContext ctx) {
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
         IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // transfer balance
