@@ -57,8 +57,7 @@ public class Benchmark {
 
     private static AionBlock block = TestUtils.createDummyBlock();
     private static AionRepositoryImpl db = AionRepositoryImpl.inst();
-    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db
-        .startTracking();
+    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
 
     private static ECKey key;
     private static Address owner;
@@ -100,6 +99,7 @@ public class Benchmark {
 
         // deploy contract
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
         assertFalse(summary.isFailed());
 
@@ -169,6 +169,7 @@ public class Benchmark {
 
         for (AionTransaction tx : txs) {
             TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+            exec.setExecutorProvider(new TestVMProvider());
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
@@ -206,6 +207,7 @@ public class Benchmark {
             AionTransaction tx = new AionTransaction(nonce, from, to, value, data, nrg, nrgPrice);
 
             TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+            exec.setExecutorProvider(new TestVMProvider());
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
