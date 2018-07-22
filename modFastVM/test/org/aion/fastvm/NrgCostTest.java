@@ -133,13 +133,12 @@ public class NrgCostTest {
         nrgLimit = 10_000_000L;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
 
         // JVM warm up
         byte[] code = {0x00};
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
@@ -190,7 +189,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -231,7 +230,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -269,12 +268,12 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            ExecutionResult result = new FastVM().run(code, ctx, repo);
             assertEquals(ResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -307,7 +306,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -345,7 +344,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -383,7 +382,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -423,7 +422,7 @@ public class NrgCostTest {
 
             ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                     callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty, txResult);
+                    blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 

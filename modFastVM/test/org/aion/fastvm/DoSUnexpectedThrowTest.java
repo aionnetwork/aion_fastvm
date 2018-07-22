@@ -92,7 +92,7 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
             nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result =  vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -118,7 +118,7 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
             nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result =  vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -144,7 +144,7 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
             nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result =  vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -170,7 +170,7 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
             nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -196,7 +196,7 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
             nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result =  vm.run(contract, ctx, repo);
         System.out.println(result);

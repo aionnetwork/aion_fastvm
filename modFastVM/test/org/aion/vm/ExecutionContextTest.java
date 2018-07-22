@@ -61,12 +61,11 @@ public class ExecutionContextTest {
         long blockNrgLimit = 0x000000000000000e;
         DataWord blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
 
-        TransactionResult txResult = new TransactionResult();
         ExecutionContext ctx = new ExecutionContext(txHash, Address.wrap(address),
             Address.wrap(origin), Address.wrap(caller), nrgPrice, nrgLimit, callValue,
             callData, depth, kind, flags, Address.wrap(blockCoinbase), blockNumber, blockTimestamp,
             blockNrgLimit,
-            blockDifficulty, txResult);
+            blockDifficulty);
         String encoded = Hex.toHexString(ctx.toBytes());
         String expected =
             "111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333"

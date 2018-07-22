@@ -1,23 +1,26 @@
-/*******************************************************************************
- *
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     This file is part of the aion network project.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
+
 package org.aion.fastvm;
 
 import org.aion.base.db.IRepositoryCache;
@@ -185,7 +188,7 @@ public class Callback {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
 
-        context().result().addDeleteAccount(Address.wrap(owner));
+        context().helper().addDeleteAccount(Address.wrap(owner));
     }
 
     /**
@@ -203,7 +206,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().result().addLog(new Log(Address.wrap(address), list, data));
+        context().helper().addLog(new Log(Address.wrap(address), list, data));
     }
 
     /**
@@ -228,11 +231,17 @@ public class Callback {
         }
 
         // call sub-routine
+        IExecutionResult result;
         if (ctx.kind() == ExecutionContext.CREATE) {
-            return doCreate(ctx).toBytes();
+            result = doCreate(ctx);
         } else {
-            return doCall(ctx).toBytes();
+            result = doCall(ctx);
         }
+
+        // merge the effects
+        context().helper().merge(ctx.helper(), result.getCode() == ResultCode.SUCCESS.toInt());
+
+        return result.toBytes();
     }
 
     /**
@@ -255,7 +264,7 @@ public class Callback {
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()),
                 ctx.callValue(), ctx.callData(), "call");
-        ctx.result().addInternalTransaction(internalTx);
+        ctx.helper().addInternalTransaction(internalTx);
 
         IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx.address(), ctx.caller(), track);
         if (pc != null) {
@@ -275,7 +284,7 @@ public class Callback {
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.result().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -317,7 +326,7 @@ public class Callback {
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
                 ctx.callData(), "create");
-        ctx.result().addInternalTransaction(internalTx);
+        ctx.helper().addInternalTransaction(internalTx);
 
         // execute transaction
         if (alreadyExsits) {
@@ -332,7 +341,7 @@ public class Callback {
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.result().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -390,10 +399,8 @@ public class Callback {
         long blockNrgLimit = prev.blockNrgLimit();
         DataWord blockDifficulty = prev.blockDifficulty();
 
-        TransactionResult txResult = prev.result();
-
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
     }
 
     /**
@@ -412,7 +419,7 @@ public class Callback {
 
         byte[] parentHash = context().transactionHash();
         int deep = stack.size();
-        int idx = context().result().getInternalTransactions().size();
+        int idx = context().helper().getInternalTransactions().size();
 
         return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
                 note);
