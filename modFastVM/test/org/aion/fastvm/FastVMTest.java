@@ -86,7 +86,6 @@ public class FastVMTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
     }
 
     @Test
@@ -98,11 +97,11 @@ public class FastVMTest {
     public void testRun() {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         byte[] code = Hex.decode("6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60020160E052601060E0F3");
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, new DummyRepository());
+        ExecutionResult result = vm.run(code, ctx, new DummyRepository());
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -114,14 +113,14 @@ public class FastVMTest {
     public void testGetCodeByAddress1() {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         byte[] code = Hex
                 .decode("6020600060E06F111111111111111111111111111111116F000000000000000000000000111111113C602060E0F3");
         DummyRepository repo = new DummyRepository();
 
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+        ExecutionResult result = vm.run(code, ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -133,7 +132,7 @@ public class FastVMTest {
     public void testGetCodeByAddress2() {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         byte[] code = Hex
@@ -141,7 +140,7 @@ public class FastVMTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(Address.wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111")), Hex.decode("11223344"));
 
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+        ExecutionResult result = vm.run(code, ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -153,7 +152,7 @@ public class FastVMTest {
     public void testGetCodeSize() {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         byte[] code = Hex
@@ -161,7 +160,7 @@ public class FastVMTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(Address.wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111")), Hex.decode("11223344"));
 
-        ExecutionResult result = (ExecutionResult) vm.run(code,  ctx, repo);
+        ExecutionResult result = vm.run(code,  ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -172,7 +171,7 @@ public class FastVMTest {
     public void testBalance() {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         byte[] code = Hex
@@ -180,7 +179,7 @@ public class FastVMTest {
         DummyRepository repo = new DummyRepository();
         repo.addBalance(Address.wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111")), BigInteger.valueOf(0x34));
 
-        ExecutionResult result = (ExecutionResult) vm.run(code,  ctx, repo);
+        ExecutionResult result = vm.run(code,  ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -200,7 +199,7 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         DummyRepository repo = new DummyRepository();
@@ -209,7 +208,7 @@ public class FastVMTest {
         repo.addContract(Address.wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111")), calleeCtr);
         repo.addContract(Address.wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222")), callerCtr);
 
-        ExecutionResult result = (ExecutionResult) vm.run(callerCtr, ctx, repo);
+        ExecutionResult result = vm.run(callerCtr, ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -225,12 +224,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
 
         DummyRepository repo = new DummyRepository();
 
-        ExecutionResult result = (ExecutionResult) vm.run(contract, ctx, repo);
+        ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
@@ -246,12 +245,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, ctx, repo);
+        ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
@@ -265,12 +264,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, ctx, repo);
+        ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
@@ -284,12 +283,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, ctx, repo);
+        ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
@@ -303,12 +302,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(contract, ctx, repo);
+        ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -324,11 +323,11 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(Hex.decode(code), ctx, repo);
+        ExecutionResult result = vm.run(Hex.decode(code), ctx, repo);
         System.out.println(result);
         assertEquals(0, result.getNrgLeft());
     }
@@ -339,11 +338,11 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(Hex.decode(code), ctx, repo);
+        ExecutionResult result = vm.run(Hex.decode(code), ctx, repo);
         System.out.println(result);
         assertEquals(0, result.getNrgLeft());
     }
@@ -354,11 +353,11 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(Hex.decode(code),  ctx, repo);
+        ExecutionResult result = vm.run(Hex.decode(code),  ctx, repo);
         System.out.println(result);
         assertEquals(0, result.getNrgLeft());
     }
@@ -371,11 +370,11 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(Hex.decode(code),  ctx, repo);
+        ExecutionResult result = vm.run(Hex.decode(code),  ctx, repo);
         System.out.println(result);
         assertEquals(0, result.getNrgLeft());
     }
@@ -389,12 +388,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+        ExecutionResult result = vm.run(code, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
         assertTrue(result.getOutput().length > 0);
@@ -409,12 +408,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+        ExecutionResult result = vm.run(code, ctx, repo);
         System.out.println(result);
         assertEquals(0, result.getNrgLeft());
     }
@@ -428,12 +427,12 @@ public class FastVMTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
         FastVM vm = new FastVM();
-        ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
+        ExecutionResult result = vm.run(code, ctx, repo);
         System.out.println(result);
 
         // NOTE: after the byzantine fork, if the CREATE call fails, the
