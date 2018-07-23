@@ -257,7 +257,7 @@ public class Callback {
                 ctx.callValue(), ctx.callData(), "call");
         ctx.result().addInternalTransaction(internalTx);
 
-        IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx.address(), ctx.caller(), track);
+        IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.callData(), ctx.nrgLimit());
         } else {
