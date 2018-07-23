@@ -58,7 +58,7 @@ public class CompilerTest {
         String contract = "pragma solidity ^0.4.0;\n" +
                 "\n" +
                 "contract Register {\n" +
-                "    mapping (address => bool) registeredAddresses;\n" +
+                "    mapping (getRecipient => bool) registeredAddresses;\n" +
                 "    uint price;\n" +
                 "\n" +
                 "    function Register(uint initialPrice) public { price = initialPrice; }\n" +

@@ -9,7 +9,7 @@ contract X {
 
 contract Create {
 
-   function f() returns (address) {
+   function f() returns (recipient) {
         return new X();
    }
 }

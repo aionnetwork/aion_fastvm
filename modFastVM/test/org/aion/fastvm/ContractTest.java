@@ -202,14 +202,14 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.getHelper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
         for (AionInternalTx tx : txs) {
             System.out.println(tx);
         }
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<Log> logs = ctx.getHelper().getLogs();
         assertEquals(n, logs.size());
         for (Log log : logs) {
             System.out.println(log);
@@ -240,11 +240,11 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.getHelper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<Log> logs = ctx.getHelper().getLogs();
         assertEquals(n, logs.size());
     }
 

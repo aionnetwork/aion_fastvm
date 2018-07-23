@@ -94,7 +94,7 @@ public class Benchmark {
         long nrgPrice = 1L;
         AionTransaction tx = new AionTransaction(nonce, from, to, value, deployer, nrg, nrgPrice);
 
-        // save contract address
+        // save contract getRecipient
         contract = tx.getContractAddress();
 
         // deploy contract

@@ -453,7 +453,7 @@ public class FastVMTest {
 
         BigInteger nonce = BigInteger.ZERO;
 
-        /* byte[] nonce, Address to, byte[] value, byte[] data, long nrg, long nrgPrice */
+        /* byte[] nonce, Address to, byte[] value, byte[] data, long nrg, long getNrgPrice */
         AionTransaction tx = new AionTransaction(
                 nonce.toByteArray(),
                 null,
@@ -726,7 +726,7 @@ public class FastVMTest {
                 nonce.toByteArray(),
                 contractAddress,
                 new byte[0],
-                ByteUtil.hexStringToBytes("0x421b2d8b" + Hex.toHexString(deployerAccount.getAddress())), // addUser(address)
+                ByteUtil.hexStringToBytes("0x421b2d8b" + Hex.toHexString(deployerAccount.getAddress())), // addUser(getRecipient)
                 1_000_000L,
                 1L
         );

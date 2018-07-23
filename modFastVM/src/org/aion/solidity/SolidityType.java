@@ -60,7 +60,7 @@ public abstract class SolidityType {
             return new BoolType();
         if (typeName.startsWith("int") || typeName.startsWith("uint"))
             return new IntType(typeName);
-        if ("address".equals(typeName))
+        if ("getRecipient".equals(typeName))
             return new AddressType();
         if ("string".equals(typeName))
             return new StringType();
@@ -356,7 +356,7 @@ public abstract class SolidityType {
 
     public static class AddressType extends SolidityType {
         public AddressType() {
-            super("address");
+            super("getRecipient");
         }
 
         @Override
@@ -368,14 +368,14 @@ public abstract class SolidityType {
                 }
 
                 if (str.length() != 64) {
-                    throw new RuntimeException("Invalid address: length = " + str.length());
+                    throw new RuntimeException("Invalid getRecipient: length = " + str.length());
                 }
                 return Hex.decode(str);
 
             } else if (value instanceof byte[]) {
                 byte[] bytes = (byte[]) value;
                 if (bytes.length != 32) {
-                    throw new RuntimeException("Invalid address: length = " + bytes.length);
+                    throw new RuntimeException("Invalid getRecipient: length = " + bytes.length);
                 }
 
                 return bytes;

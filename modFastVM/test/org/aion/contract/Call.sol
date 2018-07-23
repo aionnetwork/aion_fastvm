@@ -9,7 +9,7 @@ contract Callee {
 
 contract Caller {
 
-   function f(address a) returns (uint) {
+   function f(recipient a) returns (uint) {
         Callee c = Callee(a);
         return c.add(1, 2);
     }

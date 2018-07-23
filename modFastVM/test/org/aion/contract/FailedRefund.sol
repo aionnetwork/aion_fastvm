@@ -2,14 +2,14 @@ pragma solidity ^0.4.0;
 
 contract FailedRefund {
 
-    address public recipient;
-    mapping (address => uint) public balances;
-    address[] private refundAddresses;
-    mapping (address => uint) public refunds;
+    recipient public recipient;
+    mapping (recipient => uint) public balances;
+    recipient[] private refundAddresses;
+    mapping (recipient => uint) public refunds;
 
-    event Sent(address from, address to, uint amount);
+    event Sent(recipient from, recipient to, uint amount);
 
-    function send(address leader, uint amount) public {
+    function send(recipient leader, uint amount) public {
         if (balances[msg.sender] < amount) {
             return;
         }

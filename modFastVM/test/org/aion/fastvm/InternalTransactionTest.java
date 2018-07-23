@@ -25,7 +25,7 @@ pragma solidity ^0.4.0;
 contract A {
   event X();
 
-  function f(address addr, uint gas) public {
+  function f(getRecipient addr, uint gas) public {
     X();
 
     // B(addr).f.gas(gas)();

@@ -37,7 +37,6 @@ import org.aion.mcf.core.AccountState;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
-import org.aion.vm.*;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
@@ -151,7 +150,7 @@ public class Callback {
     public static byte[] getStorage(byte[] address, byte[] key) {
         IDataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
 
-        // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
+        // System.err.println("GET_STORAGE: getRecipient = " + Hex.toHexString(getRecipient) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 
         return value == null ? DataWord.ZERO.getData() : value.getData();
     }
@@ -165,7 +164,7 @@ public class Callback {
      */
     public static void putStorage(byte[] address, byte[] key, byte[] value) {
 
-        // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
+        // System.err.println("PUT_STORAGE: getRecipient = " + Hex.toHexString(getRecipient) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         repo().addStorageRow(Address.wrap(address), new DataWord(key), new DataWord(value));
     }
@@ -188,7 +187,7 @@ public class Callback {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
 
-        context().helper().addDeleteAccount(Address.wrap(owner));
+        context().getHelper().addDeleteAccount(Address.wrap(owner));
     }
 
     /**
@@ -206,7 +205,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().helper().addLog(new Log(Address.wrap(address), list, data));
+        context().getHelper().addLog(new Log(Address.wrap(address), list, data));
     }
 
     /**
@@ -218,28 +217,28 @@ public class Callback {
     public static byte[] call(byte[] message) {
         ExecutionContext ctx = parseMessage(message);
 
-        // check call stack depth
-        if (ctx.depth() >= Constants.MAX_CALL_DEPTH) {
+        // check call stack getDepth
+        if (ctx.getDepth() >= Constants.MAX_CALL_DEPTH) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // check value
-        BigInteger endowment = ctx.callValue().value();
-        BigInteger callersBalance = repo().getBalance(ctx.caller());
+        BigInteger endowment = ctx.getCallValue().value();
+        BigInteger callersBalance = repo().getBalance(ctx.getCaller());
         if (callersBalance.compareTo(endowment) < 0) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // call sub-routine
         IExecutionResult result;
-        if (ctx.kind() == ExecutionContext.CREATE) {
+        if (ctx.getKind() == ExecutionContext.CREATE) {
             result = doCreate(ctx);
         } else {
             result = doCall(ctx);
         }
 
         // merge the effects
-        context().helper().merge(ctx.helper(), result.getCode() == ResultCode.SUCCESS.toInt());
+        context().getHelper().merge(ctx.getHelper(), result.getCode() == ResultCode.SUCCESS.toInt());
 
         return result.toBytes();
     }
@@ -252,26 +251,26 @@ public class Callback {
      */
     private static IExecutionResult doCall(ExecutionContext ctx) {
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
-        IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
+        IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
 
         // transfer balance
-        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
-        track.addBalance(ctx.address(), ctx.callValue().value());
+        track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
+        track.addBalance(ctx.getRecipient(), ctx.getCallValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.caller());
+        track.incrementNonce(ctx.getCaller());
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()),
-                ctx.callValue(), ctx.callData(), "call");
-        ctx.helper().addInternalTransaction(internalTx);
+        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()),
+                ctx.getCallValue(), ctx.getCallData(), "call");
+        ctx.getHelper().addInternalTransaction(internalTx);
 
         IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
         if (pc != null) {
-            result = pc.execute(ctx.callData(), ctx.nrgLimit());
+            result = pc.execute(ctx.getCallData(), ctx.getNrgLimit());
         } else {
             // get the code
-            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address())
+            byte[] code = track.hasAccountState(ctx.getRecipient()) ? track.getCode(ctx.getRecipient())
                 : ByteUtil.EMPTY_BYTE_ARRAY;
 
             // execute transaction
@@ -284,7 +283,7 @@ public class Callback {
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.helper().rejectInternalTransactions(); // reject all
+            ctx.getHelper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -302,12 +301,12 @@ public class Callback {
      */
     private static ExecutionResult doCreate(ExecutionContext ctx) {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
-        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
 
-        // compute new address
-        byte[] nonce = track.getNonce(ctx.caller()).toByteArray();
-        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.caller().toBytes(), nonce));
-        ctx.setAddress(newAddress);
+        // compute new getRecipient
+        byte[] nonce = track.getNonce(ctx.getCaller()).toByteArray();
+        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.getCaller().toBytes(), nonce));
+        ctx.setRecipient(newAddress);
 
         // in case of hashing collisions
         boolean alreadyExsits = track.hasAccountState(newAddress);
@@ -317,31 +316,31 @@ public class Callback {
         track.addBalance(newAddress, oldBalance);
 
         // transfer balance
-        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
-        track.addBalance(newAddress, ctx.callValue().value());
+        track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
+        track.addBalance(newAddress, ctx.getCallValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.caller());
+        track.incrementNonce(ctx.getCaller());
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
-                ctx.callData(), "create");
-        ctx.helper().addInternalTransaction(internalTx);
+        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), null, track.getNonce(ctx.getCaller()), ctx.getCallValue(),
+                ctx.getCallData(), "create");
+        ctx.getHelper().addInternalTransaction(internalTx);
 
         // execute transaction
         if (alreadyExsits) {
             result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
         } else {
-            if (ArrayUtils.isNotEmpty(ctx.callData())) {
+            if (ArrayUtils.isNotEmpty(ctx.getCallData())) {
                 FastVM jit = new FastVM();
-                result = jit.run(ctx.callData(), ctx, track);
+                result = jit.run(ctx.getCallData(), ctx, track);
             }
         }
 
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.helper().rejectInternalTransactions(); // reject all
+            ctx.getHelper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -373,15 +372,15 @@ public class Callback {
         ByteBuffer buffer = ByteBuffer.wrap(message);
         buffer.order(ByteOrder.BIG_ENDIAN);
 
-        byte[] txHash = prev.transactionHash();
+        byte[] txHash = prev.getTransactionHash();
 
         byte[] address = new byte[Address.ADDRESS_LEN];
         buffer.get(address);
-        Address origin = prev.origin();
+        Address origin = prev.getOrigin();
         byte[] caller = new byte[Address.ADDRESS_LEN];
         buffer.get(caller);
 
-        DataWord nrgPrice = prev.nrgPrice();
+        DataWord nrgPrice = prev.getNrgPrice();
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
@@ -393,11 +392,11 @@ public class Callback {
         int kind = buffer.getInt();
         int flags = buffer.getInt();
 
-        Address blockCoinbase = prev.blockCoinbase();
-        long blockNumber = prev.blockNumber();
-        long blockTimestamp = prev.blockTimestamp();
-        long blockNrgLimit = prev.blockNrgLimit();
-        DataWord blockDifficulty = prev.blockDifficulty();
+        Address blockCoinbase = prev.getBlockCoinbase();
+        long blockNumber = prev.getBlockNumber();
+        long blockTimestamp = prev.getBlockTimestamp();
+        long blockNrgLimit = prev.getBlockNrgLimit();
+        DataWord blockDifficulty = prev.getBlockDifficulty();
 
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
                 kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
@@ -417,9 +416,9 @@ public class Callback {
                                                 String note) {
         // TODO: heavily test internal transaction
 
-        byte[] parentHash = context().transactionHash();
+        byte[] parentHash = context().getTransactionHash();
         int deep = stack.size();
-        int idx = context().helper().getInternalTransactions().size();
+        int idx = context().getHelper().getInternalTransactions().size();
 
         return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
                 note);
