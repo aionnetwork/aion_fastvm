@@ -22,7 +22,6 @@ package org.aion.vm;
 
 import org.aion.base.type.Address;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.TransactionResult;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -39,7 +38,9 @@ public class ExecutionContext {
     public static int CALLCODE = 2;
     public static int CREATE = 3;
 
+    // internal
     private byte[] txHash;
+    private ExecutionHelper helper;
 
     private Address address;
     private Address origin;
@@ -60,12 +61,9 @@ public class ExecutionContext {
     private long blockNrgLimit;
     private DataWord blockDifficulty;
 
-    private TransactionResult result;
-
     /**
      * Create a VM execution context.
-     *
-     * @param txHash
+     *  @param txHash
      * @param address
      * @param origin
      * @param caller
@@ -81,13 +79,13 @@ public class ExecutionContext {
      * @param blockTimestamp
      * @param blockNrgLimit
      * @param blockDifficulty
-     * @param result
      */
     public ExecutionContext(byte[] txHash, Address address, Address origin, Address caller, DataWord nrgPrice,
                             long nrgLimit, DataWord callValue, byte[] callData, int depth, int kind, int flags, Address blockCoinbase,
-                            long blockNumber, long blockTimestamp, long blockNrgLimit, DataWord blockDifficulty,
-                            TransactionResult result) {
-        super();
+                            long blockNumber, long blockTimestamp, long blockNrgLimit, DataWord blockDifficulty) {
+        this.txHash = txHash;
+        this.helper = new ExecutionHelper();
+
         this.address = address;
         this.origin = origin;
         this.caller = caller;
@@ -106,9 +104,6 @@ public class ExecutionContext {
         this.blockTimestamp = blockTimestamp;
         this.blockNrgLimit = blockNrgLimit;
         this.blockDifficulty = blockDifficulty;
-
-        this.txHash = txHash;
-        this.result = result;
     }
 
     /**
@@ -148,8 +143,22 @@ public class ExecutionContext {
     // Transaction context
     // =============================
 
+    /**
+     * Returns the transaction hash.
+     *
+     * @return
+     */
     public byte[] transactionHash() {
         return txHash;
+    }
+
+    /**
+     * Sets the transaction hash.
+     *
+     * @param txHash
+     */
+    public void setTransactionHash(byte[] txHash) {
+        this.txHash = txHash;
     }
 
     /**
@@ -161,6 +170,12 @@ public class ExecutionContext {
         return address;
     }
 
+
+    /**
+     * Sets the address of executing account.
+     *
+     * @param address
+     */
     public void setAddress(Address address) {
         this.address = address;
     }
@@ -301,11 +316,11 @@ public class ExecutionContext {
     // =============================
 
     /**
-     * Returns the transaction result.
+     * Returns the transaction helper.
      *
      * @return
      */
-    public TransactionResult result() {
-        return result;
+    public ExecutionHelper helper() {
+        return helper;
     }
 }

@@ -27,7 +27,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.zero.types.AionInternalTx;
@@ -63,8 +63,6 @@ public class ContractTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
-
     public ContractTest() throws CloneNotSupportedException {
     }
 
@@ -74,7 +72,6 @@ public class ContractTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
     }
 
     @Test
@@ -89,7 +86,7 @@ public class ContractTest {
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -99,7 +96,7 @@ public class ContractTest {
         nrgLimit = 1_000_000L;
 
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         vm = new FastVM();
         result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -121,7 +118,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -131,7 +128,7 @@ public class ContractTest {
         callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         vm = new FastVM();
         result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -141,7 +138,7 @@ public class ContractTest {
         callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         vm = new FastVM();
         result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -151,7 +148,7 @@ public class ContractTest {
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         vm = new FastVM();
         result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -161,7 +158,7 @@ public class ContractTest {
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(1024L).getData());
         nrgLimit = 100_000L;
         ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue, callData, depth,
-                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty, txResult);
+                kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
         vm = new FastVM();
         result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -182,7 +179,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -192,14 +189,14 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.result().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
         for (AionInternalTx tx : txs) {
             System.out.println(tx);
         }
 
         // verify logs
-        List<Log> logs = ctx.result().getLogs();
+        List<Log> logs = ctx.helper().getLogs();
         assertEquals(n, logs.size());
         for (Log log : logs) {
             System.out.println(log);
@@ -219,7 +216,7 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -229,11 +226,11 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.result().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<Log> logs = ctx.result().getLogs();
+        List<Log> logs = ctx.helper().getLogs();
         assertEquals(n, logs.size());
     }
 
@@ -250,7 +247,7 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);

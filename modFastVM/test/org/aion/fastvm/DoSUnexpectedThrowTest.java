@@ -27,7 +27,6 @@ import org.aion.contract.ContractUtils;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
-import org.aion.vm.TransactionResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -61,15 +60,12 @@ public class DoSUnexpectedThrowTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
-
     @Before
     public void setup() {
         nrgPrice = DataWord.ONE;
         nrgLimit = 500;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
     }
 
     @Test
@@ -88,7 +84,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 69;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -112,7 +108,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -136,7 +132,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -160,7 +156,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 10000;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -184,7 +180,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 369;
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty, txResult);
+                blockDifficulty);
         FastVM vm = new FastVM();
         ExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
