@@ -273,6 +273,55 @@ contract A {
         assertEquals(0, summary.getInternalTransactions().get(1).getIndex());
     }
 
+
+    /*
+pragma solidity ^0.4.0;
+
+contract B {}
+
+contract A {
+    address b;
+
+    function A() {
+        b = new B();
+    }
+}
+     */
+    @Test
+    public void testNestedCreate() throws InterruptedException {
+        String contractA = "0x60506040523415600f5760006000fd5b5b60166048565b604051809103906000f0801582151615602f5760006000fd5b60006000508282909180600101839055555050505b6057565b604051605a8061009f83390190565b603a806100656000396000f30060506040526008565b60006000fd00a165627a7a72305820c0eea40d4778b01848164e58898e9e8c8ab068ed5ee36ed6f0582d119ecbbede002960506040523415600f5760006000fd5b6013565b603a8060206000396000f30060506040526008565b60006000fd00a165627a7a723058208c13bc92baf844f8574632dca44c49776516cb6cd537b10ed700bf61392b6ae80029";
+
+        StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
+                .withValidatorConfiguration("simple")
+                .withDefaultAccounts()
+                .build();
+        StandaloneBlockchain bc = bundle.bc;
+        ECKey deployerAccount = bundle.privateKeys.get(0);
+
+        //======================
+        // DEPLOY
+        //======================
+        BigInteger nonce = BigInteger.ZERO;
+        AionTransaction tx1 = new AionTransaction(
+                nonce.toByteArray(),
+                null,
+                new byte[0],
+                ByteUtil.hexStringToBytes(contractA),
+                1_000_000L,
+                1L
+        );
+        tx1.sign(deployerAccount);
+
+        BlockContext context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx1), false);
+        TransactionExecutor exec = new TransactionExecutor(tx1, context.block, bc.getRepository().startTracking());
+        AionTxExecSummary summary = exec.execute();
+
+        System.out.println(summary.getReceipt());
+        for (AionInternalTx tx : summary.getInternalTransactions()) {
+            System.out.println(tx);
+        }
+    }
+
     @After
     public void teardown() {
         Forks.clearTestState();

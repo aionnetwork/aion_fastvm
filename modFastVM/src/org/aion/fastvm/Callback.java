@@ -309,7 +309,8 @@ public class Callback {
         ctx.setAddress(newAddress);
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "create");
+        // TODO: should the `to` address be null?
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "create");
         context().helper().addInternalTransaction(internalTx);
         ctx.setTransactionHash(internalTx.getHash());
 
