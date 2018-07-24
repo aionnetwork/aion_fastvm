@@ -74,54 +74,6 @@ public class ExecutionContextTest {
         callData = null;
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullRecipient() {
-        recipient = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullOrigin() {
-        origin = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullCaller() {
-        caller = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullCoinbase() {
-        coinbase = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullBlockDifficulty() {
-        blockDifficulty = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullNrgPrice() {
-        nrgPrice = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullCallValue() {
-        callValue = null;
-        newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testExecutionContextWithNullCallData() {
-        callData = null;
-        newExecutionContext();
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void testExecutionContextWithTxHashLessThan32Bytes() {
         txHash = new byte[31];
@@ -162,12 +114,6 @@ public class ExecutionContextTest {
     public void testExecutionContextWithNegativeBlockNrgLimit() {
         nrgLimit = -1;
         newExecutionContext();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testSetNullRecipient() {
-        ExecutionContext context = newExecutionContext();
-        context.setRecipient(null);
     }
 
     @Test

@@ -50,16 +50,6 @@ public class ExecutionResultTest {
         output = null;
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testConstructorNullCode() {
-        new ExecutionResult(null, nrgLeft, output);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testNoOutputConstructorullCode() {
-        new ExecutionResult(null, nrgLeft);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorNegativeEnergyLeft() {
         new ExecutionResult(code, -1, output);

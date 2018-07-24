@@ -49,8 +49,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 
 public class TransactionExecutorTest {
-
-    static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
+    private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
     @Test
     public void testCallTransaction() throws IOException {
