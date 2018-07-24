@@ -38,7 +38,9 @@ public class ExecutionContext {
     public static int CALLCODE = 2;
     public static int CREATE = 3;
 
+    // internal
     private byte[] txHash;
+    private ExecutionHelper helper;
 
     private Address address;
     private Address origin;
@@ -58,8 +60,6 @@ public class ExecutionContext {
     private long blockTimestamp;
     private long blockNrgLimit;
     private DataWord blockDifficulty;
-
-    private ExecutionHelper helper;
 
     /**
      * Create a VM execution context.
@@ -83,7 +83,9 @@ public class ExecutionContext {
     public ExecutionContext(byte[] txHash, Address address, Address origin, Address caller, DataWord nrgPrice,
                             long nrgLimit, DataWord callValue, byte[] callData, int depth, int kind, int flags, Address blockCoinbase,
                             long blockNumber, long blockTimestamp, long blockNrgLimit, DataWord blockDifficulty) {
-        super();
+        this.txHash = txHash;
+        this.helper = new ExecutionHelper();
+
         this.address = address;
         this.origin = origin;
         this.caller = caller;
@@ -102,9 +104,6 @@ public class ExecutionContext {
         this.blockTimestamp = blockTimestamp;
         this.blockNrgLimit = blockNrgLimit;
         this.blockDifficulty = blockDifficulty;
-
-        this.txHash = txHash;
-        this.helper = new ExecutionHelper();
     }
 
     /**
@@ -144,8 +143,22 @@ public class ExecutionContext {
     // Transaction context
     // =============================
 
+    /**
+     * Returns the transaction hash.
+     *
+     * @return
+     */
     public byte[] transactionHash() {
         return txHash;
+    }
+
+    /**
+     * Sets the transaction hash.
+     *
+     * @param txHash
+     */
+    public void setTransactionHash(byte[] txHash) {
+        this.txHash = txHash;
     }
 
     /**
@@ -157,6 +170,12 @@ public class ExecutionContext {
         return address;
     }
 
+
+    /**
+     * Sets the address of executing account.
+     *
+     * @param address
+     */
     public void setAddress(Address address) {
         this.address = address;
     }
