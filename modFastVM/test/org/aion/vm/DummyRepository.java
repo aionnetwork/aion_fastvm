@@ -39,15 +39,11 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 
 public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
+    Map<Address, AccountState> accounts = new HashMap<>();
+    Map<Address, byte[]> contracts = new HashMap<>();
+    Map<Address, Map<String, byte[]>> storage = new HashMap<>();
 
-    private Map<Address, AccountState> accounts = new HashMap<>();
-
-    private Map<Address, byte[]> contracts = new HashMap<>();
-
-    private Map<Address, Map<String, byte[]>> storage = new HashMap<>();
-
-    public DummyRepository() {
-    }
+    public DummyRepository() { }
 
     public DummyRepository(DummyRepository parent) {
         // Note: only references are copied
@@ -175,20 +171,6 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     public BigInteger addBalance(Address addr, BigInteger value) {
         return getAccountState(addr).addToBalance(value);
     }
-
-    //    @Override
-    //    public void setBalance(Address addr, BigInteger value) {
-    //        getAccountState(addr).setBalance(value);
-    //    }
-    //
-    //    @Override
-    //    public Set<Address> getAccountsKeys() {
-    //        Set<Address> set = new HashSet<>();
-    //        for (Address k : accounts.keySet()) {
-    //            set.add(k);
-    //        }
-    //        return set;
-    //    }
 
     @Override
     public IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> startTracking() {

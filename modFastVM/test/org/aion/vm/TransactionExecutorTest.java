@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.type.ITxReceipt;
@@ -53,6 +52,7 @@ import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
+import org.aion.zero.types.AionTxExecSummary;
 import org.aion.zero.types.AionTxReceipt;
 import org.aion.zero.types.IAionBlock;
 import org.apache.commons.lang3.RandomUtils;
@@ -61,7 +61,7 @@ import org.slf4j.Logger;
 
 public class TransactionExecutorTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
-    private static final IRepository REPO = new DummyRepository();
+    private static final DummyRepository REPO = new DummyRepository();
 
     @Test
     public void testBuildReceiptEnergyUsedDataAllZeroes() {
@@ -140,6 +140,62 @@ public class TransactionExecutorTest {
         //TODO: this is ExecutionResult.getResultCode == SUCCESS; need to understand calls first.
     }
 
+    @Test
+    public void testUpdateRepoIsLocalCall() {
+        int size = RandomUtils.nextInt(0, 1000);
+        int numZeroes = RandomUtils.nextInt(0, size);
+        byte[] data = produceData(size, numZeroes);
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        TransactionExecutor executor = getNewExecutor(tx, true, 21_000, numZeroes);
+        List<Log> logs = getNewLogs(RandomUtils.nextInt(0, 20));
+        AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), tx, logs);
+        AionTxExecSummary summary = new AionTxExecSummary.Builder(receipt).result(data).build();
+        executor.updateRepo(summary, tx, getNewAddress(), getNewAddresses(RandomUtils.nextInt(0, 10)));
+
+        // When call is local there should be no state change.
+        assertTrue(REPO.accounts.isEmpty());
+        assertTrue(REPO.contracts.isEmpty());
+        assertTrue(REPO.storage.isEmpty());
+    }
+
+    @Test
+    public void testUpdateRepoSummaryIsRejected() {
+        int size = RandomUtils.nextInt(0, 1000);
+        int numZeroes = RandomUtils.nextInt(0, size);
+        byte[] data = produceData(size, numZeroes);
+        List<Log> logs = getNewLogs(RandomUtils.nextInt(0, 20));
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        TransactionExecutor executor = getNewExecutor(tx, true, 21_000, numZeroes);
+        AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), tx, logs);
+        AionTxExecSummary summary = new AionTxExecSummary.Builder(receipt).
+            markAsRejected().result(data).build();
+        executor.updateRepo(summary, tx, getNewAddress(), getNewAddresses(RandomUtils.nextInt(0, 10)));
+
+        // When summary is rejected there should be no state change.
+        assertTrue(REPO.accounts.isEmpty());
+        assertTrue(REPO.contracts.isEmpty());
+        assertTrue(REPO.storage.isEmpty());
+    }
+
+    @Test
+    public void testUpdateRepoCoinbaseBalance() {
+        //TODO
+    }
+
+    @Test
+    public void testUpdateRepoNrgConsumption() {
+        //TODO
+    }
+
+    @Test
+    public void testUpdateRepoEnergyPriceRefund() {
+        //TODO: depends on ExecutionResult; need to understand calls first.
+    }
+
+    @Test
+    public void testUpdateRepoDeletedAccounts() {
+        //TODO: depends on ExecutionResult; need to understand calls first.
+    }
 
 
     // =================
@@ -275,6 +331,8 @@ public class TransactionExecutorTest {
         assertEquals(tx.transactionCost(block.getNumber()), receipt.getEnergyUsed());
     }
 
+    // <------------------------------------------HELPERS------------------------------------------>
+
     /**
      * Returns a new TransactionExecutor whose constructor params are randomly generated except for
      * isLocalCall.
@@ -336,6 +394,20 @@ public class TransactionExecutorTest {
             transactions.add(getNewAionTransaction(data, numZeroes));
         }
         return transactions;
+    }
+
+    /**
+     * Returns a list of num new random addresses.
+     *
+     * @param num The number of addresses to create.
+     * @return the list of addresses.
+     */
+    private List<Address> getNewAddresses(int num) {
+        List<Address> addresses = new ArrayList<>();
+        for (int i = 0; i < num; i++) {
+            addresses.add(getNewAddress());
+        }
+        return addresses;
     }
 
     /**
