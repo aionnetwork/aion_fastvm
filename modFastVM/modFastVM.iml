@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="modAionImpl" scope="TEST" />
     <orderEntry type="module" module-name="modPrecompiled" />
     <orderEntry type="module" module-name="modVM" />
+    <orderEntry type="library" name="mockito" level="project" />
   </component>
 </module>

@@ -39,6 +39,7 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 
 public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
+    private DummyRepository parent;
     Map<Address, AccountState> accounts = new HashMap<>();
     Map<Address, byte[]> contracts = new HashMap<>();
     Map<Address, Map<String, byte[]>> storage = new HashMap<>();
@@ -50,6 +51,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
         accounts.putAll(parent.accounts);
         contracts.putAll(parent.contracts);
         storage.putAll(parent.storage);
+        this.parent = parent;
     }
 
     public void addContract(Address address, byte[] code) {
@@ -179,7 +181,9 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
 
     @Override
     public void flush() {
-
+        this.parent.accounts = accounts;
+        this.parent.contracts = contracts;
+        this.parent.storage = storage;
     }
 
     @Override
