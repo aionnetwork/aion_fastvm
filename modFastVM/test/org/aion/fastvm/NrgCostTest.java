@@ -84,7 +84,6 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -115,8 +114,6 @@ public class NrgCostTest {
     private int depth = 0;
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
-
-    private TransactionResult txResult;
 
     public NrgCostTest() {
     }

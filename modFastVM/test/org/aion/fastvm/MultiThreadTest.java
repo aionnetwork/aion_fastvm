@@ -39,7 +39,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +66,9 @@ public class MultiThreadTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    public MultiThreadTest() {
+    private ExecutionHelper helper;
+
+    public MultiThreadTest() throws CloneNotSupportedException {
     }
 
     @Before
@@ -75,6 +77,7 @@ public class MultiThreadTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
+        helper = new ExecutionHelper();
     }
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -87,19 +90,22 @@ public class MultiThreadTest {
         long t1 = System.nanoTime();
         int repeat = 100;
         for (int i = 0; i < repeat; i++) {
-            es.submit(() -> {
-                byte[] code = generateContract(count.incrementAndGet());
+            es.submit(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] code = generateContract(count.incrementAndGet());
 
-                callData = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(64).getData());
+                    callData = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(64).getData());
 
-                ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit,
-                        callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
-                        blockNrgLimit, blockDifficulty);
-                DummyRepository repo = new DummyRepository();
+                    ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit,
+                            callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                            blockNrgLimit, blockDifficulty);
+                    DummyRepository repo = new DummyRepository();
 
-                FastVM vm = new FastVM();
-                ExecutionResult result = (ExecutionResult) vm.run(code, ctx, repo);
-                assertEquals(ResultCode.SUCCESS, result.getResultCode());
+                    FastVM vm = new FastVM();
+                    ExecutionResult result = vm.run(code, ctx, repo);
+                    assertEquals(ResultCode.SUCCESS, result.getCode());
+                }
             });
         }
 

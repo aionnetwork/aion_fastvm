@@ -30,7 +30,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
-import org.aion.vm.TransactionResult;
+import org.aion.vm.ExecutionHelper;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -57,12 +57,15 @@ public class CacheTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
+    private ExecutionHelper helper;
+
     @Before
     public void setup() {
         nrgPrice = DataWord.ONE;
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
+        helper = new ExecutionHelper();
     }
 
     @Test

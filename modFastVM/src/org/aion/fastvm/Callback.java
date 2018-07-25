@@ -29,6 +29,7 @@ import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.vm.IDataWord;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.vm.Forks;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.ExecutionContext;
@@ -178,11 +179,13 @@ public class Callback {
     public static void selfDestruct(byte[] owner, byte[] beneficiary) {
         BigInteger balance = repo().getBalance(Address.wrap(owner));
 
-        newInternalTx(Address.wrap(owner), Address.wrap(beneficiary), repo().getNonce(Address.wrap(owner)), new DataWord(balance), ByteUtil.EMPTY_BYTE_ARRAY,
-                "selfdestruct");
+        // add internal transaction
+        AionInternalTx internalTx = newInternalTx(Address.wrap(owner), Address.wrap(beneficiary), repo().getNonce(Address.wrap(owner)),
+                new DataWord(balance), ByteUtil.EMPTY_BYTE_ARRAY, "selfdestruct");
+        context().getHelper().addInternalTransaction(internalTx);
 
+        // transfer
         repo().addBalance(Address.wrap(owner), balance.negate());
-
         if (!owner.equals(beneficiary)) {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
@@ -216,6 +219,7 @@ public class Callback {
      */
     public static byte[] call(byte[] message) {
         ExecutionContext ctx = parseMessage(message);
+        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
 
         // check call stack getDepth
         if (ctx.getDepth() >= Constants.MAX_CALL_DEPTH) {
@@ -238,7 +242,9 @@ public class Callback {
         }
 
         // merge the effects
-        context().getHelper().merge(ctx.getHelper(), result.getCode() == ResultCode.SUCCESS.toInt());
+        context().getHelper().merge(ctx.getHelper(), Forks.isSeptemberForkEnabled(context().getBlockNumber())
+                ? result.getCode() == ResultCode.SUCCESS.toInt()
+                : true);
 
         return result.toBytes();
     }
@@ -253,17 +259,19 @@ public class Callback {
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
         IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
 
+        // add internal transaction
+        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()), ctx.getCallValue(), ctx.getCallData(), "call");
+        context().getHelper().addInternalTransaction(internalTx);
+        ctx.setTransactionHash(internalTx.getHash());
+
         // transfer balance
         track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
         track.addBalance(ctx.getRecipient(), ctx.getCallValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.getCaller());
-
-        // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()),
-                ctx.getCallValue(), ctx.getCallData(), "call");
-        ctx.getHelper().addInternalTransaction(internalTx);
+        if (Forks.isJuneForkEnabled(ctx.getBlockNumber())) {
+            track.incrementNonce(ctx.getCaller());
+        }
 
         IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
         if (pc != null) {
@@ -296,7 +304,7 @@ public class Callback {
     /**
      * This method handles the CREATE opcode.
      *
-     * @param ctx
+     * @param ctx execution context
      * @return
      */
     private static ExecutionResult doCreate(ExecutionContext ctx) {
@@ -307,6 +315,12 @@ public class Callback {
         byte[] nonce = track.getNonce(ctx.getCaller()).toByteArray();
         Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.getCaller().toBytes(), nonce));
         ctx.setRecipient(newAddress);
+
+        // add internal transaction
+        // TODO: should the `to` address be null?
+        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()), ctx.getCallValue(), ctx.getCallData(), "create");
+        context().getHelper().addInternalTransaction(internalTx);
+        ctx.setTransactionHash(internalTx.getHash());
 
         // in case of hashing collisions
         boolean alreadyExsits = track.hasAccountState(newAddress);
@@ -320,10 +334,13 @@ public class Callback {
         track.addBalance(newAddress, ctx.getCallValue().value());
 
         // update nonce
+        if (Forks.isJuneForkEnabled(ctx.getBlockNumber())) {
+            track.incrementNonce(ctx.getCaller());
+        }
         track.incrementNonce(ctx.getCaller());
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), null, track.getNonce(ctx.getCaller()), ctx.getCallValue(),
+        internalTx = newInternalTx(ctx.getCaller(), null, track.getNonce(ctx.getCaller()), ctx.getCallValue(),
                 ctx.getCallData(), "create");
         ctx.getHelper().addInternalTransaction(internalTx);
 
@@ -404,24 +421,14 @@ public class Callback {
 
     /**
      * Creates a new internal transaction.
-     *
-     * @param from
-     * @param to
-     * @param value
-     * @param data
-     * @param note
-     * @return
      */
     private static AionInternalTx newInternalTx(Address from, Address to, BigInteger nonce, DataWord value, byte[] data,
                                                 String note) {
-        // TODO: heavily test internal transaction
-
         byte[] parentHash = context().getTransactionHash();
-        int deep = stack.size();
-        int idx = context().getHelper().getInternalTransactions().size();
+        int depth = context().getDepth();
+        int index = context().getHelper().getInternalTransactions().size();
 
-        return new AionInternalTx(parentHash, deep, idx, new DataWord(nonce).getData(), from, to, value.getData(), data,
-                note);
+        return new AionInternalTx(parentHash, depth, index, new DataWord(nonce).getData(), from, to, value.getData(), data, note);
     }
 
 }
