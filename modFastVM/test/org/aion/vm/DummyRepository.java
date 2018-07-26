@@ -94,7 +94,9 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
 
     @Override
     public BigInteger setNonce(Address address, BigInteger nonce) {
-        throw new RuntimeException("Not supported");
+        AccountState as = getAccountState(address);
+        as.setNonce(nonce);
+        return nonce;
     }
 
     @Override
