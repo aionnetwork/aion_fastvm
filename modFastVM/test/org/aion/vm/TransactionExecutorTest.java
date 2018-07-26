@@ -26,7 +26,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.booleanThat;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
+import org.aion.base.type.IExecutionResult;
 import org.aion.base.type.ITxReceipt;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
@@ -385,8 +385,9 @@ public class TransactionExecutorTest {
         boolean isContractCreation = true, valueIsNull = false, dataIsNull = false;
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
     }
 
     @Test
@@ -394,8 +395,9 @@ public class TransactionExecutorTest {
         boolean isContractCreation = false, valueIsNull = false, dataIsNull = false;
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
     }
 
     @Test
@@ -404,14 +406,15 @@ public class TransactionExecutorTest {
         // isContractCreation == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
 
         // isContractCreation == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
     }
 
     @Test
@@ -420,14 +423,15 @@ public class TransactionExecutorTest {
         // isContractCreation == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
 
         // isContractCreation == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
     }
 
     @Test
@@ -436,14 +440,69 @@ public class TransactionExecutorTest {
         // isContractCreation == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES * 5);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
+
+        // isContractCreation == false
+        isContractCreation = false;
+        tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
+        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
+    }
+
+    @Test
+    public void testConstructorUsesBlockNrgLimit() {
+        // We are using a different constructor here. This one implicitly grabs the block's energy limit.
+
+        boolean isContractCreation = true, valueIsNull = false, dataIsNull = false;
+        // isContractCreation == true
+        AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
+        AionBlock block = mockBlock(DataWord.BYTES);
         TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        checkExecutionContext(executor, tx, block);
 
         // isContractCreation == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
-        checkExecutionContext(executor.getContext(), tx, block);
+        checkExecutionContext(executor, tx, block);
+    }
+
+    @Test
+    public void testConstructorNonLocalUsesBlockNrgLimit() {
+        // This is also a different constructor. This one grabs the block's energy limit also and
+        // additionally it sets the isLocalCall variable false.
+
+        boolean isContractCreation = true, valueIsNull = false, dataIsNull = false;
+        // isContractCreation == true
+        AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
+        AionBlock block = mockBlock(DataWord.BYTES);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
+
+        // isContractCreation == false
+        isContractCreation = false;
+        tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
+        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        checkExecutionContext(executor, tx, block);
+    }
+
+    @Test
+    public void testConstructorExecutionResult() {
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(DataWord.BYTES);
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true,
+            block.getNrgLimit(), LOGGER_VM);
+        checkExecutionResult(executor, tx);
+
+        // test second constructor.
+        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        checkExecutionResult(executor, tx);
+
+        // test third constructor.
+        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        checkExecutionResult(executor, tx);
     }
 
 
@@ -1054,15 +1113,14 @@ public class TransactionExecutorTest {
     }
 
     /**
-     * Checks the fields of ctx under the assumption that ctx is the ExecutionContext that a
-     * TransactionExecutor produces in its constructor when tx and block are passed into it.
+     * Checks the fields of the internal ExecutionContext object that executor holds under the
+     * assumption that executor was built from tx and block.
      *
-     * @param ctx Some TransactionExecutor's internal ExecutionContext object.
      * @param tx The transaction.
      * @param block The block.
      */
-    private void checkExecutionContext(ExecutionContext ctx, AionTransaction tx, AionBlock block) {
-
+    private void checkExecutionContext(TransactionExecutor executor, AionTransaction tx, AionBlock block) {
+        ExecutionContext ctx = executor.getContext();
         Address recipient;
         int kind;
         byte[] data;
@@ -1098,6 +1156,19 @@ public class TransactionExecutorTest {
         assertEquals(ctx.getBlockTimestamp(), block.getTimestamp());
         assertEquals(ctx.getBlockNrgLimit(), block.getNrgLimit());
         assertEquals(ctx.getBlockDifficulty(), new DataWord(diff));
+    }
+
+    /**
+     * Checks that the internal IExecutionResult object that executor holds and the executor was
+     * constructed using the transaction tx. If these checks fail then the calling test fails.
+     *
+     * @param tx The transaction that the TransactionExecutor was built off.
+     */
+    private void checkExecutionResult(TransactionExecutor executor, AionTransaction tx) {
+        IExecutionResult result = executor.getResult();
+        assertEquals(result.getCode(), ResultCode.SUCCESS.toInt());
+        assertEquals(result.getNrgLeft(), tx.nrgLimit() - tx.transactionCost(0));
+        assertArrayEquals(result.getOutput(), ByteUtil.EMPTY_BYTE_ARRAY);
     }
 
 }
