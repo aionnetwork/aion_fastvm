@@ -69,6 +69,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 
@@ -717,19 +718,19 @@ public class TransactionExecutorTest {
 
     @Test
     public void testCreateNullTxData() {
-        doCreateAndCheck(null, new ExecutionResult(ResultCode.SUCCESS, 0));
+        doCreateAndCheck(null, new ExecutionResult(ResultCode.SUCCESS, 0), true);
     }
 
     @Test
     public void testCreateEmptyTxData() {
-        doCreateAndCheck(new byte[0], new ExecutionResult(ResultCode.SUCCESS, 0));
+        doCreateAndCheck(new byte[0], new ExecutionResult(ResultCode.SUCCESS, 0), true);
     }
 
     @Test
     public void testCreateRunIsSuccessful() {
         byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(50, 150));
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, output);
-        doCreateAndCheck(RandomUtils.nextBytes(RandomUtils.nextInt(1, 1000)), result);
+        doCreateAndCheck(RandomUtils.nextBytes(RandomUtils.nextInt(1, 1000)), result, true);
     }
 
     @Test
@@ -738,9 +739,47 @@ public class TransactionExecutorTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(50, 150));
                 ExecutionResult result = new ExecutionResult(code, 0, output);
-                doCreateAndCheck(RandomUtils.nextBytes(RandomUtils.nextInt(1, 1000)), result);
+                doCreateAndCheck(RandomUtils.nextBytes(RandomUtils.nextInt(1, 1000)), result, true);
             }
         }
+    }
+
+    @Test
+    public void testCreateNegativeValue() {
+        doCreateAndCheck(RandomUtils.nextBytes(8),
+            new ExecutionResult(ResultCode.SUCCESS, 0), false);
+    }
+
+    @Test
+    public void testCallIsPrecompiledContract() {
+        for (ResultCode code : ResultCode.values()) {
+            ExecutionResult result = new ExecutionResult(code, 0, RandomUtils.nextBytes(16));
+            doCallAndCheck(result, true, null, true);
+        }
+    }
+
+    @Test
+    public void testCallNotPrecompiledContractCodeIsNull() {
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, RandomUtils.nextBytes(16));
+        doCallAndCheck(result, false, null, true);
+    }
+
+    @Test
+    public void testCallNotPrecompiledContractCodeIsEmpty() {
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, RandomUtils.nextBytes(16));
+        doCallAndCheck(result, false, new byte[0], true);
+    }
+
+    @Test
+    public void testCallNotPrecompiledContractCodeIsNonEmpty() {
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, RandomUtils.nextBytes(16));
+        doCallAndCheck(result, false, RandomUtils.nextBytes(16), true);
+    }
+
+    @Test
+    public void testCallNegativeValue() {
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, RandomUtils.nextBytes(16));
+        doCallAndCheck(result, false, RandomUtils.nextBytes(16), false);
     }
 
 
@@ -1633,15 +1672,22 @@ public class TransactionExecutorTest {
      * @param data The transaction data.
      * @param vmResult The mocked execution result of the fastVM's run method.
      */
-    private void doCreateAndCheck(byte[] data, ExecutionResult vmResult) {
-        BigInteger txValue = new BigInteger(1, RandomUtils.nextBytes(8));
+    private void doCreateAndCheck(byte[] data, ExecutionResult vmResult, boolean valueIsPositive) {
+        byte[] val = RandomUtils.nextBytes(8);
+        if (valueIsPositive) {
+            val[0] &= 0x7F;
+        } else {
+            val[0] |= 0x80;
+        }
+
+        BigInteger txValue = new BigInteger(val);
         Address contractAddr = getNewAddress();
         Address sender = addAccountsToRepo(1).get(0);
         AionTransaction tx = mockTx();
         when(tx.getContractAddress()).thenReturn(contractAddr);
         when(tx.getFrom()).thenReturn(sender);
         when(tx.getData()).thenReturn(data);
-        when(tx.getValue()).thenReturn(txValue.toByteArray());
+        when(tx.getValue()).thenReturn(val);
         AionBlock block = mockBlock(getNewAddress());
         VirtualMachine vm = mock(VirtualMachine.class);
         when(vm.run(
@@ -1650,7 +1696,7 @@ public class TransactionExecutorTest {
             thenReturn(vmResult);
         ExecutorProvider provider = mock(ExecutorProvider.class);
         when(provider.getVM()).thenReturn(vm);
-        repo.addBalance(sender, txValue);
+        repo.addBalance(sender, txValue.abs());
 
         long expectedNrg = tx.nrgLimit() - tx.transactionCost(0);
         vmResult.setNrgLeft(expectedNrg);
@@ -1660,13 +1706,70 @@ public class TransactionExecutorTest {
         executor.create();
 
         checkExecutionResults(executor.getResult(), vmResult.code.toInt(), expectedNrg);
-        assertEquals(BigInteger.ZERO, executor.repoTrack.getBalance(sender));
-        assertEquals(txValue, executor.repoTrack.getBalance(contractAddr));
+        assertEquals(txValue.abs().subtract(new BigInteger(1, val)), executor.repoTrack.getBalance(sender));
+        assertEquals(new BigInteger(1, val), executor.repoTrack.getBalance(contractAddr));
         if (vmResult.code.equals(ResultCode.SUCCESS)) {
             assertArrayEquals(vmResult.output, executor.repoTrack.getCode(contractAddr));
         } else {
             assertArrayEquals(new byte[0], executor.repoTrack.getCode(contractAddr));
         }
+    }
+
+    /**
+     * Runs TransactionExecutor's call method and checks state afterwards.
+     *
+     * @param result The result for the mocked fastVM to return.
+     * @param isPrecompiled True implies the transaction will be mocked as a precompiled contract.
+     * @param code The code to execute in the recipient address using the fastVM.
+     * @param valIsPositive True implies the transaction value will be positive. Otherwise negative.
+     */
+    private void doCallAndCheck(ExecutionResult result, boolean isPrecompiled, byte[] code, boolean valIsPositive) {
+        byte[] val = RandomUtils.nextBytes(8);
+        if (valIsPositive) {
+            val[0] &= 0x7F;
+        } else {
+            val[0] |= 0x80;
+        }
+        BigInteger txValue = new BigInteger(1, val);
+        List<Address> accts = addAccountsToRepo(2);
+        Address sender = accts.get(0);
+        Address recipient = accts.get(1);
+        AionTransaction tx = mockTx();
+        when(tx.getFrom()).thenReturn(sender);
+        when(tx.getTo()).thenReturn(recipient);
+        when(tx.getValue()).thenReturn(val);
+        AionBlock block = mockBlock(getNewAddress());
+        long expectedNrg = tx.nrgLimit() - tx.transactionCost(0);
+        result.setNrgLeft(expectedNrg);
+        repo.addBalance(sender, txValue);
+        repo.saveCode(recipient, code);
+
+        VirtualMachine vm = mock(VirtualMachine.class);
+        when(vm.run(
+            Mockito.any(byte[].class), Mockito.any(ExecutionContext.class),
+            Mockito.any(IRepositoryCache.class))).
+            thenReturn(result);
+        IPrecompiledContract pc = mock(IPrecompiledContract.class);
+        when(pc.execute(Mockito.any(byte[].class), Mockito.any(Long.class))).thenReturn(result);
+        ExecutorProvider provider = mock(ExecutorProvider.class);
+        when(provider.getPrecompiledContract(
+            Mockito.any(ExecutionContext.class), Mockito.any(IRepositoryCache.class))).
+            thenReturn((isPrecompiled) ? pc : null);
+        when(provider.getVM()).thenReturn(vm);
+
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, false,
+            block.getNrgLimit(), LOGGER_VM);
+        executor.setExecutorProvider(provider);
+        executor.call();
+
+        if ((code != null) && (code.length > 0)) {
+            assertEquals(result.getCode(), executor.getResult().getCode());
+            assertEquals(result.getNrgLeft(), executor.getResult().getNrgLeft());
+            assertArrayEquals(result.getOutput(), executor.getResult().getOutput());
+        }
+
+        assertEquals(BigInteger.ZERO, executor.repoTrack.getBalance(sender));
+        assertEquals(txValue, executor.repoTrack.getBalance(recipient));
     }
 
 }
