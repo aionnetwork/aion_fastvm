@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
 
-public class ExecutionContextTest {
+public class ExecutionContextUnitTest {
     private Address recipient, origin, caller, coinbase;
     private DataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;

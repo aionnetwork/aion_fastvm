@@ -86,6 +86,7 @@ public class Callback {
      * @return
      */
     public static ExecutionContext context() {
+        // when empty we get NPE, better to return null?
         return stack.peek().getLeft();
     }
 

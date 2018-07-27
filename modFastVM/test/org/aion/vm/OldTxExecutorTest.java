@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 
 /**
- * These were the tests previous in TransactionExecutorTest but that class is now strictly unit
+ * These were the tests previous in TransactionExecutorUnitTest but that class is now strictly unit
  * testing. These tests are more on the integration test level. Once there's a place to fit these
  * they will be moved.
  */

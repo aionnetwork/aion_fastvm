@@ -32,7 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ExecutionResultTest {
+public class ExecutionResultUnitTest {
     private ResultCode code;
     private long nrgLeft;
     private byte[] output;

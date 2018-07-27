@@ -22,7 +22,7 @@ import org.junit.Test;
 // NOTE: Calls have no restrictions on them, can be null or anything, is this wanted?
 // Also, seems no one uses Call, is it even necessary?
 
-public class ExecutionHelperTest {
+public class ExecutionHelperUnitTest {
     private ExecutionHelper helper;
 
     @Before

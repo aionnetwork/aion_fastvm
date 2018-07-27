@@ -64,10 +64,9 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 /**
- * Tests the TransactionExecutor class. These tests are not concerned with the parts of that class
- * that call the fastVM. Tests on the fastVM are done in a separate test file.
+ * Tests the TransactionExecutor class.
  */
-public class TransactionExecutorTest {
+public class TransactionExecutorUnitTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private DummyRepository repo;
 
