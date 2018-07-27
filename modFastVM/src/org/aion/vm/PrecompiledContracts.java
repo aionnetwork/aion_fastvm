@@ -24,6 +24,7 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.vm.precompiled.EDVerifyContract;
 import org.aion.vm.precompiled.TotalCurrencyContract;
 import org.aion.mcf.vm.types.DataWord;
 
@@ -36,6 +37,7 @@ public class PrecompiledContracts {
 
     // total currency address definition
     public static final Address totalCurrencyAddress = Address.wrap("0000000000000000000000000000000000000000000000000000000000000100");
+    public static final Address edVerifyAddress =     Address.wrap("0000000000000000000000000000000000000000000000000000000000000002");
     // TODO: move these to a configurable location (BlockConstants?)
     public static final Address totalCurrencyOwnerAddress = Address.wrap("a036f6894c950e92fc4be0a2dffb1ead7c78d5564fcf6e26d5e9c0117b41a990");
 
@@ -45,6 +47,8 @@ public class PrecompiledContracts {
      * The intent is for the caller of this contract to be able to rollback any changes on
      * error execution. This is not enforced at compile time.
      *
+     * Use this to get a stateful Precompiled Contract
+     *
      * @param address address of the desired precompiled contract (non-null)
      * @param track   temporary state on top of world state (non-null)
      * @return the desired precompiled contract or {@code null} if none exists
@@ -53,6 +57,9 @@ public class PrecompiledContracts {
             Address address, IRepositoryCache track, ExecutionContext context) {
         if (totalCurrencyAddress.equals(address)) {
             return new TotalCurrencyContract(track, address, totalCurrencyOwnerAddress);
+        }
+        if (edVerifyAddress.equals(address)) {
+            return new EDVerifyContract();
         }
         return null;
     }
@@ -70,6 +77,8 @@ public class PrecompiledContracts {
          */
         public abstract ExecutionResult execute(byte[] input, long nrg);
     }
+
+
 
     /**
      * Class of precompiled contracts that are capable of modifying state, the key
