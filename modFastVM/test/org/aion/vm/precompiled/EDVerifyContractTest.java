@@ -1,5 +1,6 @@
 package org.aion.vm.precompiled;
 
+import org.aion.base.util.Hex;
 import org.aion.crypto.ECKey;
 import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.HashUtil;
@@ -35,27 +36,56 @@ public class EDVerifyContractTest {
         assertThat(verify).isEqualTo(true);
     }
 
+//    @Test
+//    public void shouldReturnSuccess() {
+//        ECKeyFac.setType(ECKeyFac.ECKeyType.ED25519);
+//        ECKey ecKey = ECKeyFac.inst().create();
+//        ecKey = ecKey.fromPrivate(Hex.decode("5a90d8e67da5d1dfbf17916ae83bae04ef334f53ce8763932eba2c1116a62426fff4317ae351bda5e4fa24352904a9366d3a89e38d1ffa51498ba9acfbc65724"));
+//
+//
+//        byte[] pubKey = ecKey.getPubKey();
+//
+//        byte[] data = "Our first test in AION1234567890".getBytes();
+//
+//        HashUtil.setType(HashUtil.H512Type.KECCAK_512);
+//        byte[] hashedMessage = HashUtil.h512(data);
+//
+//        ISignature signature = ecKey.sign(hashedMessage);
+//
+//        byte[] input = new byte[160];
+//        System.arraycopy(hashedMessage, 0, input, 0, 64);
+//        System.arraycopy(signature.getSignature(), 0, input, 64, 64);
+//        System.arraycopy(pubKey, 0, input, 128, 32);
+//
+//        PrecompiledContracts.PrecompiledContract contract = PrecompiledContracts.getPrecompiledContract(PrecompiledContracts.edVerifyAddress, null, null);
+//        ExecutionResult result = contract.execute(input, 21000L);
+//        assertThat(result.getOutput()[0]).isEqualTo(1);
+//    }
+
     @Test
-    public void shouldReturnSuccess() {
+    public void shouldReturnSuccessTestingWith256() {
         ECKeyFac.setType(ECKeyFac.ECKeyType.ED25519);
         ECKey ecKey = ECKeyFac.inst().create();
+        ecKey = ecKey.fromPrivate(Hex.decode("5a90d8e67da5d1dfbf17916ae83bae04ef334f53ce8763932eba2c1116a62426fff4317ae351bda5e4fa24352904a9366d3a89e38d1ffa51498ba9acfbc65724"));
+
 
         byte[] pubKey = ecKey.getPubKey();
 
         byte[] data = "Our first test in AION1234567890".getBytes();
 
-        HashUtil.setType(HashUtil.H512Type.KECCAK_512);
-        byte[] hashedMessage = HashUtil.h512(data);
+        HashUtil.setType(HashUtil.H256Type.KECCAK_256);
+        byte[] hashedMessage = HashUtil.h256(data);
 
         ISignature signature = ecKey.sign(hashedMessage);
 
-        byte[] input = new byte[160];
-        System.arraycopy(hashedMessage, 0, input, 0, 64);
-        System.arraycopy(signature.getSignature(), 0, input, 64, 64);
-        System.arraycopy(pubKey, 0, input, 128, 32);
+        byte[] input = new byte[128];
+        System.arraycopy(hashedMessage, 0, input, 0, 32);
+        System.arraycopy(signature.getSignature(), 0, input, 32, 64);
+        System.arraycopy(pubKey, 0, input, 96, 32);
 
         PrecompiledContracts.PrecompiledContract contract = PrecompiledContracts.getPrecompiledContract(PrecompiledContracts.edVerifyAddress, null, null);
         ExecutionResult result = contract.execute(input, 21000L);
         assertThat(result.getOutput()[0]).isEqualTo(1);
     }
+
 }

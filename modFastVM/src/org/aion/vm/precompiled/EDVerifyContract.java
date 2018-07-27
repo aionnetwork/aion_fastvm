@@ -12,13 +12,13 @@ public class EDVerifyContract extends PrecompiledContracts.PrecompiledContract {
         if (COST > nrg) {
             return new ExecutionResult(ExecutionResult.Code.OUT_OF_NRG, 0);
         }
-        byte[] msg = new byte[64];
+        byte[] msg = new byte[32];
         byte[] sig = new byte[64];
         byte[] pubKey = new byte[32];
 
-        System.arraycopy(input, 0, msg, 0, 64);
-        System.arraycopy(input, 64, sig, 0, 64);
-        System.arraycopy(input, 128, pubKey, 0, 32);
+        System.arraycopy(input, 0, msg, 0, 32);
+        System.arraycopy(input, 32, sig, 0, 64);
+        System.arraycopy(input, 96, pubKey, 0, 32);
         try {
             boolean verify = ECKeyEd25519.verify(msg, sig, pubKey);
             byte[] result = new byte[1];
