@@ -25,16 +25,11 @@ package org.aion.vm;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.booleanThat;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,22 +42,13 @@ import org.aion.base.type.IExecutionResult;
 import org.aion.base.type.ITxReceipt;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
-import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKeyFac;
-import org.aion.fastvm.TestUtils;
-import org.aion.fastvm.TestVMProvider;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
-import org.aion.solidity.CompilationResult;
-import org.aion.solidity.Compiler;
-import org.aion.solidity.Compiler.Options;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionInternalTx;
@@ -141,9 +127,9 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
-        AionTransaction tx = getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000));
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
         tx.sign(ECKeyFac.inst().create());
-        TransactionExecutor executor = getNewExecutor(tx, true, 3, numZeroes);
+        TransactionExecutor executor = getNewExecutor(tx, true, 3);
         AionTxReceipt receipt = (AionTxReceipt) executor.
             buildReceipt(new AionTxReceipt(), tx, getNewLogs(8));
         assertEquals(tx, receipt.getTransaction());
@@ -155,8 +141,8 @@ public class TransactionExecutorTest {
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
         List<Log> logs = getNewLogs(RandomUtils.nextInt(0, 50));
-        AionTransaction tx = getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000));
-        TransactionExecutor executor = getNewExecutor(tx, false, 8, numZeroes);
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        TransactionExecutor executor = getNewExecutor(tx, false, 8);
         AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), tx, logs);
         assertEquals(logs.size(), receipt.getLogInfoList().size());
         assertEquals(getOrOfBlooms(logs), receipt.getBloomFilter());
@@ -164,7 +150,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testBuildReceiptExecutionResult() {
-        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10, 0);
+        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
         byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
         executor.setExecutionResult(new ExecutionResult(ResultCode.SUCCESS, 0, output));
         AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), mockTx(), new ArrayList());
@@ -173,7 +159,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testBuildReceiptGetErrorWhenResultIsSuccess() {
-        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10, 0);
+        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
         byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
         executor.setExecutionResult(new ExecutionResult(ResultCode.SUCCESS, 0, output));
         AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), mockTx(), new ArrayList());
@@ -183,7 +169,7 @@ public class TransactionExecutorTest {
     @Test
     public void testBuildReceiptGetErrorWhenResultNotSuccess() {
         ResultCode code = ResultCode.fromInt(RandomUtils.nextInt(0, 12));
-        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10, 0);
+        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
         byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
         executor.setExecutionResult(new ExecutionResult(code, 0, output));
         AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), mockTx(), new ArrayList());
@@ -195,8 +181,8 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
-        AionTransaction tx = getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, getNewAddress(), true, false, numZeroes);
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        runUpdateRepo(tx, getNewAddress(), true, false);
 
         // When call is local there should be no state change.
         assertTrue(repo.accounts.isEmpty());
@@ -209,8 +195,8 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
-        AionTransaction tx = getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, getNewAddress(), false, true, numZeroes);
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        runUpdateRepo(tx, getNewAddress(), false, true);
 
         // When summary is rejected there should be no state change.
         assertTrue(repo.accounts.isEmpty());
@@ -224,8 +210,8 @@ public class TransactionExecutorTest {
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, numZeroes);
+        AionTransaction tx = getNewAionTransaction(data, numZeroes);
+        runUpdateRepo(tx, coinbase, false, false);
         BigInteger coinbaseFee = computeCoinbaseFee(false, numZeroes,
             size - numZeroes, tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
@@ -237,9 +223,8 @@ public class TransactionExecutorTest {
         int numZeroes = RandomUtils.nextInt(0, size);
         byte[] data = produceData(size, numZeroes);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransactionContractCreation(data, numZeroes,
-            RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, numZeroes);
+        AionTransaction tx = getNewAionTransactionContractCreation(data, numZeroes);
+        runUpdateRepo(tx, coinbase, false, false);
         BigInteger coinbaseFee = computeCoinbaseFee(true, numZeroes,
             size - numZeroes, tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
@@ -250,17 +235,16 @@ public class TransactionExecutorTest {
         // First test contract creation tx.
         byte[] data = produceData(0, 0);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransactionContractCreation(data, 0,
-            RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        AionTransaction tx = getNewAionTransactionContractCreation(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         BigInteger coinbaseFee = computeCoinbaseFee(true, 0,
             0, tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
 
         // Second test regular tx.
         coinbase = getNewAddress();
-        tx = getNewAionTransaction(data, 0, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        tx = getNewAionTransaction(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         coinbaseFee = computeCoinbaseFee(false, 0, 0,
             tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
@@ -272,17 +256,16 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         byte[] data = produceData(size, size);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransactionContractCreation(data, size,
-            RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, size);
+        AionTransaction tx = getNewAionTransactionContractCreation(data, size);
+        runUpdateRepo(tx, coinbase, false, false);
         BigInteger coinbaseFee = computeCoinbaseFee(true, size, 0,
             tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
 
         // Second test regular tx.
         coinbase = getNewAddress();
-        tx = getNewAionTransaction(data, size, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, size);
+        tx = getNewAionTransaction(data, size);
+        runUpdateRepo(tx, coinbase, false, false);
         coinbaseFee = computeCoinbaseFee(false, size, 0, tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
     }
@@ -293,17 +276,16 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         byte[] data = produceData(size, 0);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransactionContractCreation(data, 0,
-            RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        AionTransaction tx = getNewAionTransactionContractCreation(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         BigInteger coinbaseFee = computeCoinbaseFee(true, 0, size,
             tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
 
         // Second test regular tx.
         coinbase = getNewAddress();
-        tx = getNewAionTransaction(data, 0, RandomUtils.nextLong(1, 10_000));
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        tx = getNewAionTransaction(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         coinbaseFee = computeCoinbaseFee(false, 0, size, tx.getNrgPrice());
         assertEquals(coinbaseFee, repo.getBalance(coinbase));
     }
@@ -314,14 +296,14 @@ public class TransactionExecutorTest {
         int size = RandomUtils.nextInt(0, 1000);
         byte[] data = produceData(size, 0);
         Address coinbase = getNewAddress();
-        AionTransaction tx = getNewAionTransactionContractCreation(data, 0, 0);
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        AionTransaction tx = getNewAionTransactionContractCreation(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
 
         // Second test regular tx.
         coinbase = getNewAddress();
-        tx = getNewAionTransaction(data, 0, 0);
-        runUpdateRepo(tx, coinbase, false, false, 0);
+        tx = getNewAionTransaction(data, 0);
+        runUpdateRepo(tx, coinbase, false, false);
         assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
     }
 
@@ -635,7 +617,6 @@ public class TransactionExecutorTest {
     @Test
     public void testPrepareInsufficientBalanceUseNegativeEnergyPriceContractCreation() {
         // Need the +1 on the long since absolute value of MIN_VALUE is not defined.
-        long nrgPrice = RandomUtils.nextLong(0, 100_000);
         byte[] value = RandomUtils.nextBytes(8);
         value[0] &= 0x7F;   // Creates a positive value.
         doPrepareInsufficientBalance(true, Long.MIN_VALUE + 1, value);
@@ -644,7 +625,6 @@ public class TransactionExecutorTest {
     @Test
     public void testPrepareInsufficientBalanceUseNegativeEnergyPrice() {
         // Need the +1 on the long since absolute value of MIN_VALUE is not defined.
-        long nrgPrice = RandomUtils.nextLong(0, 100_000);
         byte[] value = RandomUtils.nextBytes(8);
         value[0] &= 0x7F;   // Creates a positive value.
         doPrepareInsufficientBalance(false, Long.MIN_VALUE + 1, value);
@@ -652,7 +632,6 @@ public class TransactionExecutorTest {
 
     @Test
     public void testPrepareIsGoodNoSkipNonce() {
-
         doPrepareIsGood(false, false, true);
     }
 
@@ -873,259 +852,193 @@ public class TransactionExecutorTest {
     }
 
     @Test
-    public void testFinishWithSeptForkIsFalse() {
-        //TODO
+    public void testFinishWithSeptForkIsFalseIsLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
     }
 
     @Test
-    public void testFinishWithSeptForkIsNull() {
-        //TODO
+    public void testFinishWithSeptForkIsFalseIsLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
     }
 
-    /**
-     * Runs TransactionExecutor's finish method and checks its results.
-     */
-    private void doFinishAndCheck(AionTransaction tx, AionBlock block, ExecutionHelper helper,
-        ExecutionResult result, Address coinbase, boolean isLocalCall) {
+    @Test
+    public void testFinishWithSeptForkIsFalseIsLocalNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
 
-        boolean isFailed = determineIfFailed(result);
-        boolean isRejected = determineIfRejected(result);
-
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, isLocalCall,
-            block.getNrgLimit(), LOGGER_VM);
-
-        // This essentially makes executor's helper the same as helper
-        executor.getContext().getHelper().merge(helper, true);
-        executor.exeResult = result;
-        AionTxReceipt receipt = executor.getReceipt(helper.getLogs());
-
-        AionTxExecSummary summary = executor.finish();
-        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
-        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
-
-        // Try second constructor.
-        executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
-        executor.getContext().getHelper().merge(helper, true);
-        executor.exeResult = result;
-        receipt = executor.getReceipt(helper.getLogs());
-        summary = executor.finish();
-        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
-        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
-
-        // Try third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        executor.getContext().getHelper().merge(helper, true);
-        executor.exeResult = result;
-        receipt = executor.getReceipt(helper.getLogs());
-        summary = executor.finish();
-        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
-        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, false, summary.isRejected());
-    }
-
-    /**
-     * Checks the expected state of the repoistory after a TransactionExecutor's finish method has
-     * run. If these checks fail then the calling test fails.
-     *
-     *
-     * @param coinbase The block coinbase.
-     * @param result The execution result.
-     * @param helper The transaction helper.
-     * @param tx The transaction.
-     * @param summary The finish method's summary.
-     */
-    private void checkRepoStateAfterFinish(Address coinbase, ExecutionResult result,
-        ExecutionHelper helper, AionTransaction tx, AionTxExecSummary summary, boolean isLocalCall,
-        boolean isRejected) {
-
-        if (isLocalCall || isRejected) {
-            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
-            // nrg consume??
-            assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
-            for (Address address : helper.getDeleteAccounts()) {
-                assertTrue(repo.accounts.containsKey(address));
-            }
-            return;
-        }
-
-        if (result.getResultCode().equals(ResultCode.SUCCESS) ||
-            result.getResultCode().equals(ResultCode.REVERT)) {
-
-            assertEquals(summary.getRefund(), repo.getBalance(tx.getFrom()));
-            repo.addBalance(tx.getFrom(), summary.getRefund().negate());
-        } else {
-            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
-        }
-
-        assertEquals(tx.getNrg() - result.getNrgLeft(), tx.getNrgConsume());
-        assertEquals(summary.getFee(), repo.getBalance(coinbase));
-        repo.addBalance(coinbase, summary.getFee().negate());
-
-        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
-            for (Address address : helper.getDeleteAccounts()) {
-                assertFalse(repo.accounts.containsKey(address));
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, true);
             }
         }
     }
 
-
-
-
-
-
-
-
-    //                                  =================
-    //                                   old tests below
-    //                                  =================
-
     @Test
-    public void testCallTransaction() throws IOException {
-        Compiler.Result r = Compiler.getInstance().compile(
-            ContractUtils.readContract("Ticker.sol"), Options.ABI, Options.BIN);
-        CompilationResult cr = CompilationResult.parse(r.output);
-        String deployer = cr.contracts.get("Ticker").bin; // deployer
-        String contract = deployer.substring(deployer.indexOf("60506040", 1)); // contract
+    public void testFinishWithSeptForkIsFalseIsNotLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
 
-        byte[] txNonce = DataWord.ZERO.getData();
-        Address from = Address
-            .wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address
-            .wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222"));
-        byte[] value = DataWord.ZERO.getData();
-        byte[] data = Hex.decode("c0004213");
-        long nrg = new DataWord(100000L).longValue();
-        long nrgPrice = DataWord.ONE.longValue();
-        AionTransaction tx = new AionTransaction(txNonce, from, to, value, data, nrg, nrgPrice);
-
-        AionBlock block = TestUtils.createDummyBlock();
-
-        DummyRepository repo = new DummyRepository();
-        repo.addBalance(from, BigInteger.valueOf(100_000).multiply(tx.nrgPrice().value()));
-        repo.addContract(to, Hex.decode(contract));
-
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
-        AionTxReceipt receipt = exec.execute().getReceipt();
-        System.out.println(receipt);
-
-        assertArrayEquals(Hex.decode("00000000000000000000000000000000"),
-            receipt.getExecutionResult());
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
     }
 
     @Test
-    public void testCreateTransaction() throws IOException {
-        Compiler.Result r = Compiler.getInstance().compile(
-            ContractUtils.readContract("Ticker.sol"), Options.ABI, Options.BIN);
-        CompilationResult cr = CompilationResult.parse(r.output);
-        String deployer = cr.contracts.get("Ticker").bin;
-        System.out.println(deployer);
+    public void testFinishWithSeptForkIsFalseIsNotLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
 
-        byte[] txNonce = DataWord.ZERO.getData();
-        Address from = Address
-            .wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address.EMPTY_ADDRESS();
-        byte[] value = DataWord.ZERO.getData();
-        byte[] data = Hex.decode(deployer);
-        long nrg = 500_000L;
-        long nrgPrice = 1;
-        AionTransaction tx = new AionTransaction(txNonce, from, to, value, data, nrg, nrgPrice);
-
-        AionBlock block = TestUtils.createDummyBlock();
-
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = new DummyRepository();
-        repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
-
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
-        AionTxReceipt receipt = exec.execute().getReceipt();
-        System.out.println(receipt);
-
-        assertArrayEquals(Hex.decode(deployer.substring(deployer.indexOf("60506040", 1))),
-            receipt.getExecutionResult());
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
     }
 
     @Test
-    public void testPerformance() throws IOException {
-        Compiler.Result r = Compiler.getInstance().compile(
-            ContractUtils.readContract("Ticker.sol"), Options.ABI, Options.BIN);
-        CompilationResult cr = CompilationResult.parse(r.output);
-        String deployer = cr.contracts.get("Ticker").bin; // deployer
-        String contract = deployer.substring(deployer.indexOf("60506040", 1)); // contract
+    public void testFinishWithSeptForkIsFalseIsNotLocalNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = false;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
 
-        byte[] txNonce = DataWord.ZERO.getData();
-        Address from = Address
-            .wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address
-            .wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222"));
-        byte[] value = DataWord.ZERO.getData();
-        byte[] data = Hex.decode("c0004213");
-        long nrg = new DataWord(100000L).longValue();
-        long nrgPrice = DataWord.ONE.longValue();
-        AionTransaction tx = new AionTransaction(txNonce, from, to, value, data, nrg, nrgPrice);
-        tx.sign(ECKeyFac.inst().create());
-
-        AionBlock block = TestUtils.createDummyBlock();
-
-        DummyRepository repo = new DummyRepository();
-        repo.addBalance(from, BigInteger.valueOf(100_000).multiply(tx.nrgPrice().value()));
-        repo.addContract(to, Hex.decode(contract));
-
-        long t1 = System.nanoTime();
-        long repeat = 1000;
-        for (int i = 0; i < repeat; i++) {
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-            exec.setExecutorProvider(new TestVMProvider());
-            exec.execute();
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, false);
+            }
         }
-        long t2 = System.nanoTime();
-        System.out.println((t2 - t1) / repeat);
     }
 
     @Test
-    public void testBasicTransactionCost() {
-        byte[] txNonce = DataWord.ZERO.getData();
-        Address from = Address
-            .wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address
-            .wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222"));
-        byte[] value = DataWord.ONE.getData();
-        byte[] data = new byte[0];
-        long nrg = new DataWord(100000L).longValue();
-        long nrgPrice = DataWord.ONE.longValue();
-        AionTransaction tx = new AionTransaction(txNonce, from, to, value, data, nrg, nrgPrice);
+    public void testFinishWithSeptForkIsNullIsLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
 
-        AionBlock block = TestUtils.createDummyBlock();
-
-        DummyRepository repo = new DummyRepository();
-        repo.addBalance(from, BigInteger.valueOf(1_000_000_000L));
-
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
-        AionTxReceipt receipt = exec.execute().getReceipt();
-        System.out.println(receipt);
-
-        assertEquals(tx.transactionCost(block.getNumber()), receipt.getEnergyUsed());
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
     }
 
+    @Test
+    public void testFinishWithSeptForkIsNullIsLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsNullIsLocalNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, true);
+            }
+        }
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsNullIsNotLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsNullIsNotLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsNullIsNotLocalNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = null;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, false);
+            }
+        }
+    }
 
     // <------------------------------------------HELPERS------------------------------------------>
 
 
     /**
      * Returns a new TransactionExecutor whose constructor params are randomly generated except for
-     * isLocalCall. This executor executes tx and the tx data contains numZeroes zeroes and the block
-     * containing the tx has energy limit blockNrg .
+     * isLocalCall. This executor executes tx and the block containing the tx has energy limit
+     * blockNrg .
      *
      * @param tx The transaction.
      * @param isLocalCall True if a local call.
      * @param blockNrg The block energy limit.
-     * @param numZeroes The number of zeroes in the data in tx.
      * @return a new TransactionExecutor.
      */
-    private TransactionExecutor getNewExecutor(AionTransaction tx, boolean isLocalCall, long blockNrg,
-        int numZeroes) {
+    private TransactionExecutor getNewExecutor(AionTransaction tx, boolean isLocalCall, long blockNrg) {
 
-        return getNewExecutor(tx, isLocalCall, blockNrg, numZeroes, getNewAddress());
+        return getNewExecutor(tx, isLocalCall, blockNrg, getNewAddress());
     }
 
     /**
@@ -1136,14 +1049,13 @@ public class TransactionExecutorTest {
      * @param tx The transaction.
      * @param isLocalCall True if a local call.
      * @param blockNrg The block energy limit.
-     * @param numZeroes The number of zeroes in the data in tx.
      * @param coinbase The coinbase.
      * @return a new TransactionExecutor.
      */
     private TransactionExecutor getNewExecutor(AionTransaction tx, boolean isLocalCall, long blockNrg,
-        int numZeroes, Address coinbase) {
+        Address coinbase) {
 
-        IAionBlock block = getNewAionBlock(blockNrg, tx.getData(), numZeroes, coinbase);
+        IAionBlock block = getNewAionBlock(blockNrg, tx.getData(), coinbase);
         long nrgLeft = tx.transactionCost(block.getNumber());
         return new TransactionExecutor(tx, block, repo, isLocalCall, nrgLeft, LOGGER_VM);
     }
@@ -1154,11 +1066,10 @@ public class TransactionExecutorTest {
      *
      * @param energyLimit The energy limit.
      * @param data The data.
-     * @param numZeroes The number of zero bytes in data.
      * @param coinbase The block's coinbase account.
      * @return a new AionBlock.
      */
-    private AionBlock getNewAionBlock(long energyLimit, byte[] data, int numZeroes, Address coinbase) {
+    private AionBlock getNewAionBlock(long energyLimit, byte[] data, Address coinbase) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] parentHash = RandomUtils.nextBytes(arraySizes);
         byte[] logsBloom = RandomUtils.nextBytes(arraySizes);
@@ -1170,7 +1081,7 @@ public class TransactionExecutorTest {
         byte[] receiptsRoot = RandomUtils.nextBytes(arraySizes);
         byte[] transactionsRoot = RandomUtils.nextBytes(arraySizes);
         byte[] stateRoot = RandomUtils.nextBytes(arraySizes);
-        List<AionTransaction> transactionList = getNewAionTransactions(3, data, numZeroes);
+        List<AionTransaction> transactionList = getNewAionTransactions(3, data);
         byte[] solutions = RandomUtils.nextBytes(arraySizes);
         long energyConsumed = RandomUtils.nextLong(0, 10_000);
         return new AionBlock(parentHash, coinbase, logsBloom, difficulty, number, timestamp,
@@ -1183,13 +1094,12 @@ public class TransactionExecutorTest {
      *
      * @param num The number of transactions in the list.
      * @param data The data to include in each of the transactions.
-     * @param numZeroes The number of zero bytes in data.
      * @return the list of transactions.
      */
-    private List<AionTransaction> getNewAionTransactions(int num, byte[] data, int numZeroes) {
+    private List<AionTransaction> getNewAionTransactions(int num, byte[] data) {
         List<AionTransaction> transactions = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            transactions.add(getNewAionTransaction(data, numZeroes, RandomUtils.nextLong(1, 10_000)));
+            transactions.add(getNewAionTransaction(data, RandomUtils.nextLong(1, 10_000)));
         }
         return transactions;
     }
@@ -1327,9 +1237,9 @@ public class TransactionExecutorTest {
         byte[] data = produceData(dataSize, numZeroes);
         long nrgPrice = RandomUtils.nextLong(1, 10_000);
         AionTransaction tx = (isContractCreation) ?
-            getNewAionTransactionContractCreation(data, numZeroes, nrgPrice) :
-            getNewAionTransaction(data, numZeroes, nrgPrice);
-        TransactionExecutor executor = getNewExecutor(tx,true, 0, numZeroes);
+            getNewAionTransactionContractCreation(data, nrgPrice) :
+            getNewAionTransaction(data, nrgPrice);
+        TransactionExecutor executor = getNewExecutor(tx,true, 0);
         ITxReceipt receipt = new AionTxReceipt();
         return (AionTxReceipt) executor.buildReceipt(receipt, tx, logs);
     }
@@ -1339,11 +1249,10 @@ public class TransactionExecutorTest {
      * for contract creation.
      *
      * @param data The transaction data.
-     * @param numZeroes The number of zero bytes in data.
      * @param nrgPrice The price per unit of energy.
      * @return a new AionTransaction.
      */
-    private AionTransaction getNewAionTransaction(byte[] data, int numZeroes, long nrgPrice) {
+    private AionTransaction getNewAionTransaction(byte[] data, long nrgPrice) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         Address from = getNewAddress();
@@ -1356,11 +1265,10 @@ public class TransactionExecutorTest {
      * Returns a new AionTransaction for contract creation logic. That is, its 'to' address is null.
      *
      * @param data The transaction data.
-     * @param numZeroes The number of zero bytes in data.
      * @param nrgPrice The price per unit of energy.
      * @return a new AionTransaction for contract creation.
      */
-    private AionTransaction getNewAionTransactionContractCreation(byte[] data, int numZeroes, long nrgPrice) {
+    private AionTransaction getNewAionTransactionContractCreation(byte[] data, long nrgPrice) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         Address from = getNewAddress();
@@ -1426,14 +1334,13 @@ public class TransactionExecutorTest {
      * @param coinbase The block coinbase.
      * @param isLocalCall True if call is local.
      * @param markRejected True if tx summary is to be marked as rejected.
-     * @param numZeroes The number of zero bytes in the transaction data.
      */
     private void runUpdateRepo(AionTransaction tx, Address coinbase, boolean isLocalCall,
-        boolean markRejected, int numZeroes) {
+        boolean markRejected) {
 
         byte[] result = RandomUtils.nextBytes(RandomUtils.nextInt(0, 50));
         List<Log> logs = getNewLogs(RandomUtils.nextInt(0, 20));
-        TransactionExecutor executor = getNewExecutor(tx, isLocalCall, 21_000, numZeroes, coinbase);
+        TransactionExecutor executor = getNewExecutor(tx, isLocalCall, 21_000, coinbase);
         AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), tx, logs);
         AionTxExecSummary.Builder summaryBuilder = new AionTxExecSummary.Builder(receipt).result(result);
         if (markRejected) { summaryBuilder.markAsRejected(); }
@@ -2111,6 +2018,91 @@ public class TransactionExecutorTest {
             case INVALID_NRG_LIMIT:
             case INSUFFICIENT_BALANCE: return true;
             default: return false;
+        }
+    }
+
+    /**
+     * Runs TransactionExecutor's finish method and checks its results.
+     */
+    private void doFinishAndCheck(AionTransaction tx, AionBlock block, ExecutionHelper helper,
+        ExecutionResult result, Address coinbase, boolean isLocalCall) {
+
+        boolean isFailed = determineIfFailed(result);
+        boolean isRejected = determineIfRejected(result);
+
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, isLocalCall,
+            block.getNrgLimit(), LOGGER_VM);
+
+        // This essentially makes executor's helper the same as helper
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        AionTxReceipt receipt = executor.getReceipt(helper.getLogs());
+
+        AionTxExecSummary summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
+
+        // Try second constructor.
+        executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        receipt = executor.getReceipt(helper.getLogs());
+        summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
+
+        // Try third constructor.
+        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        receipt = executor.getReceipt(helper.getLogs());
+        summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, false, summary.isRejected());
+    }
+
+    /**
+     * Checks the expected state of the repoistory after a TransactionExecutor's finish method has
+     * run. If these checks fail then the calling test fails.
+     *
+     *
+     * @param coinbase The block coinbase.
+     * @param result The execution result.
+     * @param helper The transaction helper.
+     * @param tx The transaction.
+     * @param summary The finish method's summary.
+     */
+    private void checkRepoStateAfterFinish(Address coinbase, ExecutionResult result,
+        ExecutionHelper helper, AionTransaction tx, AionTxExecSummary summary, boolean isLocalCall,
+        boolean isRejected) {
+
+        if (isLocalCall || isRejected) {
+            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
+            // nrg consume??
+            assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
+            for (Address address : helper.getDeleteAccounts()) {
+                assertTrue(repo.accounts.containsKey(address));
+            }
+            return;
+        }
+
+        if (result.getResultCode().equals(ResultCode.SUCCESS) ||
+            result.getResultCode().equals(ResultCode.REVERT)) {
+
+            assertEquals(summary.getRefund(), repo.getBalance(tx.getFrom()));
+            repo.addBalance(tx.getFrom(), summary.getRefund().negate());
+        } else {
+            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
+        }
+
+        assertEquals(tx.getNrg() - result.getNrgLeft(), tx.getNrgConsume());
+        assertEquals(summary.getFee(), repo.getBalance(coinbase));
+        repo.addBalance(coinbase, summary.getFee().negate());
+
+        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
+            for (Address address : helper.getDeleteAccounts()) {
+                assertFalse(repo.accounts.containsKey(address));
+            }
         }
     }
 
