@@ -28,6 +28,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.booleanThat;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,12 +38,14 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.type.IExecutionResult;
 import org.aion.base.type.ITxReceipt;
+import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -61,6 +65,7 @@ import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.types.AionBlock;
+import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.aion.zero.types.AionTxReceipt;
@@ -69,7 +74,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 
@@ -781,6 +785,190 @@ public class TransactionExecutorTest {
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0, RandomUtils.nextBytes(16));
         doCallAndCheck(result, false, RandomUtils.nextBytes(16), false);
     }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueIsLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueIsLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, true);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueIsLocalIsNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, true);
+            }
+        }
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueNotLocalIsSuccess() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueNotLocalIsRevert() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
+            RandomUtils.nextBytes(10));
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        doFinishAndCheck(tx, block, helper, result, coinbase, false);
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsTrueNotLocalNotSuccessNotRevert() {
+        Forks.TEST_SEPTEMBER_FORK = true;
+        Address coinbase = getNewAddress();
+        ExecutionHelper helper = makeHelper();
+        AionTransaction tx = mockTx();
+        AionBlock block = mockBlock(coinbase);
+
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+                ExecutionResult result = new ExecutionResult(code, 0,
+                    RandomUtils.nextBytes(10));
+                doFinishAndCheck(tx, block, helper, result, coinbase, false);
+            }
+        }
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsFalse() {
+        //TODO
+    }
+
+    @Test
+    public void testFinishWithSeptForkIsNull() {
+        //TODO
+    }
+
+    /**
+     * Runs TransactionExecutor's finish method and checks its results.
+     */
+    private void doFinishAndCheck(AionTransaction tx, AionBlock block, ExecutionHelper helper,
+        ExecutionResult result, Address coinbase, boolean isLocalCall) {
+
+        boolean isFailed = determineIfFailed(result);
+        boolean isRejected = determineIfRejected(result);
+
+        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, isLocalCall,
+            block.getNrgLimit(), LOGGER_VM);
+
+        // This essentially makes executor's helper the same as helper
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        AionTxReceipt receipt = executor.getReceipt(helper.getLogs());
+
+        AionTxExecSummary summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
+
+        // Try second constructor.
+        executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        receipt = executor.getReceipt(helper.getLogs());
+        summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
+
+        // Try third constructor.
+        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor.getContext().getHelper().merge(helper, true);
+        executor.exeResult = result;
+        receipt = executor.getReceipt(helper.getLogs());
+        summary = executor.finish();
+        checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
+        checkRepoStateAfterFinish(coinbase, result, helper, tx, summary, false, summary.isRejected());
+    }
+
+    /**
+     * Checks the expected state of the repoistory after a TransactionExecutor's finish method has
+     * run. If these checks fail then the calling test fails.
+     *
+     *
+     * @param coinbase The block coinbase.
+     * @param result The execution result.
+     * @param helper The transaction helper.
+     * @param tx The transaction.
+     * @param summary The finish method's summary.
+     */
+    private void checkRepoStateAfterFinish(Address coinbase, ExecutionResult result,
+        ExecutionHelper helper, AionTransaction tx, AionTxExecSummary summary, boolean isLocalCall,
+        boolean isRejected) {
+
+        if (isLocalCall || isRejected) {
+            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
+            // nrg consume??
+            assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
+            for (Address address : helper.getDeleteAccounts()) {
+                assertTrue(repo.accounts.containsKey(address));
+            }
+            return;
+        }
+
+        if (result.getResultCode().equals(ResultCode.SUCCESS) ||
+            result.getResultCode().equals(ResultCode.REVERT)) {
+
+            assertEquals(summary.getRefund(), repo.getBalance(tx.getFrom()));
+            repo.addBalance(tx.getFrom(), summary.getRefund().negate());
+        } else {
+            assertEquals(BigInteger.ZERO, repo.getBalance(tx.getFrom()));
+        }
+
+        assertEquals(tx.getNrg() - result.getNrgLeft(), tx.getNrgConsume());
+        assertEquals(summary.getFee(), repo.getBalance(coinbase));
+        repo.addBalance(coinbase, summary.getFee().negate());
+
+        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
+            for (Address address : helper.getDeleteAccounts()) {
+                assertFalse(repo.accounts.containsKey(address));
+            }
+        }
+    }
+
+
+
 
 
 
@@ -1770,6 +1958,160 @@ public class TransactionExecutorTest {
 
         assertEquals(BigInteger.ZERO, executor.repoTrack.getBalance(sender));
         assertEquals(txValue, executor.repoTrack.getBalance(recipient));
+    }
+
+    private ExecutionHelper makeHelper() {
+        ExecutionHelper helper = new ExecutionHelper();
+        helper.addInternalTransactions(newInternalTxs(RandomUtils.nextInt(5, 15)));
+        helper.addDeleteAccounts(addAccountsToRepo(RandomUtils.nextInt(5, 15)));
+        helper.addLogs(newLogs(RandomUtils.nextInt(5, 15)));
+        return helper;
+    }
+
+    private Collection<Log> newLogs(int num) {
+        Collection<Log> logs = new ArrayList<>();
+        for (int i = 0; i < num; i++) {
+            logs.add(newLog());
+        }
+        return logs;
+    }
+
+    private Log newLog() {
+        return new Log(getNewAddress(), newTopics(RandomUtils.nextInt(2, 8)),
+            RandomUtils.nextBytes(10));
+    }
+
+    private List<byte[]> newTopics(int num) {
+        List<byte[]> topics = new ArrayList<>();
+        for (int i = 0; i < num; i++) {
+            topics.add(RandomUtils.nextBytes(10));
+        }
+        return topics;
+    }
+
+    private Collection<AionInternalTx> newInternalTxs(int num) {
+        Collection<AionInternalTx> txs = new ArrayList<>();
+        for (int i = 0; i < num; i++) {
+            txs.add(newInternalTx());
+        }
+        return txs;
+    }
+
+    private AionInternalTx newInternalTx() {
+        String note = "";
+        byte[] parentHash = RandomUtils.nextBytes(32);
+        byte[] nonce = RandomUtils.nextBytes(10);
+        byte[] value = RandomUtils.nextBytes(10);
+        byte[] data = RandomUtils.nextBytes(10);
+        int deep = 0, index = 0;
+        return new AionInternalTx(parentHash, deep, index, nonce, getNewAddress(), getNewAddress(),
+            value, data, note);
+    }
+
+    /**
+     * Checks that summary and helper both contain identical logs. If they do not then this method
+     * causes the calling test to fail.
+     *
+     * @param summary A transaction summary.
+     * @param helper An execution helper.
+     */
+    private void checkLogs(AionTxExecSummary summary, ExecutionHelper helper) {
+        List<Log> summaryLogs = summary.getLogs();
+        List<Log> helperLogs = helper.getLogs();
+        List<Address> summaryAddrs = new ArrayList<>();
+        List<Address> helperAddrs = new ArrayList<>();
+        List<ByteArrayWrapper> summaryData = new ArrayList<>();
+        List<ByteArrayWrapper> helperData = new ArrayList<>();
+        List<ByteArrayWrapper> summaryTopics = new ArrayList<>();
+        List<ByteArrayWrapper> helperTopics = new ArrayList<>();
+
+        for (Log log : summaryLogs) {
+            summaryAddrs.add(log.getAddress());
+            summaryData.add(new ByteArrayWrapper(log.getData()));
+            summaryTopics.addAll(wrapTopics(log.getTopics()));
+        }
+        for (Log log : helperLogs) {
+            helperAddrs.add(log.getAddress());
+            helperData.add(new ByteArrayWrapper(log.getData()));
+            helperTopics.addAll(wrapTopics(log.getTopics()));
+        }
+
+        assertEquals(helperAddrs, summaryAddrs);
+        assertEquals(helperData, summaryData);
+        assertEquals(helperTopics, summaryTopics);
+    }
+
+    private List<ByteArrayWrapper> wrapTopics(List<byte[]> topics) {
+        List<ByteArrayWrapper> wrappedTopics = new ArrayList<>();
+        for (byte[] topic : topics) {
+            wrappedTopics.add(new ByteArrayWrapper(topic));
+        }
+        return wrappedTopics;
+    }
+
+    private BigInteger computeSummaryFee(AionTxReceipt receipt, AionTransaction tx) {
+        return BigInteger.valueOf(receipt.getEnergyUsed()).multiply(BigInteger.valueOf(tx.getNrgPrice()));
+    }
+
+    /**
+     * Checks that summary is in the expected state after a TransactionExecutor's call to finish.
+     *
+     * @param summary The summary of the finish method.
+     * @param helper The transaction helper.
+     * @param receipt The transaction receipt.
+     * @param tx The transaction.
+     * @param result The transaction result.
+     * @param isFailed If the summary should be failed.
+     * @param isRejected If the summary should be rejected.
+     */
+    private void checkSummary(AionTxExecSummary summary, ExecutionHelper helper, AionTxReceipt receipt,
+        AionTransaction tx, ExecutionResult result, boolean isFailed, boolean isRejected) {
+
+        assertEquals(isFailed, summary.isFailed());
+        assertEquals(isRejected, summary.isRejected());
+        assertEquals(new BigInteger(receipt.getTransaction().getValue()), summary.getValue());
+        boolean septForkIsTrue = ((Forks.TEST_SEPTEMBER_FORK != null) && (Forks.TEST_SEPTEMBER_FORK));
+        if (!septForkIsTrue || result.getResultCode().equals(ResultCode.SUCCESS)) {
+            assertEquals(helper.getDeleteAccounts(), summary.getDeletedAccounts());
+            checkLogs(summary, helper);
+        } else {
+            assertTrue(summary.getDeletedAccounts().isEmpty());
+            assertTrue(summary.getLogs().isEmpty());
+        }
+        assertEquals(helper.getInternalTransactions(), summary.getInternalTransactions());
+        assertArrayEquals(result.getOutput(), summary.getResult());
+        assertArrayEquals(tx.getHash(), summary.getTransactionHash());
+        assertEquals(computeRefund(tx, summary), summary.getRefund());
+        assertTrue(summary.getTouchedStorage().isEmpty());
+        assertEquals(BigInteger.valueOf(receipt.getEnergyUsed()), summary.getNrgUsed());
+        assertEquals(computeSummaryFee(receipt, tx), summary.getFee());
+    }
+
+    private boolean determineIfFailed(ExecutionResult result) {
+        switch (result.getResultCode()) {
+            case CONTRACT_ALREADY_EXISTS:
+            case FAILURE:
+            case OUT_OF_NRG:
+            case BAD_INSTRUCTION:
+            case BAD_JUMP_DESTINATION:
+            case STACK_OVERFLOW:
+            case STACK_UNDERFLOW:
+            case REVERT:
+            case INTERNAL_ERROR:
+            case INVALID_NONCE:
+            case INVALID_NRG_LIMIT:
+            case INSUFFICIENT_BALANCE: return true;
+            default: return false;
+        }
+    }
+
+    private boolean determineIfRejected(ExecutionResult result) {
+        switch (result.getResultCode()) {
+            case INVALID_NONCE:
+            case INVALID_NRG_LIMIT:
+            case INSUFFICIENT_BALANCE: return true;
+            default: return false;
+        }
     }
 
 }
