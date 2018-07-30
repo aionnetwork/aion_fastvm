@@ -187,14 +187,14 @@ public class Callback {
 
         // transfer
         repo().addBalance(Address.wrap(owner), balance.negate());
-        if (!owner.equals(beneficiary)) {
+        if (!Arrays.equals(owner, beneficiary)) {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
 
         context().getHelper().addDeleteAccount(Address.wrap(owner));
     }
 
-    /**
+    /**>>
      * Processes LOG opcode.
      *
      * @param address
