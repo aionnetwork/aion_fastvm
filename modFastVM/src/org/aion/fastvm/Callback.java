@@ -384,7 +384,7 @@ public class Callback {
      * @param message
      * @return
      */
-    private static ExecutionContext parseMessage(byte[] message) {
+    protected static ExecutionContext parseMessage(byte[] message) {
         ExecutionContext prev = context();
 
         ByteBuffer buffer = ByteBuffer.wrap(message);
