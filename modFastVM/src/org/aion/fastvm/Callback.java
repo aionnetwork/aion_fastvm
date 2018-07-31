@@ -213,12 +213,11 @@ public class Callback {
     }
 
     /**
-     * Process CALL/CALLCODE/DELEGATECALL/CREATE opcode.
-     *
-     * @param message
-     * @return
+     * This method only exists so that FastVM and ContractFactory can be mocked for testing. This
+     * method was formerly called call and now the call method simply invokes this method with new
+     * istances of the fast vm and contract factory.
      */
-    public static byte[] call(byte[] message) {
+    static byte[] performCall(byte[] message, FastVM vm, ContractFactory factory) {
         ExecutionContext ctx = parseMessage(message);
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
 
@@ -237,17 +236,27 @@ public class Callback {
         // call sub-routine
         IExecutionResult result;
         if (ctx.getKind() == ExecutionContext.CREATE) {
-            result = doCreate(ctx);
+            result = doCreate(ctx, vm);
         } else {
-            result = doCall(ctx);
+            result = doCall(ctx, vm, factory);
         }
 
         // merge the effects
         context().getHelper().merge(ctx.getHelper(), Forks.isSeptemberForkEnabled(context().getBlockNumber())
-                ? result.getCode() == ResultCode.SUCCESS.toInt()
-                : true);
+            ? result.getCode() == ResultCode.SUCCESS.toInt()
+            : true);
 
         return result.toBytes();
+    }
+
+    /**
+     * Process CALL/CALLCODE/DELEGATECALL/CREATE opcode.
+     *
+     * @param message
+     * @return
+     */
+    public static byte[] call(byte[] message) {
+        return performCall(message, new FastVM(), new ContractFactory());
     }
 
     /**
@@ -256,14 +265,14 @@ public class Callback {
      * @param ctx
      * @return
      */
-    private static IExecutionResult doCall(ExecutionContext ctx) {
+    private static IExecutionResult doCall(ExecutionContext ctx, FastVM jit, ContractFactory factory) {
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
         IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
 
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()), ctx.getCallValue(), ctx.getCallData(), "call");
         context().getHelper().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getHash());
+        ctx.setTransactionHash(internalTx.getHash());       // why? seems reference to ctx is lost and this unused?
 
         // transfer balance
         track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
@@ -274,7 +283,8 @@ public class Callback {
             track.incrementNonce(ctx.getCaller());
         }
 
-        IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
+        IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
+//        IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.getCallData(), ctx.getNrgLimit());
         } else {
@@ -284,7 +294,7 @@ public class Callback {
 
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
-                FastVM jit = new FastVM();
+//                FastVM jit = newFastVM();
                 result = jit.run(code, ctx, track);
             }
         }
@@ -308,7 +318,7 @@ public class Callback {
      * @param ctx execution context
      * @return
      */
-    private static ExecutionResult doCreate(ExecutionContext ctx) {
+    private static ExecutionResult doCreate(ExecutionContext ctx, FastVM jit) {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
 
@@ -350,7 +360,7 @@ public class Callback {
             result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getCallData())) {
-                FastVM jit = new FastVM();
+//                FastVM jit = newFastVM();
                 result = jit.run(ctx.getCallData(), ctx, track);
             }
         }

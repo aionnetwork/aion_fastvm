@@ -17,10 +17,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteArrayWrapper;
+import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Log;
-import org.aion.precompiled.DummyRepo;
+import org.aion.precompiled.ContractFactory;
+import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionHelper;
+import org.aion.vm.ExecutionResult;
+import org.aion.vm.IPrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -531,12 +535,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testParseMessage() {
-        ExecutionContext context = newExecutionContext(false);
+        ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false, false, false);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
-        ExecutionContext ctx = newExecutionContext(false);
+        ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false, false, false);
         byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
             ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
 
@@ -548,7 +554,8 @@ public class CallbackUnitTest {
     public void testParseMessageAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
         for (int i = 0; i < depths; i++) {
-            ExecutionContext context = newExecutionContext(false);
+            ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
+                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false, false, false);
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
             when(pair.getRight()).thenReturn(new DummyRepository());
@@ -556,7 +563,8 @@ public class CallbackUnitTest {
         }
         for (int i = 0; i < depths; i++) {
             // test every other ctx with empty data
-            ExecutionContext ctx = newExecutionContext(i % 2 == 0);
+            ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
+                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),i % 2 == 0, false, false);
             byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
                 ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
             ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
@@ -567,17 +575,217 @@ public class CallbackUnitTest {
 
     @Test
     public void testParseMessageUsingZeroLengthData() {
-        ExecutionContext context = newExecutionContext(false);
+        ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false, false, false);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
-        ExecutionContext ctx = newExecutionContext(true);
+        ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),true, false, false);
         byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
             ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
 
         ExecutionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
+    }
+
+    @Test
+    public void testCallStackDepthTooLarge() {
+        IRepositoryCache repo = new DummyRepository();
+        ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false, false, false);
+        Pair pair = mockEmptyPair();
+        when(pair.getLeft()).thenReturn(context);
+        when(pair.getRight()).thenReturn(repo);
+        Callback.push(pair);
+        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
+            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+            Constants.MAX_CALL_DEPTH, 0);
+        ExecutionResult result = ExecutionResult.parse(Callback.call(message));
+        assertEquals(ResultCode.FAILURE, result.getResultCode());
+        assertEquals(0, result.getNrgLeft());
+    }
+
+    @Test
+    public void testCallCallersBalanceLessThanCallValue() {
+        BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        IRepositoryCache repo = new DummyRepository();
+        Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
+        ExecutionContext context = newExecutionContext(caller, getNewAddress(),
+            new DataWord(balance.add(BigInteger.ONE)),false, false, false);
+        Pair pair = mockEmptyPair();
+        when(pair.getLeft()).thenReturn(context);
+        when(pair.getRight()).thenReturn(repo);
+        Callback.push(pair);
+        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
+            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+            0, 0);
+        ExecutionResult result = ExecutionResult.parse(Callback.call(message));
+        assertEquals(ResultCode.FAILURE, result.getResultCode());
+        assertEquals(0, result.getNrgLeft());
+    }
+
+    @Test
+    public void testPerformCallDelegateCallIsPrecompiledIsSuccessJuneSeptForksDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, false, false);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(mockedResult);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult);
+        checkPerformCallResults(context, callerBalance, recipientBalance, false);
+    }
+
+    @Test
+    public void testPerformCallDelegateCallIsPrecompiledNotSuccessJuneSeptForksDisabled() {
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, false, false);
+
+                ExecutionResult mockedResult = new ExecutionResult(code, 0);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(mockedResult);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult);
+                checkPerformCallResults(context, callerBalance, recipientBalance, false);
+            }
+        }
+    }
+
+    @Test
+    public void testCallDelegateCallIsPrecompiledIsSuccessJuneForkEnabledSeptDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(mockedResult);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult);
+        checkPerformCallResults(context, callerBalance, recipientBalance, true);
+    }
+
+    @Test
+    public void testCallDelegateCallIsPrecompiledNotSuccessJuneForkEnabledSeptDisabled() {
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, true, false);
+
+                ExecutionResult mockedResult = new ExecutionResult(code, 0);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(mockedResult);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult);
+                checkPerformCallResults(context, callerBalance, recipientBalance, true);
+            }
+        }
+    }
+
+    @Test
+    public void testCallDelegateCallIsPrecompiledIsSuccessJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(mockedResult);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult);
+        checkPerformCallResults(context, callerBalance, recipientBalance, true);
+    }
+
+    @Test
+    public void testCallDelegateCallIsPrecompiledNotSuccessJuneSeptForksEnabled() {
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, true, true);
+
+                ExecutionResult mockedResult = new ExecutionResult(code, 0);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(mockedResult);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult);
+                checkPerformCallResults(context, callerBalance, recipientBalance, true);
+            }
+        }
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoRecipientJuneSeptForksDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoRecipientJuneForkEnabledSeptDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoRecipientJuneSeptForksEnabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoCodeJuneSeptForksDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoCodeJuneForkEnabledSeptDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNoCodeJuneSeptForksEnabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractIsSuccessJuneSeptForksDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractIsSuccessJuneForkEnabledSeptDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractIsSuccessJuneSeptForksEnabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNotSuccessJuneSeptForksDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNotSuccessJuneForkEnabledSeptDisabled() {
+        //TODO
+    }
+
+    @Test
+    public void testCallDelegateCallIsNotPrecompiledContractNotSuccessJuneSeptForksEnabled() {
+        //TODO
     }
 
     // <---------------------------------------HELPERS BELOW--------------------------------------->
@@ -612,27 +820,33 @@ public class CallbackUnitTest {
         return context;
     }
 
-    private ExecutionContext newExecutionContext(boolean isEmptyData) {
+    private ExecutionContext newExecutionContext(Address caller, Address recipient, DataWord callValue,
+        boolean isEmptyData, boolean juneForkEnabled, boolean septForkEnabled) {
+
         byte[] txHash = RandomUtils.nextBytes(32);
-        Address recipient = getNewAddress();
         Address origin = getNewAddress();
-        Address caller = getNewAddress();
         DataWord nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         long nrgLimit = RandomUtils.nextLong(100, 100_000);
-        DataWord callValue = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
         } else {
             callData = RandomUtils.nextBytes(RandomUtils.nextInt(10, 50));
         }
-        int depth = RandomUtils.nextInt(100, 100_000);
+        int depth = RandomUtils.nextInt(0, Constants.MAX_CALL_DEPTH - 1);
         int kind = RandomUtils.nextInt(100, 100_000);
         int flags = RandomUtils.nextInt(100, 100_000);
         Address blockCoinbase = getNewAddress();
-        long blockNumber = RandomUtils.nextLong(100, 100_000);;
-        long blockTimestamp = RandomUtils.nextLong(100, 100_000);;
-        long blockNrgLimit = RandomUtils.nextLong(100, 100_000);;
+        long blockNumber;
+        if (!juneForkEnabled && !septForkEnabled) {
+            blockNumber = RandomUtils.nextLong(0, 167_690);
+        } else if (juneForkEnabled && !septForkEnabled) {
+            blockNumber = RandomUtils.nextLong(167_692, 999_999);
+        } else {
+            blockNumber = 1_000_000;
+        }
+        long blockTimestamp = RandomUtils.nextLong(100, 100_000);
+        long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
         DataWord blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit, callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
@@ -945,6 +1159,136 @@ public class CallbackUnitTest {
         Address address = getNewAddress();
         Callback.putStorage(address.toBytes(), key, value);
         return address;
+    }
+
+    /**
+     * Returns a mocked ContractFactory whose returned contract's execute method will return result.
+     */
+    private ContractFactory mockFactory(ExecutionResult result) {
+        IPrecompiledContract contract = mock(IPrecompiledContract.class);
+        when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
+        ContractFactory factory = mock(ContractFactory.class);
+        when(factory.fetchPrecompiledContract(Mockito.any(ExecutionContext.class),
+            Mockito.any(IRepositoryCache.class))).
+            thenReturn(contract);
+        return factory;
+    }
+
+    /**
+     * Returns a mocked FastVM whose run method returns result.
+     */
+    private FastVM mockFastVM(ExecutionResult result) {
+        FastVM vm = mock(FastVM.class);
+        when(vm.run(Mockito.any(byte[].class), Mockito.any(ExecutionContext.class),
+            Mockito.any(IRepositoryCache.class))).
+            thenReturn(result);
+        return vm;
+    }
+
+    /**
+     * Checks the state after the performCall method is called and makes assertions on the expected
+     * states.
+     *
+     * @param context The context whose params were used in the test set up.
+     * @param callerBalance The balance of the caller's account.
+     * @param recipientBalance The balance of the recipient's account.
+     */
+    private void checkPerformCallResults(ExecutionContext context, BigInteger callerBalance,
+        BigInteger recipientBalance, boolean juneForkEnabled) {
+
+        ExecutionContext ctx = Callback.context();
+        assertEquals(1, ctx.getHelper().getInternalTransactions().size());
+        checkInternalTransaction(context, ctx.getHelper().getInternalTransactions().get(0), juneForkEnabled);
+        checkPerformCallBalances(context.getCaller(), callerBalance, context.getRecipient(), recipientBalance,
+            context.getCallValue().value());
+    }
+
+    /**
+     * Runs the performCall method in Callback -- this is the mock-friendly version of the call
+     * method that we really want tested -- and makes some simple assertions on the returned
+     * ExecutioResult from this method.
+     *
+     * @param context The context whose params were used in the test set up.
+     * @param mockVM A mocked VM.
+     * @param mockFac A mocked ContractFactory.
+     * @param expectedResult The expected performCall result.
+     */
+    private void runPerformCallAndCheck(ExecutionContext context, FastVM mockVM, ContractFactory mockFac,
+        ExecutionResult expectedResult) {
+
+        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
+            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+            0, 0);
+        ExecutionResult result = ExecutionResult.parse(Callback.performCall(message, mockVM, mockFac));
+        assertEquals(expectedResult.getResultCode(), result.getResultCode());
+        assertEquals(expectedResult.getNrgLeft(), result.getNrgLeft());
+    }
+
+    /**
+     * Sets up the Callback class, including its top-stack context and repo, for the performCall
+     * testing. Two accounts, a caller and a recipient, are created and these accounts have balances
+     * callerBalance and recipientBalance respectively.
+     */
+    private ExecutionContext setupTestForPerformCall(BigInteger callerBalance, BigInteger recipientBalance,
+        boolean juneForkEnabled, boolean septForkEnabled) {
+
+        BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        IRepositoryCache repo = new DummyRepository();
+        Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
+        Address recipient = getNewAddressInRepo(repo, recipientBalance, BigInteger.ZERO);
+        ExecutionContext context = newExecutionContext(caller, recipient,
+            new DataWord(callerBalance),false, juneForkEnabled, septForkEnabled);
+        Pair pair = mockEmptyPair();
+        when(pair.getLeft()).thenReturn(context);
+        when(pair.getRight()).thenReturn(repo);
+        Callback.push(pair);
+        return context;
+    }
+
+    /**
+     * Asserts that all of the internal transactions in helper have been rejected.
+     */
+    private void checkHelperForRejections(ExecutionHelper helper) {
+        for (AionInternalTx tx : helper.getInternalTransactions()) {
+            assertTrue(tx.isRejected());
+        }
+    }
+
+    /**
+     * Asserts that the account balances are in the expected state after a call to performCall.
+     */
+    private void checkPerformCallBalances(Address caller, BigInteger callerPrevBalance, Address recipient,
+        BigInteger recipientPrevBalance, BigInteger callValue) {
+
+        if (caller.equals(recipient)) {
+            assertEquals(callerPrevBalance, Callback.repo().getBalance(caller));
+        } else {
+            assertEquals(callerPrevBalance.subtract(callValue), Callback.repo().getBalance(caller));
+            assertEquals(recipientPrevBalance.add(callValue), Callback.repo().getBalance(recipient));
+        }
+    }
+
+    /**
+     * Asserts that the values of the internal transaction tx is in its expected state given that
+     * context was the context used to set up the performCall test.
+     */
+    private void checkInternalTransaction(ExecutionContext context, AionInternalTx tx,
+        boolean juneForkEnabled) {
+
+        assertEquals(context.getCaller(), tx.getFrom());
+        assertEquals(context.getRecipient(), tx.getTo());
+        if (juneForkEnabled) {
+            assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
+                tx.getNonceBI());
+        } else {
+            assertEquals(Callback.repo().getNonce(context.getCaller()), tx.getNonceBI());
+        }
+        assertEquals(context.getCallValue(), new DataWord(tx.getValue()));
+        assertEquals("call", tx.getNote());
+        assertEquals(context.getDepth(), tx.getDeep());
+        assertEquals(0, tx.getIndex());
+        assertArrayEquals(context.getCallData(), tx.getData());
+        assertArrayEquals(context.getTransactionHash(), tx.getParentHash());
     }
 
 }
