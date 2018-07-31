@@ -284,7 +284,6 @@ public class Callback {
         }
 
         IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
-//        IPrecompiledContract pc = ContractFactory.getPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.getCallData(), ctx.getNrgLimit());
         } else {
@@ -294,7 +293,6 @@ public class Callback {
 
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
-//                FastVM jit = newFastVM();
                 result = jit.run(code, ctx, track);
             }
         }
@@ -360,7 +358,6 @@ public class Callback {
             result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getCallData())) {
-//                FastVM jit = newFastVM();
                 result = jit.run(ctx.getCallData(), ctx, track);
             }
         }
