@@ -3,6 +3,7 @@ package org.aion.fastvm;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -536,16 +537,17 @@ public class CallbackUnitTest {
 
     @Test
     public void testParseMessage() {
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
             ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
 
@@ -555,11 +557,12 @@ public class CallbackUnitTest {
 
     @Test
     public void testParseMessageAtMultipleStackDepths() {
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         int depths = RandomUtils.nextInt(3, 10);
         for (int i = 0; i < depths; i++) {
             ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
                 new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
-                false, false, ExecutionContext.DELEGATECALL);
+                false, false, ExecutionContext.DELEGATECALL, nrgLimit);
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
             when(pair.getRight()).thenReturn(new DummyRepository());
@@ -569,7 +572,7 @@ public class CallbackUnitTest {
             // test every other ctx with empty data
             ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
                 new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),i % 2 == 0,
-                false, false, ExecutionContext.DELEGATECALL);
+                false, false, ExecutionContext.DELEGATECALL, nrgLimit);
             byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
                 ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
             ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
@@ -580,16 +583,17 @@ public class CallbackUnitTest {
 
     @Test
     public void testParseMessageUsingZeroLengthData() {
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),true,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
             ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
 
@@ -600,9 +604,10 @@ public class CallbackUnitTest {
     @Test
     public void testCallStackDepthTooLarge() {
         IRepositoryCache repo = new DummyRepository();
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
@@ -620,9 +625,10 @@ public class CallbackUnitTest {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         IRepositoryCache repo = new DummyRepository();
         Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(caller, getNewAddress(),
             new DataWord(balance.add(BigInteger.ONE)),false,
-            false, false, ExecutionContext.DELEGATECALL);
+            false, false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
@@ -903,53 +909,393 @@ public class CallbackUnitTest {
         performCallIsNotPrecompiledContractIsCodeNotSuccessJuneSeptForksEnabled(ExecutionContext.CALL);
     }
 
-    //TODO
-
     @Test
     public void testPerformCallCreateCallContractExistsJuneSeptForksDisabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, false, false,
-            ExecutionContext.CREATE, new byte[0], true);
+            ExecutionContext.CREATE, new byte[0], true, false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null);   // we bypass vm
         ContractFactory factory = mockFactory(null);
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            true, false, null);
         checkContextHelper(false);
-        checkPerformCallResults2(context, false, true, callerBalance,
+        checkPerformCallState(context, false, callerBalance, true, false,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractExistsJuneForkEnabledSeptForkDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false,
+            ExecutionContext.CREATE, new byte[0], true, false, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            true, false, null);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, true, false,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractExistsJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true,
+            ExecutionContext.CREATE, new byte[0], true, false, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            true, false, null);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, true, false,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgLessThanDepositJuneSeptForksDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, false, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        // Seems misleading -- we are saying it was SUCCESS when obviously it was FAILURE, this is
+        // because in 'post execution' it was SUCCESS but its low nrgLimit made it fail afterwards.
+        // Nonetheless, the changes we expect of SUCCESS here did occur.
+        checkPerformCallState(context, false, callerBalance, false, true,
             true);
     }
 
-    /**
-     * Checks the state after the performCall method is called and makes assertions on the expected
-     * states.
-     *
-     * @param context The context whose params were used in the test set up.
-     * @param isCreateContract If the op code is CREATE
-     */
-    private void checkPerformCallResults2(ExecutionContext context, boolean juneForkEnabled,
-        boolean isCreateContract, BigInteger callerBalance, boolean contractExisted) {
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgLessThanDepositJuneForkEnabledSeptDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
 
-        ExecutionContext ctx = Callback.context();
-        checkInternalTransaction(context, ctx.getHelper().getInternalTransactions().get(0), juneForkEnabled,
-            isCreateContract);
-        checkCreateBalances(context, callerBalance, contractExisted);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        // Seems misleading -- we are saying it was SUCCESS when obviously it was FAILURE, this is
+        // because in 'post execution' it was SUCCESS but its low nrgLimit made it fail afterwards.
+        // Nonetheless, the changes we expect of SUCCESS here did occur.
+        checkPerformCallState(context, true, callerBalance, false, true,
+            true);
     }
 
-    private void checkCreateBalances(ExecutionContext context, BigInteger callerBalance,
-        boolean contractExisted) {
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgLessThanDepositJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
 
-        BigInteger value = context.getCallValue().value();
-        Address caller = Callback.context().getCaller();
-        Address contract = new Address(HashUtil.calcNewAddr(caller.toBytes(), Callback.repo().getNonce(caller).subtract(BigInteger.ONE).toByteArray()));
-        assertEquals(callerBalance.subtract(value), Callback.repo().getBalance(caller));
-        if (contractExisted) {
-            assertEquals(BigInteger.ZERO, Callback.repo().getBalance(contract));
-        } else {
-            assertEquals(value, Callback.repo().getBalance(contract));
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        // Seems misleading -- we are saying it was SUCCESS when obviously it was FAILURE, this is
+        // because in 'post execution' it was SUCCESS but its low nrgLimit made it fail afterwards.
+        // Nonetheless, the changes we expect of SUCCESS here did occur.
+        checkPerformCallState(context, true, callerBalance, false, true,
+            true);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgMoreThanDepositJuneSeptForksDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, false, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, false, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgMoreThanDepositJuneForkEnabledSeptDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataIsEmptyNrgMoreThanDepositJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(null);   // we bypass vm
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNrgLessThanDepositJuneSeptForksDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, false, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);  // nrgLimit causes failure post-execution.
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, false, callerBalance, false, true,
+            true);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNrgLessThanDepositJuneForkEnabledSeptDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);  // nrgLimit causes failure post-execution.
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            true);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNrgLessThanDepositJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true,
+            ExecutionContext.CREATE, null, false, true, nrgLimit);
+
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);  // nrgLimit causes failure post-execution.
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, new byte[0]);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            true);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyIsSuccessJuneSeptForksDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, false, false,
+            ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+        byte[] code = RandomUtils.nextBytes(50);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, code);
+        checkContextHelper(false);
+        checkPerformCallState(context, false, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyIsSuccessJuneForkEnabledSeptForkDisabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, false,
+            ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+        byte[] code = RandomUtils.nextBytes(50);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, code);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyIsSuccessJuneSeptForksEnabled() {
+        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        ExecutionContext context = setupTestForPerformCall(
+            callerBalance, recipientBalance, true, true,
+            ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+        byte[] code = RandomUtils.nextBytes(50);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        FastVM vm = mockFastVM(mockedResult);
+        ContractFactory factory = mockFactory(null);
+
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+            false, true, code);
+        checkContextHelper(false);
+        checkPerformCallState(context, true, callerBalance, false, true,
+            false);
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNotSuccessJuneSeptForksDisabled() {
+        for (ResultCode resCode : ResultCode.values()) {
+            if (!resCode.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, false, false,
+                    ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+                byte[] code = RandomUtils.nextBytes(50);
+                ExecutionResult mockedResult = new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(null);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+                    false, false, code);
+                checkContextHelper(false);
+                checkPerformCallState(context, false, callerBalance, false, false,
+                    false);
+            }
+        }
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNotSuccessJuneForkEnabledSeptDisabled() {
+        for (ResultCode resCode : ResultCode.values()) {
+            if (!resCode.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, true, false,
+                    ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+                byte[] code = RandomUtils.nextBytes(50);
+                ExecutionResult mockedResult = new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(null);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+                    false, false, code);
+                checkContextHelper(false);
+                checkPerformCallState(context, true, callerBalance, false, false,
+                    false);
+            }
+        }
+    }
+
+    @Test
+    public void testPerformCallCreateCallContractIsNewDataNotEmptyNotSuccessJuneSeptForksEnabled() {
+        for (ResultCode resCode : ResultCode.values()) {
+            if (!resCode.equals(ResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+                ExecutionContext context = setupTestForPerformCall(
+                    callerBalance, recipientBalance, true, true,
+                    ExecutionContext.CREATE, null, false, false, nrgLimit);
+
+                byte[] code = RandomUtils.nextBytes(50);
+                ExecutionResult mockedResult = new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                FastVM vm = mockFastVM(mockedResult);
+                ContractFactory factory = mockFactory(null);
+
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+                    false, false, code);
+                checkContextHelper(false);
+                checkPerformCallState(context, true, callerBalance, false,
+                    false, false);
+            }
         }
     }
 
@@ -958,15 +1304,17 @@ public class CallbackUnitTest {
     private void performCallIsPrecompiledIsSuccessJuneSeptForksDisabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, false, false,
-            kind, new byte[0], false);
+            kind, new byte[0], false, false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, false,
             false, false);
@@ -977,15 +1325,17 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, false, false,
-                    kind, new byte[0], false);
+                    kind, new byte[0], false, false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(mockedResult);
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, false,
@@ -997,15 +1347,17 @@ public class CallbackUnitTest {
     private void performCallIsPrecompiledIsSuccessJuneForkEnabledSeptDisabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, true, false,
-            kind, new byte[0], false);
+            kind, new byte[0], false, false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, true,
             false, false);
@@ -1016,15 +1368,17 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, true, false,
-                    kind, new byte[0], false);
+                    kind, new byte[0], false, false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(mockedResult);
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, true,
@@ -1036,15 +1390,17 @@ public class CallbackUnitTest {
     private void performCallIsPrecompiledIsSuccessJuneSeptForksEnabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, true, true,
-            kind, new byte[0], false);
+            kind, new byte[0], false, false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, true,
             false, false);
@@ -1055,15 +1411,17 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, true, true,
-                    kind, new byte[0], false);
+                    kind, new byte[0], false, false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(mockedResult);
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, true,
@@ -1076,9 +1434,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, false, false,
-                kind, null, false);
+                kind, null, false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1087,7 +1446,8 @@ public class CallbackUnitTest {
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, false,
                 true, false);
@@ -1098,9 +1458,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, true, false,
-                kind, null, false);
+                kind, null, false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1109,7 +1470,8 @@ public class CallbackUnitTest {
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, true,
                 true, false);
@@ -1120,9 +1482,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, true, true,
-                kind, null, false);
+                kind, null, false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1131,7 +1494,8 @@ public class CallbackUnitTest {
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, true,
                 true, false);
@@ -1142,9 +1506,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, false, false,
-                kind, new byte[0], false);
+                kind, new byte[0], false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1153,7 +1518,8 @@ public class CallbackUnitTest {
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, false,
                 false, false);
@@ -1164,9 +1530,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, true, false,
-                kind, new byte[0], false);
+                kind, new byte[0], false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1175,7 +1542,8 @@ public class CallbackUnitTest {
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, true,
                 false, false);
@@ -1186,9 +1554,10 @@ public class CallbackUnitTest {
         for (ResultCode code : ResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+            long nrgLimit = RandomUtils.nextLong(0, 10_000);
             ExecutionContext context = setupTestForPerformCall(
                 callerBalance, recipientBalance, true, true,
-                kind, new byte[0], false);
+                kind, new byte[0], false, false, nrgLimit);
 
             ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
@@ -1197,7 +1566,8 @@ public class CallbackUnitTest {
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setCode(ResultCode.SUCCESS.toInt());
-            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind);
+            runPerformCallAndCheck(context, vm, factory, mockedResult, true, kind,
+                false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, true,
                 false, false);
@@ -1207,15 +1577,18 @@ public class CallbackUnitTest {
     private void performCallIsNotPrecompiledContractIsCodeIsSuccessJuneSeptForksDisabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, false, false,
-            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false, false,
+            nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, false,
             false, false);
@@ -1226,15 +1599,18 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, false, false,
-                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
+                    false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
@@ -1246,15 +1622,18 @@ public class CallbackUnitTest {
     private void performCallIsNotPrecompiledContractIsCodeIsSuccessJuneForkEnabledSeptDisabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, true, false,
-            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
+            false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, true,
             false, false);
@@ -1265,15 +1644,18 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, true, false,
-                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
+                    false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
@@ -1285,15 +1667,18 @@ public class CallbackUnitTest {
     private void performCallIsNotPrecompiledContractIsCodeIsSuccessJuneSeptForksEnabled(int kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+        long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = setupTestForPerformCall(
             callerBalance, recipientBalance, true, true,
-            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+            kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
+            false, nrgLimit);
 
         ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+            false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, true,
             false, false);
@@ -1304,15 +1689,18 @@ public class CallbackUnitTest {
             if (!code.equals(ResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
                 ExecutionContext context = setupTestForPerformCall(
                     callerBalance, recipientBalance, true, true,
-                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false);
+                    kind, RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
+                    false, nrgLimit);
 
                 ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind);
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
+                    false, false, null);
                 checkHelperForRejections(Callback.context().getHelper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
@@ -1354,12 +1742,11 @@ public class CallbackUnitTest {
     }
 
     private ExecutionContext newExecutionContext(Address caller, Address recipient, DataWord callValue,
-        boolean isEmptyData, boolean juneForkEnabled, boolean septForkEnabled, int kind) {
+        boolean isEmptyData, boolean juneForkEnabled, boolean septForkEnabled, int kind, long nrgLimit) {
 
         byte[] txHash = RandomUtils.nextBytes(32);
         Address origin = getNewAddress();
         DataWord nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
-        long nrgLimit = RandomUtils.nextLong(100, 100_000);
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
@@ -1759,9 +2146,13 @@ public class CallbackUnitTest {
      * @param expectedResult The expected performCall result.
      * @param vmGotBadCode Signals that the code for the VM to execute was null or empty.
      * @param kind The opcode to run.
+     * @param contractExisted If this is for CREATE and the contract already existed prior to call.
+     * @param postExecuteWasSuccess If in post execute the result is SUCCESS
+     * @param code The code to add to contract after CREATE call.
      */
     private void runPerformCallAndCheck(ExecutionContext context, FastVM mockVM, ContractFactory mockFac,
-        ExecutionResult expectedResult, boolean vmGotBadCode, int kind) {
+        ExecutionResult expectedResult, boolean vmGotBadCode, int kind, boolean contractExisted,
+        boolean postExecuteWasSuccess, byte[] code) {
 
         byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
             context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
@@ -1773,6 +2164,22 @@ public class CallbackUnitTest {
         } else {
             assertEquals(expectedResult.getNrgLeft(), result.getNrgLeft());
         }
+        if (kind == ExecutionContext.CREATE) {
+            checkCodeAfterCreate(contractExisted, postExecuteWasSuccess, result, code);
+        }
+    }
+
+    /**
+     * Checks that code is saved under the contract address in the repo at the top of the stack and
+     * that result's output is the address of that contract. This is for the CREATE opcode.
+     */
+    private void checkCodeAfterCreate(boolean contractAlreadyExists, boolean postExecuteWasSuccess,
+        ExecutionResult result, byte[] code) {
+
+        if (!contractAlreadyExists && postExecuteWasSuccess) {
+            Address contract = new Address(result.getOutput());
+            assertArrayEquals(code, Callback.repo().getCode(contract));
+        }
     }
 
     /**
@@ -1781,7 +2188,8 @@ public class CallbackUnitTest {
      * callerBalance and recipientBalance respectively.
      */
     private ExecutionContext setupTestForPerformCall(BigInteger callerBalance, BigInteger recipientBalance,
-        boolean juneForkEnabled, boolean septForkEnabled, int kind, byte[] code, boolean contractExists) {
+        boolean juneForkEnabled, boolean septForkEnabled, int kind, byte[] code, boolean contractExists,
+        boolean dataIsEmpty, long nrgLimit) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         IRepositoryCache repo = new DummyRepository();
@@ -1800,7 +2208,7 @@ public class CallbackUnitTest {
             repo.saveCode(recipient, code);
         }
         ExecutionContext context = newExecutionContext(caller, recipient,
-            new DataWord(callerBalance),false, juneForkEnabled, septForkEnabled, kind);
+            new DataWord(callerBalance), dataIsEmpty, juneForkEnabled, septForkEnabled, kind, nrgLimit);
 
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -1849,15 +2257,28 @@ public class CallbackUnitTest {
         assertEquals(context.getCaller(), tx.getFrom());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
-            Address contract = new Address(HashUtil.calcNewAddr(context.getCaller().toBytes(),
-                Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE).toByteArray()));
+            Address contract;
+            if (isCreateContract && juneForkEnabled) {
+                contract = new Address(HashUtil.calcNewAddr(context.getCaller().toBytes(),
+                    Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.TWO)
+                        .toByteArray()));
+            } else {
+                contract = new Address(HashUtil.calcNewAddr(context.getCaller().toBytes(),
+                    Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE)
+                        .toByteArray()));
+            }
             assertEquals(contract, tx.getTo());
         } else {
             assertEquals(context.getRecipient(), tx.getTo());
         }
         if (juneForkEnabled) {
-            assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
-                tx.getNonceBI());
+            if (isCreateContract) {
+                assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.TWO),
+                    tx.getNonceBI());
+            } else {
+                assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
+                    tx.getNonceBI());
+            }
         } else {
             if (isCreateContract) {
                 assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
@@ -1892,6 +2313,88 @@ public class CallbackUnitTest {
             assertEquals(2, Callback.context().getHelper().getInternalTransactions().size());
             assertEquals(0, Callback.context().getHelper().getLogs().size());
             assertEquals(0, Callback.context().getHelper().getDeleteAccounts().size());
+        }
+    }
+
+    /**
+     * Checks the state after the performCall method is called and makes assertions on the expected
+     * states.
+     *
+     * @param context The context whose params were used in the test set up.
+     * @param juneForkEnabled If june fork is enabled.
+     * @param callerBalance The balance of the caller prior to the transaction.
+     * @param contractExisted If the contract already existed prior to the call.
+     * @param wasSuccess If the call result was SUCCESS in post execute.
+     * @param nrgLessThanDeposit If energy limit was less than deposit amount.
+     */
+    private void checkPerformCallState(ExecutionContext context, boolean juneForkEnabled,
+        BigInteger callerBalance, boolean contractExisted, boolean wasSuccess,
+        boolean nrgLessThanDeposit) {
+
+        checkInternalTransactionsAfterCreate(juneForkEnabled, wasSuccess);
+        checkCreateBalances(context, callerBalance, contractExisted, juneForkEnabled,
+            wasSuccess, nrgLessThanDeposit);
+    }
+
+    /**
+     * Checks the state of the internal transactions in the context at the top of the stack's helper
+     * after a call using the CREATE opcode.
+     */
+    private void checkInternalTransactionsAfterCreate(boolean juneForkEnabled, boolean wasSuccess) {
+        ExecutionContext context = Callback.context();
+        List<AionInternalTx> internalTxs = context.getHelper().getInternalTransactions();
+        assertEquals(2, internalTxs.size());
+        checkInternalTransaction(context, internalTxs.get(0), juneForkEnabled, true);
+        checkSecondInteralTransaction(context, internalTxs.get(1));
+        if (!wasSuccess) {
+            assertTrue(internalTxs.get(1).isRejected());
+        }
+    }
+
+    /**
+     * Checks the second of the 2 internal transactions created during the CREATE opcode.
+     */
+    private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
+        Address caller = context.getCaller();
+        assertEquals(context.getCaller(), tx.getFrom());
+        assertEquals(Callback.repo().getNonce(caller), tx.getNonceBI());
+        assertEquals(context.getCallValue(), new DataWord(tx.getValue()));
+        assertEquals("create", tx.getNote());
+        assertEquals(context.getDepth(), tx.getDeep());
+        assertEquals(1, tx.getIndex());
+        assertArrayEquals(context.getTransactionHash(), tx.getParentHash());
+        assertArrayEquals(new DataWord(Callback.repo().getNonce(caller)).getData(), tx.getNonce());
+        assertArrayEquals(context.getCallData(), tx.getData());
+        assertNull(tx.getTo());
+    }
+
+    /**
+     * Checks that the balances of the caller and contract are in their expected state after a
+     * CREATE opcode.
+     */
+    private void checkCreateBalances(ExecutionContext context, BigInteger callerBalance,
+        boolean contractExisted, boolean juneforkEnabled, boolean postExecuteWasSuccess,
+        boolean nrgLessThanDeposit) {
+
+        BigInteger value = context.getCallValue().value();
+        Address caller = Callback.context().getCaller();
+        Address contract;
+        if (juneforkEnabled) {
+            contract = new Address(HashUtil.calcNewAddr(caller.toBytes(),
+                Callback.repo().getNonce(caller).subtract(BigInteger.TWO).toByteArray()));
+        } else {
+            contract = new Address(HashUtil.calcNewAddr(caller.toBytes(),
+                Callback.repo().getNonce(caller).subtract(BigInteger.ONE).toByteArray()));
+        }
+        assertEquals(callerBalance.subtract(value), Callback.repo().getBalance(caller));
+        if (contractExisted) {
+            assertEquals(BigInteger.ZERO, Callback.repo().getBalance(contract));
+        } else {
+            if (postExecuteWasSuccess && !nrgLessThanDeposit) {
+                assertEquals(value, Callback.repo().getBalance(contract));
+            } else {
+                assertEquals(BigInteger.ZERO, Callback.repo().getBalance(contract));
+            }
         }
     }
 
