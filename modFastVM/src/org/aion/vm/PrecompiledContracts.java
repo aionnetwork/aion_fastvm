@@ -24,7 +24,6 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.vm.precompiled.EDVerifyContract;
 import org.aion.vm.precompiled.TotalCurrencyContract;
 import org.aion.mcf.vm.types.DataWord;
 
