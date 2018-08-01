@@ -4,7 +4,7 @@ contract Recursive {
     
     event Evt(uint n);
     
-    function f(recipient a, uint n) returns (uint) {
+    function f(address a, uint n) returns (uint) {
         Evt(n);
         
         Recursive r = Recursive(a);

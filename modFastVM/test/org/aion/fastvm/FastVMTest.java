@@ -519,8 +519,9 @@ public class FastVMTest {
         System.out.println("xxx = " + bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
         System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
 
+        // yyy nonce is 4 with june fork enabled.
         assertEquals(BigInteger.valueOf(3), bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
-        assertEquals(BigInteger.valueOf(2), bc.getRepository().getNonce(contractAddress));
+        assertEquals(BigInteger.valueOf(4), bc.getRepository().getNonce(contractAddress));
     }
 
     @Test

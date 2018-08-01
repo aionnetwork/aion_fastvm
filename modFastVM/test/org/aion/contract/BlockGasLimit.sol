@@ -2,8 +2,8 @@ pragma solidity ^0.4.0;
 
 contract BlockGasLimit {
 
-    recipient[] private refundAddresses;
-    mapping (recipient => uint) public refunds;
+    address[] private refundAddresses;
+    mapping (address => uint) public refunds;
     uint payIndex;
 
     function send(uint limit) public {

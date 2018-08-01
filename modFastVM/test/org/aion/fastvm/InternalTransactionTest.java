@@ -264,6 +264,7 @@ contract A {
 
         context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx2), false);
         TransactionExecutor exec = new TransactionExecutor(tx2, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         assertEquals(2, summary.getInternalTransactions().size());
@@ -318,6 +319,7 @@ contract A {
 
         BlockContext context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx1), false);
         TransactionExecutor exec = new TransactionExecutor(tx1, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());

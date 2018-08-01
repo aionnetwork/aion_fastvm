@@ -92,14 +92,6 @@
             <batchtest todir="${test.report.dir}">
                 <fileset dir="${src.test}">
                     <include name="**/*Test.java"/>
-                    <exclude name="**/ContractTest.java"/>
-                    <exclude name="**/DoSBlockGasLimitTest.java"/>
-                    <exclude name="**/DoSUnexpectedThrowTest.java"/>
-                    <exclude name="**/InternalTransactionTest.java"/>
-                    <exclude name="**/WalletTest.java"/>
-                    <exclude name="**/CompilerTest.java"/>
-                    <exclude name="**/FastVMTest.java"/>
-                    <exclude name="**/SolidityTypeTest.java"/>
                 </fileset>
             </batchtest>
         </junit>

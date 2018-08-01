@@ -10,7 +10,7 @@ contract SolidityType {
        return x;
    }
 
-   function testAddress(recipient x) returns (recipient) {
+   function testAddress(address x) returns (address) {
        return x;
    }
 
