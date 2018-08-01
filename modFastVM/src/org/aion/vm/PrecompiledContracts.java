@@ -72,8 +72,6 @@ public class PrecompiledContracts {
         public abstract ExecutionResult execute(byte[] input, long nrg);
     }
 
-
-
     /**
      * Class of precompiled contracts that are capable of modifying state, the key
      * difference is that these contracts should be instance based, with an immutable
