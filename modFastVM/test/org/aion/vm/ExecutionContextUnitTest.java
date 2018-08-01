@@ -74,48 +74,6 @@ public class ExecutionContextUnitTest {
         callData = null;
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithTxHashLessThan32Bytes() {
-        txHash = new byte[31];
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithTxHashGreaterThan32Bytes() {
-        txHash = new byte[33];
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithNegativeDepth() {
-        depth = -1;
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithNegativeNrgLimit() {
-        nrgLimit = -1;
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithNegativeBlockNumber() {
-        blockNumber = -1;
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithNegativeBlockTimestamp() {
-        blockTimestamp = -1;
-        newExecutionContext();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecutionContextWithNegativeBlockNrgLimit() {
-        nrgLimit = -1;
-        newExecutionContext();
-    }
-
     @Test
     public void testToBytesInGeneral() {
         ExecutionContext context = newExecutionContext();

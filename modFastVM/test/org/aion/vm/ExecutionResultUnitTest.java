@@ -50,41 +50,6 @@ public class ExecutionResultUnitTest {
         output = null;
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructorNegativeEnergyLeft() {
-        new ExecutionResult(code, -1, output);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNoOutputConstructorNegativeEnergyLeft() {
-        new ExecutionResult(code, -1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetBadCode() {
-        new ExecutionResult(code, nrgLeft, output).setCode(Integer.MAX_VALUE);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetNegativeEnergyLeft() {
-        new ExecutionResult(code, nrgLeft, output).setNrgLeft(-1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetBadCodeAndPositiveEnergy() {
-        new ExecutionResult(code, nrgLeft, output).setCodeAndNrgLeft(Integer.MIN_VALUE, 0);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetGoodCodeAndNegativeEnergy() {
-        new ExecutionResult(code, nrgLeft, output).setCodeAndNrgLeft(ResultCode.values()[0].toInt(), -1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testSetBadCodeAndNegativeEnergy() {
-        new ExecutionResult(code, nrgLeft, output).setCodeAndNrgLeft(Integer.MIN_VALUE, -1);
-    }
-
     @Test
     public void testGettersBasicWithOutputSpecified() {
         ExecutionResult result = new ExecutionResult(code, nrgLeft, output);
