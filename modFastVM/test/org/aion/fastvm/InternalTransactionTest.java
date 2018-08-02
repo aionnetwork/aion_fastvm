@@ -213,7 +213,6 @@ contract A {
     @Test
     public void testRecursiveCall() throws InterruptedException {
         // enable forks
-        Forks.TEST_JUNE_FORK = true;
         Forks.TEST_SEPTEMBER_FORK = true;
 
 

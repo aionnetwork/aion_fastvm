@@ -278,11 +278,6 @@ public class Callback {
         track.addBalance(ctx.caller(), ctx.callValue().value().negate());
         track.addBalance(ctx.address(), ctx.callValue().value());
 
-        // update nonce
-        if (Forks.isJuneForkEnabled(ctx.blockNumber())) {
-            track.incrementNonce(ctx.caller());
-        }
-
         IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.callData(), ctx.nrgLimit());
@@ -343,9 +338,6 @@ public class Callback {
         track.addBalance(newAddress, ctx.callValue().value());
 
         // update nonce
-        if (Forks.isJuneForkEnabled(ctx.blockNumber())) {
-            track.incrementNonce(ctx.caller());
-        }
         track.incrementNonce(ctx.caller());
 
         // add internal transaction

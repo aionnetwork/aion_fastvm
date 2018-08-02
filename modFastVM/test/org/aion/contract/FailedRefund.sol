@@ -2,7 +2,7 @@ pragma solidity ^0.4.0;
 
 contract FailedRefund {
 
-    address public address;
+    address public recipient;
     mapping (address => uint) public balances;
     address[] private refundAddresses;
     mapping (address => uint) public refunds;
@@ -15,8 +15,8 @@ contract FailedRefund {
         }
 
         balances[msg.sender] -= amount;
-        balances[address] += amount;
-        return Sent(msg.sender, address, amount);
+        balances[recipient] += amount;
+        return Sent(msg.sender, recipient, amount);
     }
 
     function refundAll() public {
