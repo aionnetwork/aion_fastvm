@@ -64,6 +64,8 @@ m_magicVariables(vector<shared_ptr<MagicVariableDeclaration const>>{make_shared<
 							make_shared<FunctionType>(strings(), strings{"bytes32"}, FunctionType::Kind::SHA256, true)),
 					make_shared<MagicVariableDeclaration>("ecrecover",
 							make_shared<FunctionType>(strings{"bytes32", "uint8", "bytes32", "bytes32"}, strings{"address"}, FunctionType::Kind::ECRecover)),
+                    make_shared<MagicVariableDeclaration>("edverify",
+                            make_shared<FunctionType>(strings{"bytes32", "bytes32", "bytes32", "bytes32"}, strings{"bytes1"}, FunctionType::Kind::EDVerify)),
 					make_shared<MagicVariableDeclaration>("ripemd160",
 							make_shared<FunctionType>(strings(), strings{"bytes20"}, FunctionType::Kind::RIPEMD160, true)),
 					make_shared<MagicVariableDeclaration>("assert",
