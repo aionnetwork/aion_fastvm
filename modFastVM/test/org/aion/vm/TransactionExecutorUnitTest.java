@@ -1516,22 +1516,22 @@ public class TransactionExecutorUnitTest {
             Arrays.copyOfRange(tempDiff, tempDiff.length - DataWord.BYTES, tempDiff.length) :
             tempDiff;
 
-        assertArrayEquals(ctx.getTransactionHash(), tx.getHash());
-        assertEquals(ctx.getRecipient(), recipient);
-        assertEquals(ctx.getOrigin(), tx.getFrom());
-        assertEquals(ctx.getCaller(), tx.getFrom());
-        assertEquals(ctx.getNrgPrice(), tx.nrgPrice());
-        assertEquals(ctx.getNrgLimit(), tx.nrgLimit() - tx.transactionCost(0));
-        assertEquals(ctx.getCallValue(), new DataWord(value));
-        assertArrayEquals(ctx.getCallData(), data);
-        assertEquals(ctx.getDepth(), 0);
-        assertEquals(ctx.getKind(), kind);
-        assertEquals(ctx.getFlags(), 0);
-        assertEquals(ctx.getBlockCoinbase(), block.getCoinbase());
-        assertEquals(ctx.getBlockNumber(), block.getNumber());
-        assertEquals(ctx.getBlockTimestamp(), block.getTimestamp());
-        assertEquals(ctx.getBlockNrgLimit(), block.getNrgLimit());
-        assertEquals(ctx.getBlockDifficulty(), new DataWord(diff));
+        assertArrayEquals(ctx.transactionHash(), tx.getHash());
+        assertEquals(ctx.address(), recipient);
+        assertEquals(ctx.origin(), tx.getFrom());
+        assertEquals(ctx.caller(), tx.getFrom());
+        assertEquals(ctx.nrgPrice(), tx.nrgPrice());
+        assertEquals(ctx.nrgLimit(), tx.nrgLimit() - tx.transactionCost(0));
+        assertEquals(ctx.callValue(), new DataWord(value));
+        assertArrayEquals(ctx.callData(), data);
+        assertEquals(ctx.depth(), 0);
+        assertEquals(ctx.kind(), kind);
+        assertEquals(ctx.flags(), 0);
+        assertEquals(ctx.blockCoinbase(), block.getCoinbase());
+        assertEquals(ctx.blockNumber(), block.getNumber());
+        assertEquals(ctx.blockTimestamp(), block.getTimestamp());
+        assertEquals(ctx.blockNrgLimit(), block.getNrgLimit());
+        assertEquals(ctx.blockDifficulty(), new DataWord(diff));
     }
 
     /**
@@ -2033,7 +2033,7 @@ public class TransactionExecutorUnitTest {
             block.getNrgLimit(), LOGGER_VM);
 
         // This essentially makes executor's helper the same as helper
-        executor.getContext().getHelper().merge(helper, true);
+        executor.getContext().helper().merge(helper, true);
         executor.exeResult = result;
         AionTxReceipt receipt = executor.getReceipt(helper.getLogs());
 
@@ -2043,7 +2043,7 @@ public class TransactionExecutorUnitTest {
 
         // Try second constructor.
         executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
-        executor.getContext().getHelper().merge(helper, true);
+        executor.getContext().helper().merge(helper, true);
         executor.exeResult = result;
         receipt = executor.getReceipt(helper.getLogs());
         summary = executor.finish();
@@ -2052,7 +2052,7 @@ public class TransactionExecutorUnitTest {
 
         // Try third constructor.
         executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        executor.getContext().getHelper().merge(helper, true);
+        executor.getContext().helper().merge(helper, true);
         executor.exeResult = result;
         receipt = executor.getReceipt(helper.getLogs());
         summary = executor.finish();

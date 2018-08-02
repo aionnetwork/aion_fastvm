@@ -201,7 +201,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
 
@@ -242,7 +242,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -280,7 +280,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -318,7 +318,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -356,7 +356,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -395,7 +395,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -434,7 +434,7 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for getNrgLimit = %d\n", inst.name(), c,
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }

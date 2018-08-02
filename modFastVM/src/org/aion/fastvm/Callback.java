@@ -152,7 +152,7 @@ public class Callback {
     public static byte[] getStorage(byte[] address, byte[] key) {
         IDataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
 
-        // System.err.println("GET_STORAGE: getRecipient = " + Hex.toHexString(getRecipient) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
+        // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 
         return value == null ? DataWord.ZERO.getData() : value.getData();
     }
@@ -166,7 +166,7 @@ public class Callback {
      */
     public static void putStorage(byte[] address, byte[] key, byte[] value) {
 
-        // System.err.println("PUT_STORAGE: getRecipient = " + Hex.toHexString(getRecipient) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
+        // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         repo().addStorageRow(Address.wrap(address), new DataWord(key), new DataWord(value));
     }
@@ -183,7 +183,7 @@ public class Callback {
         // add internal transaction
         AionInternalTx internalTx = newInternalTx(Address.wrap(owner), Address.wrap(beneficiary), repo().getNonce(Address.wrap(owner)),
                 new DataWord(balance), ByteUtil.EMPTY_BYTE_ARRAY, "selfdestruct");
-        context().getHelper().addInternalTransaction(internalTx);
+        context().helper().addInternalTransaction(internalTx);
 
         // transfer
         repo().addBalance(Address.wrap(owner), balance.negate());
@@ -191,7 +191,7 @@ public class Callback {
             repo().addBalance(Address.wrap(beneficiary), balance);
         }
 
-        context().getHelper().addDeleteAccount(Address.wrap(owner));
+        context().helper().addDeleteAccount(Address.wrap(owner));
     }
 
     /**>>
@@ -209,7 +209,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().getHelper().addLog(new Log(Address.wrap(address), list, data));
+        context().helper().addLog(new Log(Address.wrap(address), list, data));
     }
 
     /**
@@ -221,28 +221,28 @@ public class Callback {
         ExecutionContext ctx = parseMessage(message);
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
 
-        // check call stack getDepth
-        if (ctx.getDepth() >= Constants.MAX_CALL_DEPTH) {
+        // check call stack depth
+        if (ctx.depth() >= Constants.MAX_CALL_DEPTH) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // check value
-        BigInteger endowment = ctx.getCallValue().value();
-        BigInteger callersBalance = repo().getBalance(ctx.getCaller());
+        BigInteger endowment = ctx.callValue().value();
+        BigInteger callersBalance = repo().getBalance(ctx.caller());
         if (callersBalance.compareTo(endowment) < 0) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // call sub-routine
         IExecutionResult result;
-        if (ctx.getKind() == ExecutionContext.CREATE) {
+        if (ctx.kind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
             result = doCall(ctx, vm, factory);
         }
 
         // merge the effects
-        context().getHelper().merge(ctx.getHelper(), Forks.isSeptemberForkEnabled(context().getBlockNumber())
+        context().helper().merge(ctx.helper(), Forks.isSeptemberForkEnabled(context().blockNumber())
             ? result.getCode() == ResultCode.SUCCESS.toInt()
             : true);
 
@@ -267,28 +267,28 @@ public class Callback {
      */
     private static IExecutionResult doCall(ExecutionContext ctx, FastVM jit, ContractFactory factory) {
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
-        IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
+        IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()), ctx.getCallValue(), ctx.getCallData(), "call");
-        context().getHelper().addInternalTransaction(internalTx);
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "call");
+        context().helper().addInternalTransaction(internalTx);
         ctx.setTransactionHash(internalTx.getHash());       // why? seems reference to ctx is lost and this unused?
 
         // transfer balance
-        track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
-        track.addBalance(ctx.getRecipient(), ctx.getCallValue().value());
+        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
+        track.addBalance(ctx.address(), ctx.callValue().value());
 
         // update nonce
-        if (Forks.isJuneForkEnabled(ctx.getBlockNumber())) {
-            track.incrementNonce(ctx.getCaller());
+        if (Forks.isJuneForkEnabled(ctx.blockNumber())) {
+            track.incrementNonce(ctx.caller());
         }
 
         IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
         if (pc != null) {
-            result = pc.execute(ctx.getCallData(), ctx.getNrgLimit());
+            result = pc.execute(ctx.callData(), ctx.nrgLimit());
         } else {
             // get the code
-            byte[] code = track.hasAccountState(ctx.getRecipient()) ? track.getCode(ctx.getRecipient())
+            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address())
                 : ByteUtil.EMPTY_BYTE_ARRAY;
 
             // execute transaction
@@ -300,7 +300,7 @@ public class Callback {
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.getHelper().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -318,17 +318,17 @@ public class Callback {
      */
     private static ExecutionResult doCreate(ExecutionContext ctx, FastVM jit) {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
-        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.getNrgLimit());
+        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
-        // compute new getRecipient
-        byte[] nonce = track.getNonce(ctx.getCaller()).toByteArray();
-        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.getCaller().toBytes(), nonce));
-        ctx.setRecipient(newAddress);
+        // compute new address
+        byte[] nonce = track.getNonce(ctx.caller()).toByteArray();
+        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.caller().toBytes(), nonce));
+        ctx.setAddress(newAddress);
 
         // add internal transaction
         // TODO: should the `to` address be null?
-        AionInternalTx internalTx = newInternalTx(ctx.getCaller(), ctx.getRecipient(), track.getNonce(ctx.getCaller()), ctx.getCallValue(), ctx.getCallData(), "create");
-        context().getHelper().addInternalTransaction(internalTx);
+        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "create");
+        context().helper().addInternalTransaction(internalTx);
         ctx.setTransactionHash(internalTx.getHash());
 
         // in case of hashing collisions
@@ -339,33 +339,33 @@ public class Callback {
         track.addBalance(newAddress, oldBalance);
 
         // transfer balance
-        track.addBalance(ctx.getCaller(), ctx.getCallValue().value().negate());
-        track.addBalance(newAddress, ctx.getCallValue().value());
+        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
+        track.addBalance(newAddress, ctx.callValue().value());
 
         // update nonce
-        if (Forks.isJuneForkEnabled(ctx.getBlockNumber())) {
-            track.incrementNonce(ctx.getCaller());
+        if (Forks.isJuneForkEnabled(ctx.blockNumber())) {
+            track.incrementNonce(ctx.caller());
         }
-        track.incrementNonce(ctx.getCaller());
+        track.incrementNonce(ctx.caller());
 
         // add internal transaction
-        internalTx = newInternalTx(ctx.getCaller(), null, track.getNonce(ctx.getCaller()), ctx.getCallValue(),
-                ctx.getCallData(), "create");
-        ctx.getHelper().addInternalTransaction(internalTx);
+        internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
+                ctx.callData(), "create");
+        ctx.helper().addInternalTransaction(internalTx);
 
         // execute transaction
         if (alreadyExsits) {
             result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
         } else {
-            if (ArrayUtils.isNotEmpty(ctx.getCallData())) {
-                result = jit.run(ctx.getCallData(), ctx, track);
+            if (ArrayUtils.isNotEmpty(ctx.callData())) {
+                result = jit.run(ctx.callData(), ctx, track);
             }
         }
 
         // post execution
         if (result.getCode() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
-            ctx.getHelper().rejectInternalTransactions(); // reject all
+            ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
@@ -397,15 +397,15 @@ public class Callback {
         ByteBuffer buffer = ByteBuffer.wrap(message);
         buffer.order(ByteOrder.BIG_ENDIAN);
 
-        byte[] txHash = prev.getTransactionHash();
+        byte[] txHash = prev.transactionHash();
 
         byte[] address = new byte[Address.ADDRESS_LEN];
         buffer.get(address);
-        Address origin = prev.getOrigin();
+        Address origin = prev.origin();
         byte[] caller = new byte[Address.ADDRESS_LEN];
         buffer.get(caller);
 
-        DataWord nrgPrice = prev.getNrgPrice();
+        DataWord nrgPrice = prev.nrgPrice();
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
@@ -417,11 +417,11 @@ public class Callback {
         int kind = buffer.getInt();
         int flags = buffer.getInt();
 
-        Address blockCoinbase = prev.getBlockCoinbase();
-        long blockNumber = prev.getBlockNumber();
-        long blockTimestamp = prev.getBlockTimestamp();
-        long blockNrgLimit = prev.getBlockNrgLimit();
-        DataWord blockDifficulty = prev.getBlockDifficulty();
+        Address blockCoinbase = prev.blockCoinbase();
+        long blockNumber = prev.blockNumber();
+        long blockTimestamp = prev.blockTimestamp();
+        long blockNrgLimit = prev.blockNrgLimit();
+        DataWord blockDifficulty = prev.blockDifficulty();
 
         return new ExecutionContext(txHash, Address.wrap(address), origin, Address.wrap(caller), nrgPrice, nrgLimit, callValue, callData, depth,
                 kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
@@ -432,9 +432,9 @@ public class Callback {
      */
     private static AionInternalTx newInternalTx(Address from, Address to, BigInteger nonce, DataWord value, byte[] data,
                                                 String note) {
-        byte[] parentHash = context().getTransactionHash();
-        int depth = context().getDepth();
-        int index = context().getHelper().getInternalTransactions().size();
+        byte[] parentHash = context().transactionHash();
+        int depth = context().depth();
+        int index = context().helper().getInternalTransactions().size();
 
         return new AionInternalTx(parentHash, depth, index, new DataWord(nonce).getData(), from, to, value.getData(), data, note);
     }

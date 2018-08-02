@@ -433,7 +433,7 @@ public class CallbackUnitTest {
         Address beneficiary = new Address(Arrays.copyOf(owner.toBytes(), Address.ADDRESS_LEN));
         ExecutionHelper helper = new ExecutionHelper();
         ExecutionContext ctx = mockContext();
-        when(ctx.getHelper()).thenReturn(helper);
+        when(ctx.helper()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
         when(pair.getRight()).thenReturn(dummyRepo);
@@ -453,7 +453,7 @@ public class CallbackUnitTest {
         Address beneficiary = getNewAddressInRepo(benBalance, benNonce);
         ExecutionHelper helper = new ExecutionHelper();
         ExecutionContext ctx = mockContext();
-        when(ctx.getHelper()).thenReturn(helper);
+        when(ctx.helper()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
         when(pair.getRight()).thenReturn(dummyRepo);
@@ -548,8 +548,8 @@ public class CallbackUnitTest {
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
             false, false, ExecutionContext.DELEGATECALL, nrgLimit);
-        byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
-            ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
+        byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+            ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
 
         ExecutionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
@@ -573,8 +573,8 @@ public class CallbackUnitTest {
             ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
                 new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),i % 2 == 0,
                 false, false, ExecutionContext.DELEGATECALL, nrgLimit);
-            byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
-                ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
+            byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+                ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
             ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
             compareContexts(expectedContext, Callback.parseMessage(message));
             Callback.pop();
@@ -594,8 +594,8 @@ public class CallbackUnitTest {
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),true,
             false, false, ExecutionContext.DELEGATECALL, nrgLimit);
-        byte[] message = generateContextMessage(ctx.getRecipient(), ctx.getCaller(), ctx.getNrgLimit(),
-            ctx.getCallValue(), ctx.getCallData(), ctx.getDepth(), ctx.getKind(), ctx.getFlags());
+        byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+            ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
 
         ExecutionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
@@ -612,8 +612,8 @@ public class CallbackUnitTest {
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
-            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+        byte[] message = generateContextMessage(context.address(), context.caller(),
+            context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             Constants.MAX_CALL_DEPTH, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.call(message));
         assertEquals(ResultCode.FAILURE, result.getResultCode());
@@ -633,8 +633,8 @@ public class CallbackUnitTest {
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
-            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+        byte[] message = generateContextMessage(context.address(), context.caller(),
+            context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             0, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.call(message));
         assertEquals(ResultCode.FAILURE, result.getResultCode());
@@ -1336,7 +1336,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, false,
                     false, false);
@@ -1379,7 +1379,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, true,
                     false, false);
@@ -1422,7 +1422,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance, true,
                     false, false);
@@ -1611,7 +1611,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
                     false, false, false);
@@ -1656,7 +1656,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
                     true, false, false);
@@ -1701,7 +1701,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
-                checkHelperForRejections(Callback.context().getHelper());
+                checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
                     true, false, false);
@@ -1717,12 +1717,12 @@ public class CallbackUnitTest {
 
     /**
      * Returns a mocked pair whose left entry is a mocked context that returns a new helper when
-     * getHelper is called and whose right entry is a new DummyRepository.
+     * helper is called and whose right entry is a new DummyRepository.
      */
     private Pair<ExecutionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>> mockPair() {
         ExecutionContext context = mockContext();
         ExecutionHelper helper = new ExecutionHelper();
-        when(context.getHelper()).thenReturn(helper);
+        when(context.helper()).thenReturn(helper);
         Pair pair = mock(Pair.class);
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
@@ -1731,13 +1731,13 @@ public class CallbackUnitTest {
 
     private ExecutionContext mockContext() {
         ExecutionContext context = mock(ExecutionContext.class);
-        when(context.getBlockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.getCaller()).thenReturn(getNewAddress());
-        when(context.getCallData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
-        when(context.getCallValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
-        when(context.getNrgLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
-        when(context.getDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
+        when(context.blockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.caller()).thenReturn(getNewAddress());
+        when(context.callData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
+        when(context.callValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
+        when(context.nrgLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.transactionHash()).thenReturn(RandomUtils.nextBytes(32));
+        when(context.depth()).thenReturn(RandomUtils.nextInt(0, 1000));
         return context;
     }
 
@@ -1798,22 +1798,22 @@ public class CallbackUnitTest {
     }
 
     private void compareContexts(ExecutionContext context, ExecutionContext other) {
-        assertEquals(context.getRecipient(), other.getRecipient());
-        assertEquals(context.getOrigin(), other.getOrigin());
-        assertEquals(context.getCaller(), other.getCaller());
-        assertEquals(context.getBlockCoinbase(), other.getBlockCoinbase());
-        assertEquals(context.getNrgPrice(), other.getNrgPrice());
-        assertEquals(context.getCallValue(), other.getCallValue());
-        assertEquals(context.getBlockDifficulty(), other.getBlockDifficulty());
-        assertEquals(context.getNrgLimit(), other.getNrgLimit());
-        assertEquals(context.getBlockNumber(), other.getBlockNumber());
-        assertEquals(context.getBlockTimestamp(), other.getBlockTimestamp());
-        assertEquals(context.getBlockNrgLimit(), other.getBlockNrgLimit());
-        assertEquals(context.getDepth(), other.getDepth());
-        assertEquals(context.getKind(), other.getKind());
-        assertEquals(context.getFlags(), other.getFlags());
-        assertArrayEquals(context.getTransactionHash(), other.getTransactionHash());
-        assertArrayEquals(context.getCallData(), other.getCallData());
+        assertEquals(context.address(), other.address());
+        assertEquals(context.origin(), other.origin());
+        assertEquals(context.caller(), other.caller());
+        assertEquals(context.blockCoinbase(), other.blockCoinbase());
+        assertEquals(context.nrgPrice(), other.nrgPrice());
+        assertEquals(context.callValue(), other.callValue());
+        assertEquals(context.blockDifficulty(), other.blockDifficulty());
+        assertEquals(context.nrgLimit(), other.nrgLimit());
+        assertEquals(context.blockNumber(), other.blockNumber());
+        assertEquals(context.blockTimestamp(), other.blockTimestamp());
+        assertEquals(context.blockNrgLimit(), other.blockNrgLimit());
+        assertEquals(context.depth(), other.depth());
+        assertEquals(context.kind(), other.kind());
+        assertEquals(context.flags(), other.flags());
+        assertArrayEquals(context.transactionHash(), other.transactionHash());
+        assertArrayEquals(context.callData(), other.callData());
     }
 
     private IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> mockRepo() {
@@ -1824,13 +1824,13 @@ public class CallbackUnitTest {
     }
 
     private void compareMockContexts(ExecutionContext context, ExecutionContext other) {
-        assertEquals(context.getBlockNumber(), other.getBlockNumber());
-        assertEquals(context.getCaller(), other.getCaller());
-        assertArrayEquals(context.getCallData(), other.getCallData());
-        assertEquals(context.getCallValue(), other.getCallValue());
-        assertEquals(context.getNrgLimit(), other.getNrgLimit());
-        assertArrayEquals(context.getTransactionHash(), other.getTransactionHash());
-        assertEquals(context.getDepth(), other.getDepth());
+        assertEquals(context.blockNumber(), other.blockNumber());
+        assertEquals(context.caller(), other.caller());
+        assertArrayEquals(context.callData(), other.callData());
+        assertEquals(context.callValue(), other.callValue());
+        assertEquals(context.nrgLimit(), other.nrgLimit());
+        assertArrayEquals(context.transactionHash(), other.transactionHash());
+        assertEquals(context.depth(), other.depth());
     }
 
     private void compareRepos(IRepositoryCache cache, IRepositoryCache other) {
@@ -1873,7 +1873,7 @@ public class CallbackUnitTest {
 
         IRepositoryCache repo = Callback.repo();
         ExecutionContext ctx = Callback.context();
-        ExecutionHelper helper = ctx.getHelper();
+        ExecutionHelper helper = ctx.helper();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
         if (!owner.equals(beneficiary)) {
             assertEquals(beneficiaryOldBalance.add(ownerBalance), repo.getBalance(beneficiary));
@@ -1888,7 +1888,7 @@ public class CallbackUnitTest {
         assertEquals(new DataWord(ownerBalance), new DataWord(tx.getValue()));
         assertArrayEquals(new byte[0], tx.getData());
         assertEquals("selfdestruct", tx.getNote());
-        assertEquals(ctx.getDepth(), tx.getDeep());
+        assertEquals(ctx.depth(), tx.getDeep());
         assertEquals(0, tx.getIndex());
     }
 
@@ -1904,7 +1904,7 @@ public class CallbackUnitTest {
      * @param data The data passed into log.
      */
     private void checkLog(Address address, byte[] topics, byte[] data) {
-        ExecutionHelper helper = Callback.context().getHelper();
+        ExecutionHelper helper = Callback.context().helper();
         assertEquals(1, helper.getLogs().size());
         Log log = helper.getLogs().get(0);
         assertEquals(address, log.getAddress());
@@ -1924,11 +1924,11 @@ public class CallbackUnitTest {
      * message given to the parseMessage method.
      */
     private ExecutionContext makeExpectedContext(ExecutionContext previous, ExecutionContext context) {
-        return new ExecutionContext(previous.getTransactionHash(), context.getRecipient(),
-            previous.getOrigin(), context.getCaller(), previous.getNrgPrice(), context.getNrgLimit(),
-            context.getCallValue(), context.getCallData(), context.getDepth(), context.getKind(),
-            context.getFlags(), previous.getBlockCoinbase(), previous.getBlockNumber(),
-            previous.getBlockTimestamp(), previous.getBlockNrgLimit(), previous.getBlockDifficulty());
+        return new ExecutionContext(previous.transactionHash(), context.address(),
+            previous.origin(), context.caller(), previous.nrgPrice(), context.nrgLimit(),
+            context.callValue(), context.callData(), context.depth(), context.kind(),
+            context.flags(), previous.blockCoinbase(), previous.blockNumber(),
+            previous.blockTimestamp(), previous.blockNrgLimit(), previous.blockDifficulty());
     }
 
     /**
@@ -2129,10 +2129,10 @@ public class CallbackUnitTest {
         boolean isCreateContract) {
 
         ExecutionContext ctx = Callback.context();
-        checkInternalTransaction(context, ctx.getHelper().getInternalTransactions().get(0), juneForkEnabled,
+        checkInternalTransaction(context, ctx.helper().getInternalTransactions().get(0), juneForkEnabled,
             isCreateContract);
-        checkPerformCallBalances(context.getCaller(), callerBalance, context.getRecipient(), recipientBalance,
-            context.getCallValue().value(), wasNoRecipient);
+        checkPerformCallBalances(context.caller(), callerBalance, context.address(), recipientBalance,
+            context.callValue().value(), wasNoRecipient);
     }
 
     /**
@@ -2154,13 +2154,13 @@ public class CallbackUnitTest {
         ExecutionResult expectedResult, boolean vmGotBadCode, int kind, boolean contractExisted,
         boolean postExecuteWasSuccess, byte[] code) {
 
-        byte[] message = generateContextMessage(context.getRecipient(), context.getCaller(),
-            context.getNrgLimit(), context.getCallValue(), context.getCallData(), context.getDepth(),
+        byte[] message = generateContextMessage(context.address(), context.caller(),
+            context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             kind, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.performCall(message, mockVM, mockFac));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
-            assertEquals(context.getNrgLimit(), result.getNrgLeft());
+            assertEquals(context.nrgLimit(), result.getNrgLeft());
         } else {
             assertEquals(expectedResult.getNrgLeft(), result.getNrgLeft());
         }
@@ -2254,49 +2254,49 @@ public class CallbackUnitTest {
     private void checkInternalTransaction(ExecutionContext context, AionInternalTx tx,
         boolean juneForkEnabled, boolean isCreateContract) {
 
-        assertEquals(context.getCaller(), tx.getFrom());
+        assertEquals(context.caller(), tx.getFrom());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
             Address contract;
             if (isCreateContract && juneForkEnabled) {
-                contract = new Address(HashUtil.calcNewAddr(context.getCaller().toBytes(),
-                    Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.TWO)
+                contract = new Address(HashUtil.calcNewAddr(context.caller().toBytes(),
+                    Callback.repo().getNonce(context.caller()).subtract(BigInteger.TWO)
                         .toByteArray()));
             } else {
-                contract = new Address(HashUtil.calcNewAddr(context.getCaller().toBytes(),
-                    Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE)
+                contract = new Address(HashUtil.calcNewAddr(context.caller().toBytes(),
+                    Callback.repo().getNonce(context.caller()).subtract(BigInteger.ONE)
                         .toByteArray()));
             }
             assertEquals(contract, tx.getTo());
         } else {
-            assertEquals(context.getRecipient(), tx.getTo());
+            assertEquals(context.address(), tx.getTo());
         }
         if (juneForkEnabled) {
             if (isCreateContract) {
-                assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.TWO),
+                assertEquals(Callback.repo().getNonce(context.caller()).subtract(BigInteger.TWO),
                     tx.getNonceBI());
             } else {
-                assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
+                assertEquals(Callback.repo().getNonce(context.caller()).subtract(BigInteger.ONE),
                     tx.getNonceBI());
             }
         } else {
             if (isCreateContract) {
-                assertEquals(Callback.repo().getNonce(context.getCaller()).subtract(BigInteger.ONE),
+                assertEquals(Callback.repo().getNonce(context.caller()).subtract(BigInteger.ONE),
                     tx.getNonceBI());
             } else {
-                assertEquals(Callback.repo().getNonce(context.getCaller()), tx.getNonceBI());
+                assertEquals(Callback.repo().getNonce(context.caller()), tx.getNonceBI());
             }
         }
-        assertEquals(context.getCallValue(), new DataWord(tx.getValue()));
+        assertEquals(context.callValue(), new DataWord(tx.getValue()));
         if (isCreateContract) {
             assertEquals("create", tx.getNote());
         } else {
             assertEquals("call", tx.getNote());
         }
-        assertEquals(context.getDepth(), tx.getDeep());
+        assertEquals(context.depth(), tx.getDeep());
         assertEquals(0, tx.getIndex());
-        assertArrayEquals(context.getCallData(), tx.getData());
-        assertArrayEquals(context.getTransactionHash(), tx.getParentHash());
+        assertArrayEquals(context.callData(), tx.getData());
+        assertArrayEquals(context.transactionHash(), tx.getParentHash());
     }
 
     /**
@@ -2306,13 +2306,13 @@ public class CallbackUnitTest {
      */
     private void checkContextHelper(boolean performCallTriggeredDoCall) {
         if (performCallTriggeredDoCall) {
-            assertEquals(1, Callback.context().getHelper().getInternalTransactions().size());
-            assertEquals(0, Callback.context().getHelper().getLogs().size());
-            assertEquals(0, Callback.context().getHelper().getDeleteAccounts().size());
+            assertEquals(1, Callback.context().helper().getInternalTransactions().size());
+            assertEquals(0, Callback.context().helper().getLogs().size());
+            assertEquals(0, Callback.context().helper().getDeleteAccounts().size());
         } else {
-            assertEquals(2, Callback.context().getHelper().getInternalTransactions().size());
-            assertEquals(0, Callback.context().getHelper().getLogs().size());
-            assertEquals(0, Callback.context().getHelper().getDeleteAccounts().size());
+            assertEquals(2, Callback.context().helper().getInternalTransactions().size());
+            assertEquals(0, Callback.context().helper().getLogs().size());
+            assertEquals(0, Callback.context().helper().getDeleteAccounts().size());
         }
     }
 
@@ -2342,7 +2342,7 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransactionsAfterCreate(boolean juneForkEnabled, boolean wasSuccess) {
         ExecutionContext context = Callback.context();
-        List<AionInternalTx> internalTxs = context.getHelper().getInternalTransactions();
+        List<AionInternalTx> internalTxs = context.helper().getInternalTransactions();
         assertEquals(2, internalTxs.size());
         checkInternalTransaction(context, internalTxs.get(0), juneForkEnabled, true);
         checkSecondInteralTransaction(context, internalTxs.get(1));
@@ -2355,16 +2355,16 @@ public class CallbackUnitTest {
      * Checks the second of the 2 internal transactions created during the CREATE opcode.
      */
     private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
-        Address caller = context.getCaller();
-        assertEquals(context.getCaller(), tx.getFrom());
+        Address caller = context.caller();
+        assertEquals(context.caller(), tx.getFrom());
         assertEquals(Callback.repo().getNonce(caller), tx.getNonceBI());
-        assertEquals(context.getCallValue(), new DataWord(tx.getValue()));
+        assertEquals(context.callValue(), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
-        assertEquals(context.getDepth(), tx.getDeep());
+        assertEquals(context.depth(), tx.getDeep());
         assertEquals(1, tx.getIndex());
-        assertArrayEquals(context.getTransactionHash(), tx.getParentHash());
+        assertArrayEquals(context.transactionHash(), tx.getParentHash());
         assertArrayEquals(new DataWord(Callback.repo().getNonce(caller)).getData(), tx.getNonce());
-        assertArrayEquals(context.getCallData(), tx.getData());
+        assertArrayEquals(context.callData(), tx.getData());
         assertNull(tx.getTo());
     }
 
@@ -2376,8 +2376,8 @@ public class CallbackUnitTest {
         boolean contractExisted, boolean juneforkEnabled, boolean postExecuteWasSuccess,
         boolean nrgLessThanDeposit) {
 
-        BigInteger value = context.getCallValue().value();
-        Address caller = Callback.context().getCaller();
+        BigInteger value = context.callValue().value();
+        Address caller = Callback.context().caller();
         Address contract;
         if (juneforkEnabled) {
             contract = new Address(HashUtil.calcNewAddr(caller.toBytes(),

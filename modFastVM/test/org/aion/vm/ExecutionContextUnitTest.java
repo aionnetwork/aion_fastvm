@@ -188,15 +188,15 @@ public class ExecutionContextUnitTest {
     @Test
     public void testGetTxHash() {
         ExecutionContext context = newExecutionContext();
-        assertArrayEquals(txHash, context.getTransactionHash());
+        assertArrayEquals(txHash, context.transactionHash());
     }
 
     @Test
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
         Address newRecipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
-        context.setRecipient(newRecipient);
-        assertEquals(newRecipient, context.getRecipient());
+        context.setAddress(newRecipient);
+        assertEquals(newRecipient, context.address());
     }
 
     // <-------------------------------------HELPERS BELOW----------------------------------------->
@@ -222,74 +222,74 @@ public class ExecutionContextUnitTest {
         int end = Address.ADDRESS_LEN;
         ByteBuffer longBuf = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
         ByteBuffer intBuf = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
-        assertEquals(context.getRecipient(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.address(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.getOrigin(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.origin(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.getCaller(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.caller(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getNrgPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.nrgPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
         longBuf.flip();
-        assertEquals(context.getNrgLimit(), longBuf.getLong());
+        assertEquals(context.nrgLimit(), longBuf.getLong());
         longBuf.clear();
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getCallValue(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.callValue(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
         intBuf.flip();
-        assertEquals(context.getCallData().length, intBuf.getInt());
+        assertEquals(context.callData().length, intBuf.getInt());
         intBuf.clear();
         start = end;
-        end += context.getCallData().length;
-        assertArrayEquals(context.getCallData(), Arrays.copyOfRange(encoding, start, end));
+        end += context.callData().length;
+        assertArrayEquals(context.callData(), Arrays.copyOfRange(encoding, start, end));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
         intBuf.flip();
-        assertEquals(context.getDepth(), intBuf.getInt());
-        intBuf.clear();
-        start = end;
-        end += Integer.BYTES;
-        intBuf.put(Arrays.copyOfRange(encoding, start, end));
-        intBuf.flip();
-        assertEquals(context.getKind(), intBuf.getInt());
+        assertEquals(context.depth(), intBuf.getInt());
         intBuf.clear();
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
         intBuf.flip();
-        assertEquals(context.getFlags(), intBuf.getInt());
+        assertEquals(context.kind(), intBuf.getInt());
+        intBuf.clear();
+        start = end;
+        end += Integer.BYTES;
+        intBuf.put(Arrays.copyOfRange(encoding, start, end));
+        intBuf.flip();
+        assertEquals(context.flags(), intBuf.getInt());
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.getBlockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
         longBuf.flip();
-        assertEquals(context.getBlockNumber(), longBuf.getLong());
+        assertEquals(context.blockNumber(), longBuf.getLong());
         longBuf.clear();
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
         longBuf.flip();
-        assertEquals(context.getBlockTimestamp(), longBuf.getLong());
+        assertEquals(context.blockTimestamp(), longBuf.getLong());
         longBuf.clear();
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
         longBuf.flip();
-        assertEquals(context.getBlockNrgLimit(), longBuf.getLong());
+        assertEquals(context.blockNrgLimit(), longBuf.getLong());
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getBlockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.blockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
     }
 
 }
