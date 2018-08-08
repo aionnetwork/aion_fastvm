@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.aion.base.db.IRepository;
@@ -19,10 +20,12 @@ import org.aion.fastvm.TestVMProvider;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
+import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
+import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
@@ -37,7 +40,6 @@ import org.slf4j.Logger;
  */
 public class TransactionExecutorTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
-    private static final String dat = "75ed1235";
     private static final String f_func = "26121ff0";
     private static final String g_func = "e2179b8e";
     private StandaloneBlockchain blockchain;
@@ -167,10 +169,13 @@ public class TransactionExecutorTest {
         // We called the function f() which returns nothing.
         assertEquals(0, summary.getReceipt().getExecutionResult().length);
 
+        byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
+        assertArrayEquals(body, blockchain.getRepository().getCode(contract));
+
         // Now we call the g() function, which returns a byte array of 1024 bytes that starts with
         // 'a' and ends with 'b'
         callingCode = Hex.decode(g_func);
-        nonce = blockchain.getRepository().getNonce(deployer);
+        nonce = repo.getNonce(deployer);
         tx = new AionTransaction(nonce.toByteArray(), contract, BigInteger.ZERO.toByteArray(),
             callingCode, 1_000_000, 1);
         tx.sign(deployerKey);
@@ -178,15 +183,36 @@ public class TransactionExecutorTest {
 
         context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
             Collections.singletonList(tx), false);
-        repo = blockchain.getRepository().startTracking();
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
-        summary = exec.execute();
-        System.out.println(summary.getReceipt());
+        exec.execute();
 
         res = (ExecutionResult) exec.exeResult;
-        System.out.println(Hex.toHexString(res.getOutput()));
+        byte[] output = res.getOutput();
+        System.out.println(Hex.toHexString(output));
         System.out.println(res.getOutput().length);
+
+//        // I'm guessing: first data word is the number of bytes that follows. Then those following
+//        // bytes denote the size of the output, which follows these last bytes.
+//        int len = new DataWord(Arrays.copyOfRange(output, 0, DataWord.BYTES)).intValue();
+//        byte[] outputLen = new byte[len];
+//        System.arraycopy(output, DataWord.BYTES, outputLen, 0, len);
+//        int outputSize = new BigInteger(outputLen).intValue();
+//
+//        byte[] expected = new byte[1024];
+//        expected[0] = 'a';
+//        expected[1023] = 'b';
+//
+//        byte[] out = new byte[outputSize];
+//        System.arraycopy(output, DataWord.BYTES + len, out, 0, outputSize);
+
+        byte[] expected = new byte[1024];
+        expected[0] = 'a';
+        expected[1023] = 'b';
+
+        byte[] out = extractActualOutput(output);
+
+        assertArrayEquals(expected, out);
     }
 
     @Test
@@ -208,9 +234,15 @@ public class TransactionExecutorTest {
         System.out.println(summary.getReceipt());
 
         ExecutionResult res = (ExecutionResult) exec.exeResult;
-        System.out.println(Hex.toHexString(res.getOutput()));
-        System.out.println(res.getOutput().length);
+//        System.out.println(Hex.toHexString(res.getOutput()));
+//        System.out.println(res.getOutput().length);
+
+        byte[] out = extractActualOutput(res.getOutput());
+        assertEquals(0, out.length);
     }
+
+
+    // <-----------------------------------------HELPERS------------------------------------------->
 
     private Address deployByteArrayContract() throws IOException {
         Address to = getNewRecipient(true);
@@ -237,6 +269,19 @@ public class TransactionExecutorTest {
 
     private Address getNewRecipient(boolean isContractCreation) {
         return (isContractCreation) ? null : new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+    }
+
+    private byte[] extractActualOutput(byte[] rawOutput) {
+        // I'm guessing: first data word is the number of bytes that follows. Then those following
+        // bytes denote the size of the output, which follows these last bytes.
+        int len = new DataWord(Arrays.copyOfRange(rawOutput, 0, DataWord.BYTES)).intValue();
+        byte[] outputLen = new byte[len];
+        System.arraycopy(rawOutput, DataWord.BYTES, outputLen, 0, len);
+        int outputSize = new BigInteger(outputLen).intValue();
+
+        byte[] out = new byte[outputSize];
+        System.arraycopy(rawOutput, DataWord.BYTES + len, out, 0, outputSize);
+        return out;
     }
 
 }
