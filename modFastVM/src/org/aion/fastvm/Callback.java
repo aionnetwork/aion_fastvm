@@ -86,7 +86,6 @@ public class Callback {
      * @return
      */
     public static ExecutionContext context() {
-        // when empty we get NPE, better to return null?
         return stack.peek().getLeft();
     }
 
@@ -194,7 +193,7 @@ public class Callback {
         context().helper().addDeleteAccount(Address.wrap(owner));
     }
 
-    /**>>
+    /**
      * Processes LOG opcode.
      *
      * @param address

@@ -766,7 +766,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueIsLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -779,7 +779,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueIsLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -792,7 +792,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueIsLocalIsNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -809,7 +809,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueNotLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -822,7 +822,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueNotLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -835,7 +835,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsTrueNotLocalNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = true;
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -852,7 +852,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -865,7 +865,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -878,7 +878,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsLocalNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -895,7 +895,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsNotLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -908,7 +908,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsNotLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -921,7 +921,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsFalseIsNotLocalNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = false;
+        Forks.TEST_SEPTEMBER_2018_FORK = false;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -938,7 +938,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -951,7 +951,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -964,7 +964,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsLocalNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -981,7 +981,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsNotLocalIsSuccess() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, 0,
             RandomUtils.nextBytes(10));
@@ -994,7 +994,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsNotLocalIsRevert() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionResult result = new ExecutionResult(ResultCode.REVERT, 0,
             RandomUtils.nextBytes(10));
@@ -1007,7 +1007,7 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testFinishWithSeptForkIsNullIsNotLocalNotSuccessNotRevert() {
-        Forks.TEST_SEPTEMBER_FORK = null;
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         Address coinbase = getNewAddress();
         ExecutionHelper helper = makeHelper();
         AionTransaction tx = mockTx();
@@ -1976,7 +1976,8 @@ public class TransactionExecutorUnitTest {
         assertEquals(isFailed, summary.isFailed());
         assertEquals(isRejected, summary.isRejected());
         assertEquals(new BigInteger(receipt.getTransaction().getValue()), summary.getValue());
-        boolean septForkIsTrue = ((Forks.TEST_SEPTEMBER_FORK != null) && (Forks.TEST_SEPTEMBER_FORK));
+        boolean septForkIsTrue = ((Forks.TEST_SEPTEMBER_2018_FORK
+            != null) && (Forks.TEST_SEPTEMBER_2018_FORK));
         if (!septForkIsTrue || result.getResultCode().equals(ResultCode.SUCCESS)) {
             assertEquals(helper.getDeleteAccounts(), summary.getDeletedAccounts());
             checkLogs(summary, helper);
