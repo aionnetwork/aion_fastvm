@@ -32,4 +32,10 @@ contract MultiFeatureContract {
         }
     }
 
+    function sendMyFunds(address addr, uint128 funds) public {
+        if (!addr.send(funds)) {
+            throw;
+        }
+    }
+
 }
