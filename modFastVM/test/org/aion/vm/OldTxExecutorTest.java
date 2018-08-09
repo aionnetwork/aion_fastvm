@@ -1,25 +1,3 @@
-/*
- * Copyright (c) 2017-2018 Aion foundation.
- *
- *     This file is part of the aion network project.
- *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
- *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Aion foundation.
- */
 package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -48,9 +26,13 @@ import org.aion.zero.types.AionTxReceipt;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-public class TransactionExecutorTest {
-
-    static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
+/**
+ * These were the tests previous in TransactionExecutorUnitTest but that class is now strictly unit
+ * testing. These tests are more on the integration test level. Once there's a place to fit these
+ * they will be moved.
+ */
+public class OldTxExecutorTest {
+    private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
     @Test
     public void testCallTransaction() throws IOException {
@@ -180,4 +162,5 @@ public class TransactionExecutorTest {
 
         assertEquals(tx.transactionCost(block.getNumber()), receipt.getEnergyUsed());
     }
+
 }

@@ -3,21 +3,31 @@ package org.aion.fastvm;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.crypto.ECKey;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.Forks;
+import org.aion.vm.TransactionExecutor;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionTxInfo;
+import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
+import org.aion.zero.types.AionTxExecSummary;
+import org.junit.After;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import org.slf4j.Logger;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class InternalTransactionTest {
+    private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
 /*
 pragma solidity ^0.4.0;
@@ -143,31 +153,30 @@ contract B {
         //======================
         // CALL A (calls B, 20k)
         //======================
+        nonce = nonce.add(BigInteger.ONE);
+        AionTransaction tx5 = new AionTransaction(
+                nonce.toByteArray(),
+                addressA,
+                new byte[0],
+                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
+                1_000_000L,
+                1L
+        );
+        tx5.sign(deployerAccount);
 
-        //TODO: confirm with Yulong
-//        nonce = nonce.add(BigInteger.ONE);
-//        AionTransaction tx5 = new AionTransaction(
-//                nonce.toByteArray(),
-//                addressA,
-//                new byte[0],
-//                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
-//                1_000_000L,
-//                1L
-//        );
-//        tx5.sign(deployerAccount);
-//
-//        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx5), false);
-//        result = bc.tryToConnect(context.block);
-//        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
-//
-//        info = bc.getTransactionInfo(tx5.getHash());
-//        System.out.println(info.getReceipt());
-//        assertEquals(2, info.getReceipt().getLogInfoList().size());
-//        Thread.sleep(1000);
+        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx5), false);
+        result = bc.tryToConnect(context.block);
+        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
+
+        info = bc.getTransactionInfo(tx5.getHash());
+        System.out.println(info.getReceipt());
+        assertEquals(2, info.getReceipt().getLogInfoList().size());
+        Thread.sleep(1000);
 
         //======================
-        // CALL A (calls B, 20k)
+        // CALL A (calls B, 20k) with fork enabled
         //======================
+        Forks.TEST_SEPTEMBER_FORK = true;
 
         nonce = nonce.add(BigInteger.ONE);
         AionTransaction tx6 = new AionTransaction(
@@ -190,4 +199,136 @@ contract B {
         Thread.sleep(1000);
     }
 
+    /*
+pragma solidity ^0.4.0;
+
+contract A {
+    function f(int n) {
+        if (n > 0) {
+            this.f(n - 1);
+        }
+    }
+}
+     */
+    @Test
+    public void testRecursiveCall() throws InterruptedException {
+        // enable forks
+        Forks.TEST_SEPTEMBER_FORK = true;
+
+
+        String contractA = "0x605060405234156100105760006000fd5b610015565b60e9806100236000396000f30060506040526000356c01000000000000000000000000900463ffffffff168063ec77996414603157602b565b60006000fd5b3415603c5760006000fd5b605060048080359060100190919050506052565b005b600081131560b9573063ec779964600184036040518263ffffffff166c01000000000000000000000000028152600401808281526010019150506000604051808303816000888881813b151560a75760006000fd5b5af1151560b45760006000fd5b505050505b5b505600a165627a7a7230582033f76d593b80b3468bfb0f873882bc00903a790a9b996cb8ca3bac51295994cd0029";
+
+        StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
+                .withValidatorConfiguration("simple")
+                .withDefaultAccounts()
+                .build();
+        StandaloneBlockchain bc = bundle.bc;
+        ECKey deployerAccount = bundle.privateKeys.get(0);
+
+        //======================
+        // DEPLOY
+        //======================
+        BigInteger nonce = BigInteger.ZERO;
+        AionTransaction tx1 = new AionTransaction(
+                nonce.toByteArray(),
+                null,
+                new byte[0],
+                ByteUtil.hexStringToBytes(contractA),
+                1_000_000L,
+                1L
+        );
+        tx1.sign(deployerAccount);
+
+        BlockContext context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx1), false);
+        ImportResult result = bc.tryToConnect(context.block);
+        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
+
+        Address addressA = tx1.getContractAddress();
+        System.out.println("contract A = " + addressA);
+        Thread.sleep(1000);
+
+        //======================
+        // CALL
+        //======================
+        nonce = nonce.add(BigInteger.ONE);
+        AionTransaction tx2 = new AionTransaction(
+                nonce.toByteArray(),
+                addressA,
+                new byte[0],
+                ByteUtil.merge(ByteUtil.hexStringToBytes("0xec779964"), new DataWord(2).getData()),
+                1_000_000L,
+                1L
+        );
+        tx2.sign(deployerAccount);
+
+        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx2), false);
+        TransactionExecutor exec = new TransactionExecutor(tx2, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+
+        assertEquals(2, summary.getInternalTransactions().size());
+
+        assertArrayEquals(tx2.getHash(), summary.getInternalTransactions().get(0).getParentHash());
+        assertEquals(0, summary.getInternalTransactions().get(0).getDeep());
+        assertEquals(0, summary.getInternalTransactions().get(0).getIndex());
+
+        assertArrayEquals(summary.getInternalTransactions().get(0).getHash(), summary.getInternalTransactions().get(1).getParentHash());
+        assertEquals(1, summary.getInternalTransactions().get(1).getDeep());
+        assertEquals(0, summary.getInternalTransactions().get(1).getIndex());
+    }
+
+
+    /*
+pragma solidity ^0.4.0;
+
+contract B {}
+
+contract A {
+    address b;
+
+    function A() {
+        b = new B();
+    }
+}
+     */
+    @Test
+    public void testNestedCreate() throws InterruptedException {
+        String contractA = "0x60506040523415600f5760006000fd5b5b60166048565b604051809103906000f0801582151615602f5760006000fd5b60006000508282909180600101839055555050505b6057565b604051605a8061009f83390190565b603a806100656000396000f30060506040526008565b60006000fd00a165627a7a72305820c0eea40d4778b01848164e58898e9e8c8ab068ed5ee36ed6f0582d119ecbbede002960506040523415600f5760006000fd5b6013565b603a8060206000396000f30060506040526008565b60006000fd00a165627a7a723058208c13bc92baf844f8574632dca44c49776516cb6cd537b10ed700bf61392b6ae80029";
+
+        StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
+                .withValidatorConfiguration("simple")
+                .withDefaultAccounts()
+                .build();
+        StandaloneBlockchain bc = bundle.bc;
+        ECKey deployerAccount = bundle.privateKeys.get(0);
+
+        //======================
+        // DEPLOY
+        //======================
+        BigInteger nonce = BigInteger.ZERO;
+        AionTransaction tx1 = new AionTransaction(
+                nonce.toByteArray(),
+                null,
+                new byte[0],
+                ByteUtil.hexStringToBytes(contractA),
+                1_000_000L,
+                1L
+        );
+        tx1.sign(deployerAccount);
+
+        BlockContext context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx1), false);
+        TransactionExecutor exec = new TransactionExecutor(tx1, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+
+        System.out.println(summary.getReceipt());
+        for (AionInternalTx tx : summary.getInternalTransactions()) {
+            System.out.println(tx);
+        }
+    }
+
+    @After
+    public void teardown() {
+        Forks.clearTestState();
+    }
 }
