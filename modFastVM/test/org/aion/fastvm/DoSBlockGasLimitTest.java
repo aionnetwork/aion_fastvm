@@ -31,7 +31,6 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.TransactionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,15 +63,12 @@ public class DoSBlockGasLimitTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private TransactionResult txResult;
-
     @Before
     public void setup() {
         nrgPrice = DataWord.ONE;
         nrgLimit = 100000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        txResult = new TransactionResult();
     }
 
     @Test

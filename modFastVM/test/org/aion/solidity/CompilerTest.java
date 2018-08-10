@@ -56,21 +56,21 @@ public class CompilerTest {
     @Test
     public void testPayable() throws IOException {
         String contract = "pragma solidity ^0.4.0;\n" +
-                "\n" +
-                "contract Register {\n" +
-                "    mapping (address => bool) registeredAddresses;\n" +
-                "    uint price;\n" +
-                "\n" +
-                "    function Register(uint initialPrice) public { price = initialPrice; }\n" +
-                "\n" +
-                "    function register() public payable {\n" +
-                "        registeredAddresses[msg.sender] = true;\n" +
-                "    }\n" +
-                "\n" +
-                "    function changePrice(uint _price) public {\n" +
-                "        price = _price;\n" +
-                "    }\n" +
-                "}\n";
+            "\n" +
+            "contract Register {\n" +
+            "    mapping (address => bool) registeredAddresses;\n" +
+            "    uint price;\n" +
+            "\n" +
+            "    function Register(uint initialPrice) public { price = initialPrice; }\n" +
+            "\n" +
+            "    function register() public payable {\n" +
+            "        registeredAddresses[msg.sender] = true;\n" +
+            "    }\n" +
+            "\n" +
+            "    function changePrice(uint _price) public {\n" +
+            "        price = _price;\n" +
+            "    }\n" +
+            "}\n";
         System.out.println(contract);
 
         Compiler.Result r = Compiler.getInstance().compile(contract.getBytes(), Options.ABI, Options.BIN);
