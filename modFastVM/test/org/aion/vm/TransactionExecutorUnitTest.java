@@ -167,12 +167,16 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testBuildReceiptGetErrorWhenResultNotSuccess() {
-        ResultCode code = ResultCode.fromInt(RandomUtils.nextInt(0, 12));
-        TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
-        byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
-        executor.setExecutionResult(new ExecutionResult(code, 0, output));
-        AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), mockTx(), new ArrayList());
-        assertEquals(code.name(), receipt.getError());
+        for (int i = -1; i < 12; i++) {
+            if (!ResultCode.fromInt(i).equals(ResultCode.SUCCESS)) {
+                ResultCode code = ResultCode.fromInt(i);
+                TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
+                byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
+                executor.setExecutionResult(new ExecutionResult(code, 0, output));
+                AionTxReceipt receipt = (AionTxReceipt) executor.buildReceipt(new AionTxReceipt(), mockTx(), new ArrayList());
+                assertEquals(code.name(), receipt.getError());
+            }
+        }
     }
 
     @Test
