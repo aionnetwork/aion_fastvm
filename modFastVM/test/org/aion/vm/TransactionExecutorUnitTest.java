@@ -618,22 +618,6 @@ public class TransactionExecutorUnitTest {
     }
 
     @Test
-    public void testPrepareInsufficientBalanceUseNegativeEnergyPriceContractCreation() {
-        // Need the +1 on the long since absolute value of MIN_VALUE is not defined.
-        byte[] value = RandomUtils.nextBytes(8);
-        value[0] &= 0x7F;   // Creates a positive value.
-        doPrepareInsufficientBalance(true, Long.MIN_VALUE + 1, value);
-    }
-
-    @Test
-    public void testPrepareInsufficientBalanceUseNegativeEnergyPrice() {
-        // Need the +1 on the long since absolute value of MIN_VALUE is not defined.
-        byte[] value = RandomUtils.nextBytes(8);
-        value[0] &= 0x7F;   // Creates a positive value.
-        doPrepareInsufficientBalance(false, Long.MIN_VALUE + 1, value);
-    }
-
-    @Test
     public void testPrepareIsGoodNoSkipNonce() {
         doPrepareIsGood(false, false, true);
     }
@@ -1980,8 +1964,7 @@ public class TransactionExecutorUnitTest {
         assertEquals(isFailed, summary.isFailed());
         assertEquals(isRejected, summary.isRejected());
         assertEquals(new BigInteger(receipt.getTransaction().getValue()), summary.getValue());
-        boolean septForkIsTrue = ((Forks.TEST_SEPTEMBER_2018_FORK
-            != null) && (Forks.TEST_SEPTEMBER_2018_FORK));
+        boolean septForkIsTrue = ((Forks.TEST_SEPTEMBER_2018_FORK != null) && (Forks.TEST_SEPTEMBER_2018_FORK));
         if (!septForkIsTrue || result.getResultCode().equals(ResultCode.SUCCESS)) {
             assertEquals(helper.getDeleteAccounts(), summary.getDeletedAccounts());
             checkLogs(summary, helper);
