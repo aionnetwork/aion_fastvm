@@ -220,13 +220,6 @@ public class Callback {
     static byte[] performCall(byte[] message, FastVM vm, ContractFactory factory) {
         ExecutionContext ctx = parseMessage(message);
 
-
-//        System.err.println("destination: " + ctx.address());
-//        System.err.println("sender: " + ctx.sender());
-//        System.err.println("origin: " + ctx.origin());
-//        System.err.println("kind: " + ctx.kind());
-
-
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
 
         // check call stack depth

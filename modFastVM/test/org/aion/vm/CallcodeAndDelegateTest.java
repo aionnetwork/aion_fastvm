@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
+ *
+ *     This file is part of the aion network project.
+ *
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Aion foundation.
+ */
 package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -24,6 +46,7 @@ import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
+import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.junit.After;
@@ -182,10 +205,6 @@ public class CallcodeAndDelegateTest {
         BigInteger n = new BigInteger("7638523");
         Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
         Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
-        System.err.println("Deployer is: " + deployer);
-        System.err.println("Contract D: " + D);
-        System.err.println("Contract E: " + E);
-        System.err.println("The n value is: " + n);
 
         // Deployer calls contract D which performs CALLCODE to call contract E. We expect that the
         // storage in contract D is modified by the code that is called in contract E.
@@ -195,12 +214,9 @@ public class CallcodeAndDelegateTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
-            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+            input, nrg, nrgPrice);
         tx.sign(deployerKey);
-        System.err.println("\nExpect FROM is deployer and TO is D.");
-        System.err.println("Transaction FROM is deployer: " + tx.getFrom());
-        System.err.println("Transaction TO is D: " + tx.getTo());
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
@@ -215,14 +231,10 @@ public class CallcodeAndDelegateTest {
         nonce = nonce.add(BigInteger.ONE);
 
         // When we call into contract D we should find its storage is modified so that 'n' is set.
-
         input = Hex.decode("3e955225");
         tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(), input, nrg,
             nrgPrice);
         tx.sign(deployerKey);
-        System.err.println("\nQuerying contract D's storage.");
-        System.err.println("Transaction FROM is deployer: " + tx.getFrom());
-        System.err.println("Transaction TO is D: " + tx.getTo());
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
@@ -239,9 +251,6 @@ public class CallcodeAndDelegateTest {
         tx = new AionTransaction(nonce.toByteArray(), E, BigInteger.ZERO.toByteArray(), input, nrg,
             nrgPrice);
         tx.sign(deployerKey);
-        System.err.println("\nQuerying contract E's storage.");
-        System.err.println("Transaction FROM is deployer: " + tx.getFrom());
-        System.err.println("Transaction TO is E: " + tx.getTo());
         assertEquals(deployer, tx.getFrom());
         assertEquals(E, tx.getTo());
 
@@ -250,21 +259,228 @@ public class CallcodeAndDelegateTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         inStore = new BigInteger(exec.execute().getResult());
-        System.err.println("Found in E's storage for n: " + inStore);
         assertEquals(BigInteger.ZERO, inStore);
     }
 
     @Test
-    public void testCallcodeActors() {
-        //TODO
+    public void testCallcodeActors() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
+        Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
+
+        // Deployer calls contract D which performs CALLCODE to call contract E. From the perspective
+        // of the internal transaction, however, it looks like D calls D.
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
+        input = ByteUtil.merge(input, new DataWord(0).getData()); // pass in 'n' also.
+
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+            input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect that the internal transaction is sent from D to D.
+        List<AionInternalTx> internalTxs = summary.getInternalTransactions();
+        assertEquals(1, internalTxs.size());
+        assertEquals(D, internalTxs.get(0).getFrom());
+        assertEquals(D, internalTxs.get(0).getTo());
     }
 
     @Test
-    public void testCallcodeValueTransfer() {
-        //TODO
+    public void testCallcodeValueTransfer() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
+        Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
+
+        BigInteger balanceDeployer = repo.getBalance(deployer);
+        BigInteger balanceD = repo.getBalance(D);
+        BigInteger balanceE = repo.getBalance(E);
+
+        // Deployer calls contract D which performs CALLCODE to call contract E.
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger value = new BigInteger("2387653");
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
+        input = ByteUtil.merge(input, new DataWord(0).getData()); // pass in 'n' also.
+
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(),
+            input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect that deployer paid the txCost and sent value. We expect that D received value.
+        // We expect E had no value change.
+        BigInteger txCost = BigInteger.valueOf(summary.getNrgUsed().longValue() * nrgPrice);
+        assertEquals(balanceDeployer.subtract(value).subtract(txCost), repo.getBalance(deployer));
+        assertEquals(balanceD.add(value), repo.getBalance(D));
+        assertEquals(balanceE, repo.getBalance(E));
     }
 
-    // test callcode to callcode
+    // ===================================== test DELEGATECALL =====================================
+
+    @Test
+    public void testDelegateCallStorage() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
+        Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
+        BigInteger n = new BigInteger("23786523");
+
+        // Deployer calls contract D which performs DELEGATECALL to call contract E.
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger value = new BigInteger("4364463");
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
+
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
+            nrg, nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+        nonce = nonce.add(BigInteger.ONE);
+
+        // When we call into contract D we should find its storage is modified so that 'n' is set.
+        input = Hex.decode("3e955225");
+        tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(), input, nrg,
+            nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        BigInteger inStore = new BigInteger(exec.execute().getResult());
+        assertEquals(n, inStore);
+        nonce = nonce.add(BigInteger.ONE);
+
+        // When we call into contract E we should find its storage is unmodified.
+        tx = new AionTransaction(nonce.toByteArray(), E, BigInteger.ZERO.toByteArray(), input, nrg,
+            nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(E, tx.getTo());
+
+        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        inStore = new BigInteger(exec.execute().getResult());
+        assertEquals(BigInteger.ZERO, inStore);
+    }
+
+    @Test
+    public void testDelegateCallActors() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
+        Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
+        BigInteger n = new BigInteger("23786523");
+
+        // Deployer calls contract D which performs DELEGATECALL to call contract E.
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger value = new BigInteger("4364463");
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
+
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
+            nrg, nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect there to be one internal transaction and it should look like deployer sent to D.
+        List<AionInternalTx> internalTxs = summary.getInternalTransactions();
+        assertEquals(1, internalTxs.size());
+        assertEquals(deployer, internalTxs.get(0).getFrom());
+        assertEquals(D, internalTxs.get(0).getTo());
+    }
+
+    @Test
+    public void testDelegateCallValueTransfer() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
+        Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
+        BigInteger n = new BigInteger("23786523");
+
+        BigInteger balanceDeployer = repo.getBalance(deployer);
+        BigInteger balanceD = repo.getBalance(D);
+        BigInteger balanceE = repo.getBalance(E);
+
+        // Deployer calls contract D which performs DELEGATECALL to call contract E.
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger value = new BigInteger("4364463");
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
+
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
+            nrg, nrgPrice);
+        tx.sign(deployerKey);
+        assertEquals(deployer, tx.getFrom());
+        assertEquals(D, tx.getTo());
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect that deployer paid the tx cost and sent value. We expect that D received value.
+        // We expect that E received nothing.
+        BigInteger txCost = BigInteger.valueOf(summary.getNrgUsed().longValue() * nrgPrice);
+        assertEquals(balanceDeployer.subtract(value).subtract(txCost), repo.getBalance(deployer));
+        assertEquals(balanceD.add(value), repo.getBalance(D));
+        assertEquals(balanceE, repo.getBalance(E));
+    }
 
     //<-------------------------------------------------------------------------------------------->
 
@@ -274,7 +490,6 @@ public class CallcodeAndDelegateTest {
     private Address deployContract(IRepositoryCache repo, String contractName,
         String contractFilename, BigInteger value) throws IOException {
 
-        //TODO: value.toByteArray or put inside DataWord first?
         byte[] deployCode = ContractUtils.getContractDeployer(contractFilename, contractName);
         long nrg = 1_000_000;
         long nrgPrice = 1;

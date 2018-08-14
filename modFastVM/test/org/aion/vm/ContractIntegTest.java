@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
+ *
+ *     This file is part of the aion network project.
+ *
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Aion foundation.
+ */
 package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -43,12 +65,12 @@ import org.slf4j.Logger;
  * Tests the opcall CREATE for deploying new smart contracts as well as CALL to call a deployed
  * contract.
  */
-public class ContractCreationTest {
+public class ContractIntegTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
     private Address deployer;
-    private BigInteger deployerBalance;
+    private BigInteger deployerBalance, deployerNonce;
 
     @Before
     public void setup() {
@@ -60,6 +82,7 @@ public class ContractCreationTest {
         deployerKey = bundle.privateKeys.get(0);
         deployer = new Address(deployerKey.getAddress());
         deployerBalance = Builder.DEFAULT_BALANCE;
+        deployerNonce = BigInteger.ZERO;
         TestPrecompiledContract.youCalledMe = false;
     }
 
@@ -69,6 +92,7 @@ public class ContractCreationTest {
         deployerKey = null;
         deployer = null;
         deployerBalance = null;
+        deployerNonce = null;
     }
 
     @Test
@@ -316,7 +340,6 @@ public class ContractCreationTest {
 
     @Test
     public void testConstructorIsCalledOnCodeDeployment() throws IOException {
-        //TODO: how to call 'constructor'
         String contractName = "MultiFeatureContract";
         byte[] deployCode = ContractUtils.getContractDeployer("MultiFeatureContract.sol", "MultiFeatureContract");
         long nrg = 1_000_000;
@@ -329,7 +352,8 @@ public class ContractCreationTest {
 
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         // Now call the contract and check that the constructor message was set.
         String getMsgFunctionHash = "ce6d41de";
@@ -364,7 +388,8 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         //             ---------- This command will perform addition. ----------
         int num = 53475374;
@@ -427,7 +452,8 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         BigInteger deployerBalance = repo.getBalance(deployer);
 
@@ -464,7 +490,8 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         BigInteger deployerBalance = repo.getBalance(deployer);
 
@@ -502,7 +529,8 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         BigInteger deployerBalance = repo.getBalance(deployer);
 
@@ -547,7 +575,8 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         BigInteger deployerBalance = repo.getBalance(deployer);
 
@@ -592,9 +621,11 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address multiFeatureContract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address multiFeatureContract = deployContract(repo, tx, contractName, null,
+            value, nrg, nrgPrice, nonce);
 
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
 
         // Deploy the MultiFeatureCaller contract.
         contractName = "MultiFeatureCaller";
@@ -603,9 +634,11 @@ public class ContractCreationTest {
         tx = new AionTransaction(nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg,
             nrgPrice);
         nonce = nonce.add(BigInteger.ONE);
-        Address callerContract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address callerContract = deployContract(repo, tx, contractName, null, value,
+            nrg, nrgPrice, nonce);
         Address recipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
 
         // Set the MultiFeatureCaller to call the deployed MultiFeatureContract.
         byte[] input = ByteUtil.merge(Hex.decode("8c30ffe6"), multiFeatureContract.toBytes());
@@ -627,6 +660,7 @@ public class ContractCreationTest {
         BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
 
         // Now use the MultiFeatureCaller to call the MultiFeatureContract to send funds from that
         // contract to the recipient address.
@@ -668,9 +702,11 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
 
         // First recurse 1 time less than the max and verify this is ok.
         int numRecurses = Constants.MAX_CALL_DEPTH - 1;
@@ -695,6 +731,7 @@ public class ContractCreationTest {
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
 
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
 
         // Now recurse the max amount of times and ensure we fail.
         numRecurses = Constants.MAX_CALL_DEPTH;
@@ -806,16 +843,19 @@ public class ContractCreationTest {
             deployCode, nrg, nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         nonce = nonce.add(BigInteger.ONE);
-        Address contract = deployContract(repo, tx, contractName, value, nrg, nrgPrice, nonce);
+        Address contract = deployContract(repo, tx, contractName, null, value, nrg,
+            nrgPrice, nonce);
 
         deployerBalance = repo.getBalance(deployer);
+        deployerNonce = repo.getNonce(deployer);
         byte[] body = getBodyCode("MultiFeatureCaller");
         assertArrayEquals(body, repo.getCode(contract));
 
         // Now call the deployed smart contract to call the precompiled contract.
         assertFalse(TestPrecompiledContract.youCalledMe);
         String msg = "I called the contract!";
-        byte[] input = ByteUtil.merge(Hex.decode("783efb98"), Address.wrap(ContractFactory.TEST_PC).toBytes());
+        byte[] input = ByteUtil
+            .merge(Hex.decode("783efb98"), Address.wrap(ContractFactory.TEST_PC).toBytes());
         input = ByteUtil.merge(input, msg.getBytes());
 
         tx = new AionTransaction(nonce.toByteArray(), contract, BigInteger.ZERO.toByteArray(),
@@ -835,7 +875,8 @@ public class ContractCreationTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
         assertTrue(TestPrecompiledContract.youCalledMe);
     }
@@ -847,13 +888,14 @@ public class ContractCreationTest {
      * contract deployer and returns the address of the contract once finished.
      */
     private Address deployContract(IRepositoryCache repo, AionTransaction tx, String contractName,
-        BigInteger value, long nrg, long nrgPrice, BigInteger nonce) throws IOException {
+        String contractFilename, BigInteger value, long nrg, long nrgPrice, BigInteger nonce)
+        throws IOException {
 
         tx.sign(deployerKey);
         assertTrue(tx.isContractCreation());
 
-        assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
-        assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
+        assertEquals(deployerBalance, repo.getBalance(deployer));
+        assertEquals(deployerNonce, repo.getNonce(deployer));
 
         BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
             Collections.singletonList(tx), false);
@@ -867,7 +909,11 @@ public class ContractCreationTest {
         assertNotEquals(nrg, tx.getNrgConsume());
 
         Address contract = tx.getContractAddress();
-        checkStateOfNewContract(repo, contractName, contract, result, value);
+        if (contractFilename == null) {
+            checkStateOfNewContract(repo, contractName, contract, result, value);
+        } else {
+            checkStateOfNewContract(repo, contractName, contractFilename, contract, result, value);
+        }
         checkStateOfDeployer(repo, summary, nrgPrice, value, nonce);
         return contract;
     }
@@ -898,6 +944,27 @@ public class ContractCreationTest {
         Address contractAddr, ExecutionResult result, BigInteger value) throws IOException {
 
         byte[] body = getBodyCode(contractName);
+        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
+            assertArrayEquals(body, result.getOutput());
+            assertArrayEquals(body, repo.getCode(contractAddr));
+        } else {
+            assertArrayEquals(new byte[0], result.getOutput());
+            assertArrayEquals(new byte[0], repo.getCode(contractAddr));
+        }
+        assertEquals(value, repo.getBalance(contractAddr));
+        assertEquals(BigInteger.ZERO, repo.getNonce(contractAddr));
+    }
+
+    /**
+     * Checks that the newly deployed contract at address contractAddr is in the expected state after
+     * the contract whose name is contractName (inside the file named contractFilename) is deployed
+     * to it.
+     */
+    private void checkStateOfNewContract(IRepositoryCache repo, String contractName,
+        String contractFilename, Address contractAddr, ExecutionResult result, BigInteger value)
+        throws IOException {
+
+        byte[] body = ContractUtils.getContractBody(contractFilename, contractName);
         if (result.getResultCode().equals(ResultCode.SUCCESS)) {
             assertArrayEquals(body, result.getOutput());
             assertArrayEquals(body, repo.getCode(contractAddr));

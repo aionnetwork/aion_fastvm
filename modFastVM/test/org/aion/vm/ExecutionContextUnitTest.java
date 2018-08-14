@@ -195,7 +195,7 @@ public class ExecutionContextUnitTest {
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
         Address newRecipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
-        context.setAddress(newRecipient);
+        context.setDestination(newRecipient);
         assertEquals(newRecipient, context.address());
     }
 
@@ -228,7 +228,7 @@ public class ExecutionContextUnitTest {
         assertEquals(context.origin(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.caller(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.sender(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
         assertEquals(context.nrgPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));

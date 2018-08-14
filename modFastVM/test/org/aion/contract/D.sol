@@ -10,11 +10,11 @@ contract D {
     _e.call(bytes4(keccak256("setN(uint128)")), _n); // E's storage is set, D is not modified
   }
 
-  function callcodeSetN(address _e, uint _n) public {
+  function callcodeSetN(address _e, uint _n) public payable {
     _e.callcode(bytes4(keccak256("setN(uint128)")), _n); // D's storage is set, E is not modified
   }
 
-  function delegatecallSetN(address _e, uint _n) public {
+  function delegatecallSetN(address _e, uint _n) public payable {
     _e.delegatecall(bytes4(keccak256("setN(uint128)")), _n); // D's storage is set, E is not modified
   }
 
@@ -27,7 +27,7 @@ contract E {
   uint public n;
   address public sender;
 
-  function setN(uint _n) public {
+  function setN(uint _n) public payable {
     n = _n;
     sender = msg.sender;
     // msg.sender is D if invoked by D's callcodeSetN. None of E's storage is updated
@@ -39,10 +39,4 @@ contract E {
   function getN() public returns (uint) {
     return n;
   }
-}
-
-contract C {
-    function foo(D _d, E _e, uint _n) public {
-        _d.delegatecallSetN(_e, _n);
-    }
 }
