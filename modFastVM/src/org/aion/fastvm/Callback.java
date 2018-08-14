@@ -150,9 +150,7 @@ public class Callback {
      * @return
      */
     public static byte[] getStorage(byte[] address, byte[] key) {
-        System.err.println("Address: " + Hex.toHexString(address) + " key: " + Hex.toHexString(key));
         IDataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
-        System.err.println("value: " + value);
 
 //        System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 

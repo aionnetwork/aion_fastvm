@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
@@ -19,24 +18,20 @@ import org.aion.crypto.ECKey;
 import org.aion.fastvm.TestVMProvider;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
-import org.aion.mcf.db.ContractDetailsCacheImpl;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.precompiled.ContractFactory.TestPrecompiledContract;
+import org.aion.mcf.vm.types.Log;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
-import org.aion.zero.db.AionContractDetailsImpl;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
-import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
-import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-public class CallcodeDelegateTest {
+public class CallcodeAndDelegateTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
@@ -45,6 +40,7 @@ public class CallcodeDelegateTest {
 
     @Before
     public void setup() {
+        Forks.TEST_SEPTEMBER_2018_FORK = true;
         StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
             .withValidatorConfiguration("simple")
             .withDefaultAccounts()
@@ -57,23 +53,128 @@ public class CallcodeDelegateTest {
 
     @After
     public void tearDown() {
+        Forks.TEST_SEPTEMBER_2018_FORK = null;
         blockchain = null;
         deployerKey = null;
         deployer = null;
         deployerBalance = null;
     }
 
+    // ====================== test repo & track flushing over multiple levels ======================
+
     @Test
-    public void testRepository() {
-        Address address = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
-        AionContractDetailsImpl a = new AionContractDetailsImpl();
-        a.setAddress(address);
-        ContractDetailsCacheImpl b = new ContractDetailsCacheImpl(a);
-        b.setAddress(address);
-        b.get(DataWord.ZERO);
-        b.origContract.get(DataWord.ZERO);
-        assertTrue(b.origContract == a);
+    public void testNoRevert() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "F", "F.sol", BigInteger.ZERO);
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.ONE;
+
+        byte[] input = ByteUtil.merge(Hex.decode("f854bb89"), new DataWord(6).getData());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+            input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // Check that the logs from our internal transactions are as we expect.
+        List<Log> logs = summary.getReceipt().getLogInfoList();
+        assertEquals(12, logs.size());
+        assertArrayEquals(new DataWord(0).getData(), logs.get(0).getData());
+        assertArrayEquals(new DataWord(6).getData(), logs.get(1).getData());
+        assertArrayEquals(new DataWord(5).getData(), logs.get(2).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(3).getData());
+        assertArrayEquals(new DataWord(3).getData(), logs.get(4).getData());
+        assertArrayEquals(new DataWord(2).getData(), logs.get(5).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(6).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(7).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(8).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(9).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(10).getData());
+        assertArrayEquals(new DataWord(1).getData(), logs.get(11).getData());
     }
+
+    @Test
+    public void testRevertAtBottomLevel() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "F", "F.sol", BigInteger.ZERO);
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.ONE;
+
+        byte[] input = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(5).getData());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+            input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // Check that the logs from our internal transactions are as we expect.
+        List<Log> logs = summary.getReceipt().getLogInfoList();
+        assertEquals(8, logs.size());
+        assertArrayEquals(new DataWord(0).getData(), logs.get(0).getData());
+        assertArrayEquals(new DataWord(5).getData(), logs.get(1).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(2).getData());
+        assertArrayEquals(new DataWord(3).getData(), logs.get(3).getData());
+        assertArrayEquals(new DataWord(2).getData(), logs.get(4).getData());
+        assertArrayEquals(new DataWord(2).getData(), logs.get(5).getData());
+        assertArrayEquals(new DataWord(2).getData(), logs.get(6).getData());
+        assertArrayEquals(new DataWord(2).getData(), logs.get(7).getData());
+    }
+
+    @Test
+    public void testRevertAtMidLevel() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address D = deployContract(repo, "F", "F.sol", BigInteger.ZERO);
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.ONE;
+
+        byte[] input = ByteUtil.merge(Hex.decode("10462fd0"), new DataWord(7).getData());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+            input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // Check that the logs from our internal transactions are as we expect.
+        List<Log> logs = summary.getReceipt().getLogInfoList();
+        assertEquals(8, logs.size());
+        assertArrayEquals(new DataWord(0).getData(), logs.get(0).getData());
+        assertArrayEquals(new DataWord(7).getData(), logs.get(1).getData());
+        assertArrayEquals(new DataWord(6).getData(), logs.get(2).getData());
+        assertArrayEquals(new DataWord(5).getData(), logs.get(3).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(4).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(5).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(6).getData());
+        assertArrayEquals(new DataWord(4).getData(), logs.get(7).getData());
+    }
+
+    // ======================================= test CALLCODE =======================================
 
     @Test
     public void testCallcodeStorage() throws IOException {
@@ -114,7 +215,7 @@ public class CallcodeDelegateTest {
         nonce = nonce.add(BigInteger.ONE);
 
         // When we call into contract D we should find its storage is modified so that 'n' is set.
-/*
+
         input = Hex.decode("3e955225");
         tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(), input, nrg,
             nrgPrice);
@@ -131,7 +232,7 @@ public class CallcodeDelegateTest {
         exec.setExecutorProvider(new TestVMProvider());
         BigInteger inStore = new BigInteger(exec.execute().getResult());
         System.err.println("Found in D's storage for n: " + inStore);
-//        assertEquals(n, inStore);
+        assertEquals(n, inStore);
         nonce = nonce.add(BigInteger.ONE);
 
         // When we call into contract E we should find its storage is unmodified.
@@ -150,8 +251,7 @@ public class CallcodeDelegateTest {
         exec.setExecutorProvider(new TestVMProvider());
         inStore = new BigInteger(exec.execute().getResult());
         System.err.println("Found in E's storage for n: " + inStore);
-//        assertEquals(BigInteger.ZERO, inStore);
-*/
+        assertEquals(BigInteger.ZERO, inStore);
     }
 
     @Test
