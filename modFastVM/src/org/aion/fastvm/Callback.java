@@ -27,6 +27,7 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
+import org.aion.base.util.Hex;
 import org.aion.base.vm.IDataWord;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.Forks;
@@ -149,9 +150,11 @@ public class Callback {
      * @return
      */
     public static byte[] getStorage(byte[] address, byte[] key) {
+        System.err.println("Address: " + Hex.toHexString(address) + " key: " + Hex.toHexString(key));
         IDataWord value = repo().getStorageValue(Address.wrap(address), new DataWord(key));
+        System.err.println("value: " + value);
 
-        // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
+//        System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + (value == null ? "":Hex.toHexString(value.getData())));
 
         return value == null ? DataWord.ZERO.getData() : value.getData();
     }
@@ -165,7 +168,7 @@ public class Callback {
      */
     public static void putStorage(byte[] address, byte[] key, byte[] value) {
 
-        // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
+//        System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " + Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         repo().addStorageRow(Address.wrap(address), new DataWord(key), new DataWord(value));
     }
@@ -218,6 +221,14 @@ public class Callback {
      */
     static byte[] performCall(byte[] message, FastVM vm, ContractFactory factory) {
         ExecutionContext ctx = parseMessage(message);
+
+
+//        System.err.println("destination: " + ctx.address());
+//        System.err.println("sender: " + ctx.sender());
+//        System.err.println("origin: " + ctx.origin());
+//        System.err.println("kind: " + ctx.kind());
+
+
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
 
         // check call stack depth
@@ -227,7 +238,7 @@ public class Callback {
 
         // check value
         BigInteger endowment = ctx.callValue().value();
-        BigInteger callersBalance = repo().getBalance(ctx.caller());
+        BigInteger callersBalance = repo().getBalance(ctx.sender());
         if (callersBalance.compareTo(endowment) < 0) {
             return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
         }
@@ -265,24 +276,31 @@ public class Callback {
      * @return
      */
     private static IExecutionResult doCall(ExecutionContext ctx, FastVM jit, ContractFactory factory) {
+        Address codeAddress = ctx.address();
+        if (ctx.kind() == ExecutionContext.CALLCODE || ctx.kind() == ExecutionContext.DELEGATECALL) {
+            ctx.address = context().address();
+        }
+
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track = repo().startTracking();
         IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // add internal transaction
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "call");
+        AionInternalTx internalTx = newInternalTx(ctx.sender(), ctx.address(), track.getNonce(ctx.sender()), ctx.callValue(), ctx.callData(), "call");
         context().helper().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getHash());       // why? seems reference to ctx is lost and this unused?
+        ctx.setTransactionHash(internalTx.getHash());
 
         // transfer balance
-        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
-        track.addBalance(ctx.address(), ctx.callValue().value());
+        if (ctx.kind() != ExecutionContext.DELEGATECALL && ctx.kind() != ExecutionContext.CALLCODE) {
+            track.addBalance(ctx.sender(), ctx.callValue().value().negate());
+            track.addBalance(ctx.address(), ctx.callValue().value());
+        }
 
         IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.callData(), ctx.nrgLimit());
         } else {
             // get the code
-            byte[] code = track.hasAccountState(ctx.address()) ? track.getCode(ctx.address())
+            byte[] code = track.hasAccountState(codeAddress) ? track.getCode(codeAddress)
                 : ByteUtil.EMPTY_BYTE_ARRAY;
 
             // execute transaction
@@ -315,13 +333,13 @@ public class Callback {
         ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // compute new address
-        byte[] nonce = track.getNonce(ctx.caller()).toByteArray();
-        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.caller().toBytes(), nonce));
-        ctx.setAddress(newAddress);
+        byte[] nonce = track.getNonce(ctx.sender()).toByteArray();
+        Address newAddress = Address.wrap(HashUtil.calcNewAddr(ctx.sender().toBytes(), nonce));
+        ctx.setDestination(newAddress);
 
         // add internal transaction
         // TODO: should the `to` address be null?
-        AionInternalTx internalTx = newInternalTx(ctx.caller(), ctx.address(), track.getNonce(ctx.caller()), ctx.callValue(), ctx.callData(), "create");
+        AionInternalTx internalTx = newInternalTx(ctx.sender(), ctx.address(), track.getNonce(ctx.sender()), ctx.callValue(), ctx.callData(), "create");
         context().helper().addInternalTransaction(internalTx);
         ctx.setTransactionHash(internalTx.getHash());
 
@@ -333,14 +351,14 @@ public class Callback {
         track.addBalance(newAddress, oldBalance);
 
         // transfer balance
-        track.addBalance(ctx.caller(), ctx.callValue().value().negate());
+        track.addBalance(ctx.sender(), ctx.callValue().value().negate());
         track.addBalance(newAddress, ctx.callValue().value());
 
         // update nonce
-        track.incrementNonce(ctx.caller());
+        track.incrementNonce(ctx.sender());
 
         // add internal transaction
-        internalTx = newInternalTx(ctx.caller(), null, track.getNonce(ctx.caller()), ctx.callValue(),
+        internalTx = newInternalTx(ctx.sender(), null, track.getNonce(ctx.sender()), ctx.callValue(),
                 ctx.callData(), "create");
         ctx.helper().addInternalTransaction(internalTx);
 
