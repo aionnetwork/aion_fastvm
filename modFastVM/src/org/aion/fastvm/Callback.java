@@ -23,28 +23,6 @@
 
 package org.aion.fastvm;
 
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
-import org.aion.base.type.IExecutionResult;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
-import org.aion.base.vm.IDataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
-import org.aion.vm.Forks;
-import org.aion.vm.IPrecompiledContract;
-import org.aion.precompiled.ContractFactory;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
-import org.aion.mcf.core.AccountState;
-import org.aion.crypto.HashUtil;
-import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.Constants;
-import org.aion.zero.types.AionInternalTx;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -52,6 +30,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.Address;
+import org.aion.base.type.IExecutionResult;
+import org.aion.base.util.ByteUtil;
+import org.aion.base.vm.IDataWord;
+import org.aion.crypto.HashUtil;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.Constants;
+import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.Log;
+import org.aion.precompiled.ContractFactory;
+import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.vm.ExecutionContext;
+import org.aion.vm.ExecutionResult;
+import org.aion.vm.IPrecompiledContract;
+import org.aion.zero.types.AionInternalTx;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * This class handles all callbacks from the JIT side. It is not thread-safe and
@@ -242,9 +239,7 @@ public class Callback {
         }
 
         // merge the effects
-        context().helper().merge(ctx.helper(), Forks.isSeptemberForkEnabled(context().blockNumber())
-            ? result.getCode() == ResultCode.SUCCESS.toInt()
-            : true);
+        context().helper().merge(ctx.helper(), result.getCode() == ResultCode.SUCCESS.toInt());
 
         return result.toBytes();
     }
