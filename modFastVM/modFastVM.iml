@@ -18,10 +18,10 @@
     <orderEntry type="library" name="slf4j-api" level="project" />
     <orderEntry type="library" name="libnsc" level="project" />
     <orderEntry type="library" scope="TEST" name="junit" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="modAionImpl" scope="TEST" />
     <orderEntry type="module" module-name="modPrecompiled" />
-    <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="module" module-name="modVM" />
+    <orderEntry type="library" name="mockito" level="project" />
+    <orderEntry type="library" name="truth" level="project" />
   </component>
 </module>

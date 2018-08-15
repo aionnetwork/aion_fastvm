@@ -24,11 +24,13 @@ package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
@@ -49,12 +51,13 @@ import org.aion.zero.impl.StandaloneBlockchain.Builder;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-public class CallcodeAndDelegateTest {
+public class OpcodeIntegTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
@@ -482,6 +485,139 @@ public class CallcodeAndDelegateTest {
         assertEquals(balanceE, repo.getBalance(E));
     }
 
+    // ============================= test CALL, CALLCODE, DELEGATECALL =============================
+
+    @Test
+    public void testOpcodesActors() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        Address callerContract = deployContract(repo, "Caller", "Opcodes.sol",
+            BigInteger.ZERO);
+        Address calleeContract = deployContract(repo, "Callee", "Opcodes.sol",
+            BigInteger.ZERO);
+
+        System.err.println("Deployer: " + deployer);
+        System.err.println("Caller: " + callerContract);
+        System.err.println("Callee: " + calleeContract);
+
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.TWO;
+        byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), calleeContract.toBytes());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), callerContract,
+            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We examine the logs to determine the expected state. We expect to see
+        // owner-caller-origin-data as follows for each opcode:
+        //
+        // CALL             -->     CALLEE-CALLER-DEPLOYER-ZERO
+        // CALLCODE         -->     CALLER-CALLER-DEPLOYER-ZERO
+        // DELEGATECALL     -->     CALLER-DEPLOYER-DEPLOYER-ZERO
+        List<Log> logs = summary.getReceipt().getLogInfoList();
+        assertEquals(3, logs.size());
+        verifyLogData(logs.get(0).getData(), calleeContract, callerContract, deployer);
+        verifyLogData(logs.get(1).getData(), callerContract, callerContract, deployer);
+        verifyLogData(logs.get(2).getData(), callerContract, deployer, deployer);
+    }
+
+    // ======================================= test SUICIDE ========================================
+
+    @Test
+    public void testSuicideRecipientExists() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        BigInteger balance = new BigInteger("32522224");
+        Address recipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+        repo.createAccount(recipient);
+
+        Address contract = deployContract(repo, "Suicide", "Suicide.sol",
+            BigInteger.ZERO);
+        repo.addBalance(contract, balance);
+
+        BigInteger balanceDeployer = repo.getBalance(deployer);
+        BigInteger balanceRecipient = repo.getBalance(recipient);
+        assertEquals(balance, repo.getBalance(contract));
+
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.ONE;
+        byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), recipient.toBytes());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), contract,
+            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect that deployer paid the tx cost. We expect that all of the balance in the
+        // contract has been transferred to recipient. We expect that the contract has been deleted.
+        BigInteger txCost = BigInteger.valueOf(summary.getNrgUsed().longValue() * nrgPrice);
+        assertEquals(balanceDeployer.subtract(txCost), repo.getBalance(deployer));
+        assertEquals(balanceRecipient.add(balance), repo.getBalance(recipient));
+        assertEquals(BigInteger.ZERO, repo.getBalance(contract));
+        assertFalse(repo.hasAccountState(contract));
+        assertEquals(1, summary.getDeletedAccounts().size());
+        assertEquals(contract, summary.getDeletedAccounts().get(0));
+    }
+
+    @Test
+    public void testSuicideRecipientNewlyCreated() throws IOException {
+        IRepositoryCache repo = blockchain.getRepository().startTracking();
+        BigInteger balance = new BigInteger("32522224");
+        Address recipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+
+        Address contract = deployContract(repo, "Suicide", "Suicide.sol",
+            BigInteger.ZERO);
+        repo.addBalance(contract, balance);
+
+        BigInteger balanceDeployer = repo.getBalance(deployer);
+        BigInteger balanceRecipient = BigInteger.ZERO;
+        assertEquals(balance, repo.getBalance(contract));
+
+        long nrg = 1_000_000;
+        long nrgPrice = 1;
+        BigInteger nonce = BigInteger.ONE;
+        byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), recipient.toBytes());
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), contract,
+            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        tx.sign(deployerKey);
+
+        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
+            Collections.singletonList(tx), false);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec.setExecutorProvider(new TestVMProvider());
+        AionTxExecSummary summary = exec.execute();
+        ExecutionResult result = (ExecutionResult) exec.getResult();
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
+
+        // We expect that deployer paid the tx cost. We expect that a new account was created and
+        // all of the balance in the contract has been transferred to it. We expect that the
+        // contract has been deleted.
+        BigInteger txCost = BigInteger.valueOf(summary.getNrgUsed().longValue() * nrgPrice);
+        assertEquals(balanceDeployer.subtract(txCost), repo.getBalance(deployer));
+        assertTrue(repo.hasAccountState(recipient));
+        assertEquals(balanceRecipient.add(balance), repo.getBalance(recipient));
+        assertEquals(BigInteger.ZERO, repo.getBalance(contract));
+        assertFalse(repo.hasAccountState(contract));
+        assertEquals(1, summary.getDeletedAccounts().size());
+        assertEquals(contract, summary.getDeletedAccounts().get(0));
+    }
+
     //<-------------------------------------------------------------------------------------------->
 
     /**
@@ -560,6 +696,21 @@ public class CallcodeAndDelegateTest {
         assertEquals(priorNonce.add(BigInteger.ONE), repo.getNonce(deployer));
         BigInteger txCost = BigInteger.valueOf(nrgUsed * nrgPrice);
         assertEquals(priorBalance.subtract(txCost).subtract(value), repo.getBalance(deployer));
+    }
+
+    /**
+     * Verifies the log data for a call to f() in the Caller contract in the file Opcodes.sol is a
+     * byte array consisting of the bytes of owner then caller then origin then finally 16 zero
+     * bytes.
+     */
+    private void verifyLogData(byte[] data, Address owner, Address caller, Address origin) {
+        assertArrayEquals(Arrays.copyOfRange(data, 0, Address.ADDRESS_LEN), owner.toBytes());
+        assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN, Address.ADDRESS_LEN * 2),
+            caller.toBytes());
+        assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN * 2, Address.ADDRESS_LEN * 3),
+            origin.toBytes());
+        assertArrayEquals(Arrays.copyOfRange(data, data.length - DataWord.BYTES, data.length),
+            DataWord.ZERO.getData());
     }
 
 }
