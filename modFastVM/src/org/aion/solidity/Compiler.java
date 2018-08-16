@@ -70,7 +70,6 @@ public class Compiler {
         processBuilder.environment().put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
-        System.out.println(process.info());
 
         try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
             stream.write(source);
