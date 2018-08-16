@@ -45,6 +45,7 @@ import org.aion.precompiled.ContractFactory;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
+import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
@@ -260,7 +261,7 @@ public class Callback {
      * @param ctx
      * @return
      */
-    private static IExecutionResult doCall(ExecutionContext ctx, FastVM jit, ContractFactory factory) {
+    private static IExecutionResult doCall(ExecutionContext ctx, FastVM jit, IContractFactory factory) {
         Address codeAddress = ctx.address();
         if (ctx.kind() == ExecutionContext.CALLCODE || ctx.kind() == ExecutionContext.DELEGATECALL) {
             ctx.address = context().address();
@@ -280,7 +281,7 @@ public class Callback {
             track.addBalance(ctx.address(), ctx.callValue().value());
         }
 
-        IPrecompiledContract pc = factory.fetchPrecompiledContract(ctx, track);
+        IPrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.callData(), ctx.nrgLimit());
         } else {

@@ -1734,12 +1734,12 @@ public class CallbackUnitTest {
         when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
         ContractFactory factory = mock(ContractFactory.class);
         if (result == null) {
-            when(factory.fetchPrecompiledContract(Mockito.any(ExecutionContext.class),
+            when(factory.getPrecompiledContract(Mockito.any(ExecutionContext.class),
                 Mockito.any(IRepositoryCache.class))).
                 thenReturn(null);
             return factory;
         } else {
-            when(factory.fetchPrecompiledContract(Mockito.any(ExecutionContext.class),
+            when(factory.getPrecompiledContract(Mockito.any(ExecutionContext.class),
                 Mockito.any(IRepositoryCache.class))).
                 thenReturn(contract);
 
