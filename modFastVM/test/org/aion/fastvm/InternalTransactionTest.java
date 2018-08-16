@@ -153,30 +153,6 @@ contract B {
         //======================
         // CALL A (calls B, 20k)
         //======================
-//        nonce = nonce.add(BigInteger.ONE);
-//        AionTransaction tx5 = new AionTransaction(
-//                nonce.toByteArray(),
-//                addressA,
-//                new byte[0],
-//                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
-//                1_000_000L,
-//                1L
-//        );
-//        tx5.sign(deployerAccount);
-//
-//        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx5), false);
-//        result = bc.tryToConnect(context.block);
-//        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
-//
-//        info = bc.getTransactionInfo(tx5.getHash());
-//        System.out.println(info.getReceipt());
-//        assertEquals(2, info.getReceipt().getLogInfoList().size());
-//        Thread.sleep(1000);
-
-        //======================
-        // CALL A (calls B, 20k) with fork enabled
-        //======================
-        Forks.TEST_SEPTEMBER_2018_FORK = true;
 
         nonce = nonce.add(BigInteger.ONE);
         AionTransaction tx6 = new AionTransaction(
@@ -212,10 +188,6 @@ contract A {
      */
     @Test
     public void testRecursiveCall() throws InterruptedException {
-        // enable forks
-        Forks.TEST_SEPTEMBER_2018_FORK = true;
-
-
         String contractA = "0x605060405234156100105760006000fd5b610015565b60e9806100236000396000f30060506040526000356c01000000000000000000000000900463ffffffff168063ec77996414603157602b565b60006000fd5b3415603c5760006000fd5b605060048080359060100190919050506052565b005b600081131560b9573063ec779964600184036040518263ffffffff166c01000000000000000000000000028152600401808281526010019150506000604051808303816000888881813b151560a75760006000fd5b5af1151560b45760006000fd5b505050505b5b505600a165627a7a7230582033f76d593b80b3468bfb0f873882bc00903a790a9b996cb8ca3bac51295994cd0029";
 
         StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
@@ -329,6 +301,5 @@ contract A {
 
     @After
     public void teardown() {
-        Forks.clearTestState();
     }
 }

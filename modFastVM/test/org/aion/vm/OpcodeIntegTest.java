@@ -66,7 +66,6 @@ public class OpcodeIntegTest {
 
     @Before
     public void setup() {
-        Forks.TEST_SEPTEMBER_2018_FORK = true;
         StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
             .withValidatorConfiguration("simple")
             .withDefaultAccounts()
@@ -79,7 +78,6 @@ public class OpcodeIntegTest {
 
     @After
     public void tearDown() {
-        Forks.TEST_SEPTEMBER_2018_FORK = null;
         blockchain = null;
         deployerKey = null;
         deployer = null;

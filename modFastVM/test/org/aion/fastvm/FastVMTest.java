@@ -690,6 +690,5 @@ public class FastVMTest {
 
     @After
     public void teardown() {
-        Forks.clearTestState();
     }
 }
