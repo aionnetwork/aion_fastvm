@@ -153,25 +153,25 @@ contract B {
         //======================
         // CALL A (calls B, 20k)
         //======================
-        nonce = nonce.add(BigInteger.ONE);
-        AionTransaction tx5 = new AionTransaction(
-                nonce.toByteArray(),
-                addressA,
-                new byte[0],
-                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
-                1_000_000L,
-                1L
-        );
-        tx5.sign(deployerAccount);
-
-        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx5), false);
-        result = bc.tryToConnect(context.block);
-        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
-
-        info = bc.getTransactionInfo(tx5.getHash());
-        System.out.println(info.getReceipt());
-        assertEquals(2, info.getReceipt().getLogInfoList().size());
-        Thread.sleep(1000);
+//        nonce = nonce.add(BigInteger.ONE);
+//        AionTransaction tx5 = new AionTransaction(
+//                nonce.toByteArray(),
+//                addressA,
+//                new byte[0],
+//                ByteUtil.merge(ByteUtil.hexStringToBytes("0x2d7df21a"), addressB.toBytes(), new DataWord(20_000).getData()),
+//                1_000_000L,
+//                1L
+//        );
+//        tx5.sign(deployerAccount);
+//
+//        context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx5), false);
+//        result = bc.tryToConnect(context.block);
+//        assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
+//
+//        info = bc.getTransactionInfo(tx5.getHash());
+//        System.out.println(info.getReceipt());
+//        assertEquals(2, info.getReceipt().getLogInfoList().size());
+//        Thread.sleep(1000);
 
         //======================
         // CALL A (calls B, 20k) with fork enabled
