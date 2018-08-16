@@ -548,7 +548,7 @@ public class CallbackUnitTest {
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
-        byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+        byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
             ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
 
         ExecutionContext expectedContext = makeExpectedContext(context, ctx);
@@ -573,7 +573,7 @@ public class CallbackUnitTest {
             ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
                 new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),i % 2 == 0,
                 false, ExecutionContext.DELEGATECALL, nrgLimit);
-            byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+            byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
                 ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
             ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
             compareContexts(expectedContext, Callback.parseMessage(message));
@@ -594,7 +594,7 @@ public class CallbackUnitTest {
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
             new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),true,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
-        byte[] message = generateContextMessage(ctx.address(), ctx.caller(), ctx.nrgLimit(),
+        byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
             ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
 
         ExecutionContext expectedContext = makeExpectedContext(context, ctx);
@@ -612,7 +612,7 @@ public class CallbackUnitTest {
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        byte[] message = generateContextMessage(context.address(), context.caller(),
+        byte[] message = generateContextMessage(context.address(), context.sender(),
             context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             Constants.MAX_CALL_DEPTH, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.call(message));
@@ -633,7 +633,7 @@ public class CallbackUnitTest {
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        byte[] message = generateContextMessage(context.address(), context.caller(),
+        byte[] message = generateContextMessage(context.address(), context.sender(),
             context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             0, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.call(message));
@@ -810,10 +810,12 @@ public class CallbackUnitTest {
     public void testPerformCallDelegateCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.DELEGATECALL);
     }
+
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.CALLCODE);
     }
+
     @Test
     public void testPerformCallCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.CALL);
@@ -1097,7 +1099,7 @@ public class CallbackUnitTest {
             false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance,
-            false, false);
+            false, false, kind);
     }
 
     private void performCallIsPrecompiledNotSuccessSeptForkDisabled(int kind) {
@@ -1119,7 +1121,7 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
-                    false, false);
+                    false, false, kind);
             }
         }
     }
@@ -1140,7 +1142,7 @@ public class CallbackUnitTest {
             false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance,
-            false, false);
+            false, false, kind);
     }
 
     private void performCallIsPrecompiledNotSuccessSeptForkEnabled(int kind) {
@@ -1162,7 +1164,7 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
-                    false, false);
+                    false, false, kind);
             }
         }
     }
@@ -1187,7 +1189,7 @@ public class CallbackUnitTest {
                 false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance,
-                true, false);
+                true, false, kind);
         }
     }
 
@@ -1211,7 +1213,7 @@ public class CallbackUnitTest {
                 false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance,
-                true, false);
+                true, false, kind);
         }
     }
 
@@ -1235,7 +1237,7 @@ public class CallbackUnitTest {
                 false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, false,
-                false);
+                false, kind);
         }
     }
 
@@ -1259,7 +1261,7 @@ public class CallbackUnitTest {
                 false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(context, callerBalance, recipientBalance, false,
-                false);
+                false, kind);
         }
     }
 
@@ -1280,7 +1282,7 @@ public class CallbackUnitTest {
             false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, false,
-            false);
+            false, kind);
     }
 
     private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(int kind) {
@@ -1303,7 +1305,7 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
-                    false, false);
+                    false, false, kind);
             }
         }
     }
@@ -1325,7 +1327,7 @@ public class CallbackUnitTest {
             false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(context, callerBalance, recipientBalance, false,
-            false);
+            false, kind);
     }
 
     private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(int kind) {
@@ -1348,7 +1350,7 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().helper());
                 checkContextHelper(true);
                 checkPerformCallResults(context, callerBalance, recipientBalance,
-                    false, false);
+                    false, false, kind);
             }
         }
     }
@@ -1376,7 +1378,7 @@ public class CallbackUnitTest {
     private ExecutionContext mockContext() {
         ExecutionContext context = mock(ExecutionContext.class);
         when(context.blockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.caller()).thenReturn(getNewAddress());
+        when(context.sender()).thenReturn(getNewAddress());
         when(context.callData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
         when(context.callValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
         when(context.nrgLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
@@ -1442,7 +1444,7 @@ public class CallbackUnitTest {
     private void compareContexts(ExecutionContext context, ExecutionContext other) {
         assertEquals(context.address(), other.address());
         assertEquals(context.origin(), other.origin());
-        assertEquals(context.caller(), other.caller());
+        assertEquals(context.sender(), other.sender());
         assertEquals(context.blockCoinbase(), other.blockCoinbase());
         assertEquals(context.nrgPrice(), other.nrgPrice());
         assertEquals(context.callValue(), other.callValue());
@@ -1467,7 +1469,7 @@ public class CallbackUnitTest {
 
     private void compareMockContexts(ExecutionContext context, ExecutionContext other) {
         assertEquals(context.blockNumber(), other.blockNumber());
-        assertEquals(context.caller(), other.caller());
+        assertEquals(context.sender(), other.sender());
         assertArrayEquals(context.callData(), other.callData());
         assertEquals(context.callValue(), other.callValue());
         assertEquals(context.nrgLimit(), other.nrgLimit());
@@ -1567,7 +1569,7 @@ public class CallbackUnitTest {
      */
     private ExecutionContext makeExpectedContext(ExecutionContext previous, ExecutionContext context) {
         return new ExecutionContext(previous.transactionHash(), context.address(),
-            previous.origin(), context.caller(), previous.nrgPrice(), context.nrgLimit(),
+            previous.origin(), context.sender(), previous.nrgPrice(), context.nrgLimit(),
             context.callValue(), context.callData(), context.depth(), context.kind(),
             context.flags(), previous.blockCoinbase(), previous.blockNumber(),
             previous.blockTimestamp(), previous.blockNrgLimit(), previous.blockDifficulty());
@@ -1765,15 +1767,16 @@ public class CallbackUnitTest {
      * @param recipientBalance The balance of the recipient's account.
      * @param wasNoRecipient There was no recipient at time of performCall.
      * @param isCreateContract If the op code is CREATE
+     * @param kind Transaction kind.
      */
     private void checkPerformCallResults(ExecutionContext context, BigInteger callerBalance,
-        BigInteger recipientBalance, boolean wasNoRecipient, boolean isCreateContract) {
+        BigInteger recipientBalance, boolean wasNoRecipient, boolean isCreateContract, int kind) {
 
         ExecutionContext ctx = Callback.context();
         checkInternalTransaction(context, ctx.helper().getInternalTransactions().get(0),
             isCreateContract);
-        checkPerformCallBalances(context.caller(), callerBalance, context.address(), recipientBalance,
-            context.callValue().value(), wasNoRecipient);
+        checkPerformCallBalances(context.sender(), callerBalance, context.address(), recipientBalance,
+            context.callValue().value(), wasNoRecipient, kind);
     }
 
     /**
@@ -1795,7 +1798,7 @@ public class CallbackUnitTest {
         ExecutionResult expectedResult, boolean vmGotBadCode, int kind, boolean contractExisted,
         boolean postExecuteWasSuccess, byte[] code) {
 
-        byte[] message = generateContextMessage(context.address(), context.caller(),
+        byte[] message = generateContextMessage(context.address(), context.sender(),
             context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             kind, 0);
         ExecutionResult result = ExecutionResult.parse(Callback.performCall(message, mockVM, mockFac));
@@ -1869,21 +1872,35 @@ public class CallbackUnitTest {
 
     /**
      * Asserts that the account balances are in the expected state after a call to performCall.
+     * Note if we are doing CALLCODE or DELEGATECALL then no value gets transferred in Callback.
      */
     private void checkPerformCallBalances(Address caller, BigInteger callerPrevBalance, Address recipient,
-        BigInteger recipientPrevBalance, BigInteger callValue, boolean wasNoRecipient) {
+        BigInteger recipientPrevBalance, BigInteger callValue, boolean wasNoRecipient, int kind) {
 
         if (caller.equals(recipient)) {
             assertEquals(callerPrevBalance, Callback.repo().getBalance(caller));
         } else {
-            assertEquals(callerPrevBalance.subtract(callValue), Callback.repo().getBalance(caller));
-            // if there was no recipient then DummyRepository created that account when Callback
-            // transferred balance to it, so its balance should be callValue.
-            if (wasNoRecipient) {
-                assertEquals(callValue, Callback.repo().getBalance(recipient));
+            if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+                assertEquals(callerPrevBalance, Callback.repo().getBalance(caller));
             } else {
-                assertEquals(recipientPrevBalance.add(callValue),
-                    Callback.repo().getBalance(recipient));
+                assertEquals(callerPrevBalance.subtract(callValue),
+                    Callback.repo().getBalance(caller));
+            }
+
+            if (wasNoRecipient) {
+                // if there was no recipient then DummyRepository created that account when Callback
+                // transferred balance to it, so its balance should be callValue.
+                if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+                    assertEquals(BigInteger.ZERO, Callback.repo().getBalance(recipient));
+                } else {
+                    assertEquals(callValue, Callback.repo().getBalance(recipient));
+                }
+            } else {
+                if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+                    assertEquals(recipientPrevBalance, Callback.repo().getBalance(recipient));
+                } else {
+                    assertEquals(recipientPrevBalance.add(callValue), Callback.repo().getBalance(recipient));
+                }
             }
         }
     }
@@ -1895,11 +1912,11 @@ public class CallbackUnitTest {
     private void checkInternalTransaction(ExecutionContext context, AionInternalTx tx,
         boolean isCreateContract) {
 
-        assertEquals(context.caller(), tx.getFrom());
+        assertEquals(context.sender(), tx.getFrom());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
-            Address contract = new Address(HashUtil.calcNewAddr(context.caller().toBytes(),
-                Callback.repo().getNonce(context.caller()).subtract(BigInteger.ONE)
+            Address contract = new Address(HashUtil.calcNewAddr(context.sender().toBytes(),
+                Callback.repo().getNonce(context.sender()).subtract(BigInteger.ONE)
                     .toByteArray()));
             assertEquals(contract, tx.getTo());
         } else {
@@ -1907,10 +1924,10 @@ public class CallbackUnitTest {
         }
 
         if (isCreateContract) {
-            assertEquals(Callback.repo().getNonce(context.caller()).subtract(BigInteger.ONE),
+            assertEquals(Callback.repo().getNonce(context.sender()).subtract(BigInteger.ONE),
                 tx.getNonceBI());
         } else {
-            assertEquals(Callback.repo().getNonce(context.caller()), tx.getNonceBI());
+            assertEquals(Callback.repo().getNonce(context.sender()), tx.getNonceBI());
         }
 
         assertEquals(context.callValue(), new DataWord(tx.getValue()));
@@ -1978,8 +1995,8 @@ public class CallbackUnitTest {
      * Checks the second of the 2 internal transactions created during the CREATE opcode.
      */
     private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
-        Address caller = context.caller();
-        assertEquals(context.caller(), tx.getFrom());
+        Address caller = context.sender();
+        assertEquals(context.sender(), tx.getFrom());
         assertEquals(Callback.repo().getNonce(caller), tx.getNonceBI());
         assertEquals(context.callValue(), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
@@ -1999,7 +2016,7 @@ public class CallbackUnitTest {
         boolean contractExisted, boolean postExecuteWasSuccess, boolean nrgLessThanDeposit) {
 
         BigInteger value = context.callValue().value();
-        Address caller = Callback.context().caller();
+        Address caller = Callback.context().sender();
         Address contract;
         contract = new Address(HashUtil.calcNewAddr(caller.toBytes(),
             Callback.repo().getNonce(caller).subtract(BigInteger.ONE).toByteArray()));
