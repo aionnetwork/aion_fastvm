@@ -4,15 +4,16 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutorProvider;
+import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.VirtualMachine;
 
 public class TestVMProvider implements ExecutorProvider {
-    private ContractFactory factory = new ContractFactory();
+    private IContractFactory factory = new ContractFactory();
 
     @Override
     public IPrecompiledContract getPrecompiledContract(ExecutionContext context, IRepositoryCache track) {
-        return factory.fetchPrecompiledContract(context, track);
+        return factory.getPrecompiledContract(context, track);
     }
 
     @Override
@@ -20,7 +21,7 @@ public class TestVMProvider implements ExecutorProvider {
         return new FastVM();
     }
 
-    public void setFactory(ContractFactory factory) {
+    public void setFactory(IContractFactory factory) {
         this.factory = factory;
     }
 }
