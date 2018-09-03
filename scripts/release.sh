@@ -18,6 +18,8 @@ cd solidity && make  && cd ../dist
 rm -r ${fastvm_dir}
 mkdir ${fastvm_dir} && cd ${fastvm_dir}
 cp /usr/lib/x86_64-linux-gnu/libLLVM-4.0.so.1 .
+cp /usr/lib/x86_64-linux-gnu/libffi.so.6 .
+cp /usr/lib/x86_64-linux-gnu/libedit.so.2 .
 cd ..
 cp libevmjit.so ${fastvm_dir}
 cp libfastvm.so ${fastvm_dir}
@@ -25,6 +27,8 @@ cd ${fastvm_dir}
 
 # construct the file list
 tee file.list << END
+libffi.so.6
+libedit.so.2
 libLLVM-4.0.so.1
 libevmjit.so
 libfastvm.so
