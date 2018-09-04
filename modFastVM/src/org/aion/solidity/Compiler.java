@@ -33,6 +33,11 @@ public class Compiler {
 
     private static Compiler instance;
 
+    private static String helloAion = "pragma solidity ^0.4.15;\n"
+        + "contract HelloAion {\n"
+        + "\n"
+        + "}";
+
     private Compiler() {
         solc = Paths.get("native", "linux", "solidity", "solc").toFile();
         solc.setExecutable(true);
@@ -87,6 +92,10 @@ public class Compiler {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Result compileHelloAion() throws IOException {
+        return compile(helloAion.getBytes(), Compiler.Options.ABI, Compiler.Options.BIN);
     }
 
     public String getVersion() throws IOException {

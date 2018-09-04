@@ -53,10 +53,10 @@ cd  ${fastvm_dir}
 
 # construct the file list
 tee file.list << END
+ibboost_system.so.1.58.0
 libboost_filesystem.so.1.58.0
 libboost_program_options.so.1.58.0
 libboost_regex.so.1.58.0
-libboost_system.so.1.58.0
 libjsoncpp.so.1
 END
 
