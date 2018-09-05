@@ -826,10 +826,12 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		case FunctionType::Kind::EDVerify:
 		{
 			_functionCall.expression().accept(*this);
-			static const map<FunctionType::Kind, u128> contractAddresses{{FunctionType::Kind::ECRecover, 1},
-															   {FunctionType::Kind::SHA256, 2},
-															   {FunctionType::Kind::RIPEMD160, 3},
-																 {FunctionType::Kind::EDVerify, 16}};
+			static const map<FunctionType::Kind, u128> contractAddresses{
+				{FunctionType::Kind::ECRecover, 1},
+				{FunctionType::Kind::SHA256, 2},
+				{FunctionType::Kind::RIPEMD160, 3},
+				{FunctionType::Kind::EDVerify, 16}};
+
 			m_context << contractAddresses.find(function.kind())->second;
 			m_context << u128(0); // as address should take two stack items
 			for (unsigned i = function.sizeOnStack(); i > 0; --i)
