@@ -1,4 +1,12 @@
 ext.moduleName = 'aion.fastvm'
+
+/* 
+ * This Gradle project is meant to be called as a subproject by
+ * the aion Gradle project and not intended to be built on its own.
+ *
+ * See: https://github.com/aionnetwork/aion
+ */
+
 test.dependsOn copyNativeLibsForModuleTests
 
 sourceSets { 
