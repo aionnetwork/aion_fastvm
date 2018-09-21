@@ -35,6 +35,7 @@ dependencies {
     testCompile project(':modRlp')
     testCompile project(':modLogger')
     testCompile project(':modEvtMgr')
+    testCompile project(':modCrypto')
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.42'
     testCompile 'org.hamcrest:hamcrest-core:1.3'
