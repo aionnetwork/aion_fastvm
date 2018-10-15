@@ -20,17 +20,16 @@
  ******************************************************************************/
 package org.aion.vm.types;
 
-import org.aion.base.type.Address;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.aion.base.type.Address;
+import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.Log;
+import org.junit.Test;
 
 public class LogTest {
 

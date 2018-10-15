@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ExecutionResultUnitTest {
+
     private ResultCode code;
     private long nrgLeft;
     private byte[] output;
@@ -140,7 +141,7 @@ public class ExecutionResultUnitTest {
 
     @Test
     public void testEncodingLengthOneOutput() {
-        output = new byte[]{ (byte) 0x4A };
+        output = new byte[]{(byte) 0x4A};
         checkEncoding(new ExecutionResult(code, nrgLeft, output));
     }
 

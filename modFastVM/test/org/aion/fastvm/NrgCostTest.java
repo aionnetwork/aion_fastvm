@@ -79,8 +79,8 @@ import org.aion.base.util.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
@@ -95,6 +95,7 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NrgCostTest {
+
     private byte[] txHash = RandomUtils.nextBytes(32);
     private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
@@ -120,7 +121,8 @@ public class NrgCostTest {
 
     @BeforeClass
     public static void note() {
-        System.out.println("\nNOTE: compilation time was not counted; extra cpu time was introduced for some opcodes.");
+        System.out.println(
+            "\nNOTE: compilation time was not counted; extra cpu time was introduced for some opcodes.");
 
     }
 
@@ -133,9 +135,10 @@ public class NrgCostTest {
 
         // JVM warm up
         byte[] code = {0x00};
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+            nrgLimit, callValue,
+            callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+            blockDifficulty);
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
@@ -147,7 +150,8 @@ public class NrgCostTest {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         for (int i = 0; i < n; i++) {
             for (Object o : codes) {
-                buf.write(o instanceof Instruction ? ((Instruction) o).code() : ((Integer) o).byteValue());
+                buf.write(o instanceof Instruction ? ((Instruction) o).code()
+                    : ((Integer) o).byteValue());
             }
         }
 
@@ -174,19 +178,25 @@ public class NrgCostTest {
          */
         int z = Tier.BASE.cost(); // energy cost
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the Base tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
-        Instruction[] instructions = {ADDRESS, ORIGIN, CALLER, CALLVALUE, CALLDATASIZE, CODESIZE, GASPRICE, COINBASE,
-                TIMESTAMP, NUMBER, DIFFICULTY, GASLIMIT, /* POP, */ PC, MSIZE, GAS};
+        Instruction[] instructions = {ADDRESS, ORIGIN, CALLER, CALLVALUE, CALLDATASIZE, CODESIZE,
+            GASPRICE, COINBASE,
+            TIMESTAMP, NUMBER, DIFFICULTY, GASLIMIT, /* POP, */ PC, MSIZE, GAS};
 
         for (Instruction inst : instructions) {
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -201,7 +211,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
 
@@ -214,20 +225,27 @@ public class NrgCostTest {
         int y = 1000;
         int z = Tier.VERY_LOW.cost();
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the VeryLow tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
-        Instruction[] instructions = {ADD, SUB, NOT, LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR, BYTE, CALLDATALOAD,
-                MLOAD, MSTORE, MSTORE8, /* PUSH1, */ DUP1, SWAP1};
+        Instruction[] instructions = {ADD, SUB, NOT, LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR,
+            BYTE, CALLDATALOAD,
+            MLOAD, MSTORE, MSTORE8, /* PUSH1, */ DUP1, SWAP1};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            callData = Hex
+                .decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -242,7 +260,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -253,19 +272,25 @@ public class NrgCostTest {
         int y = 1000;
         int z = Tier.LOW.cost();
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the Low tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
         Instruction[] instructions = {MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            callData = Hex
+                .decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -280,7 +305,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -291,19 +317,25 @@ public class NrgCostTest {
         int y = 1000;
         int z = Tier.MID.cost();
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the Mid tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
         Instruction[] instructions = {ADDMOD, MULMOD, /* JUMP */};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("000000000000000000000000000000010000000000000000000000000000000200000000000000000000000000000003");
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            callData = Hex.decode(
+                "000000000000000000000000000000010000000000000000000000000000000200000000000000000000000000000003");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -318,7 +350,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -329,19 +362,25 @@ public class NrgCostTest {
         int y = 1000;
         int z = Tier.HIGH.cost();
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the high tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
         Instruction[] instructions = {JUMPI};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000003");
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            callData = Hex.decode(
+                "000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000003");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -356,7 +395,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -367,19 +407,25 @@ public class NrgCostTest {
         int y = 1000;
         int z = Tier.HIGH.cost();
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the high tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
         Instruction[] instructions = {SHA3};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
-            byte[] code = repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
+            callData = Hex
+                .decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code = repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP,
+                POP);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -390,12 +436,13 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code,  ctx, repo);
+                new FastVM().run(code, ctx, repo);
             }
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -407,19 +454,25 @@ public class NrgCostTest {
         int y = 1000;
         int z = 10;
 
-        System.out.println("\n========================================================================");
+        System.out
+            .println("\n========================================================================");
         System.out.println("Cost for instructions of the VeryLow tier");
-        System.out.println("========================================================================");
+        System.out
+            .println("========================================================================");
 
         Instruction[] instructions = {EXP};
 
         for (Instruction inst : instructions) {
-            callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
-            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+            callData = Hex
+                .decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0,
+                CALLDATALOAD, inst);
 
-            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                    blockDifficulty);
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+                nrgLimit, callValue,
+                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -434,7 +487,8 @@ public class NrgCostTest {
             long t2 = System.nanoTime();
 
             long c = (t2 - t1) / y / x;
-            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+            System.out
+                .printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
                     (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
@@ -445,7 +499,7 @@ public class NrgCostTest {
 
         for (Instruction inst : Instruction.values()) {
             if (inst.tier() != Tier.BASE && inst.tier() != Tier.LOW && inst.tier() != Tier.VERY_LOW
-                    && inst.tier() != Tier.MID && inst.tier() != Tier.HIGH) {
+                && inst.tier() != Tier.MID && inst.tier() != Tier.HIGH) {
                 System.out.println(inst.name() + "\t" + inst.tier());
             }
         }
@@ -456,11 +510,12 @@ public class NrgCostTest {
      * minimizes cache usage.
      * <p>
      * It simulate the situation where there are <code>X</code> blocks, each of which contains
-     * <code>Y</code> transactions. Each transaction reads/writes one storage entry of an unique account.
+     * <code>Y</code> transactions. Each transaction reads/writes one storage entry of an unique
+     * account.
      * This whole process is repeated <code>Z</code> time.
      * <p>
-     * There will be <code>X * Y</code> accounts created. Trie serialization/deserialization is expected
-     * to happen during the test.
+     * There will be <code>X * Y</code> accounts created. Trie serialization/deserialization is
+     * expected to happen during the test.
      * <p>
      * NOTE: Before you run this test, make sure the database is empty, to get consistent results.
      */
@@ -480,11 +535,13 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db
+                    .startTracking();
                 for (int j = 0; j < transactions; j++) {
-                    Address address = Address.wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
+                    Address address = Address
+                        .wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(address, new DataWord(RandomUtils.nextBytes(16)),
-                            new DataWord(RandomUtils.nextBytes(16)));
+                        new DataWord(RandomUtils.nextBytes(16)));
                 }
                 repo.flush();
                 db.flush();
@@ -493,9 +550,11 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db
+                    .startTracking();
                 for (int j = 0; j < transactions; j++) {
-                    Address address = Address.wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
+                    Address address = Address
+                        .wrap(ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.getStorageValue(address, new DataWord(RandomUtils.nextBytes(16)));
                 }
                 repo.flush();
@@ -506,8 +565,8 @@ public class NrgCostTest {
             totalWrite += (t2 - t1);
             totalRead += (t4 - t3);
             System.out.printf("write = %7d,  read = %7d,  avg. write = %7d,  avg. read = %7d\n",
-                    (t2 - t1) / (blocks * transactions), (t4 - t3) / (blocks * transactions),
-                    totalWrite / (r * blocks * transactions), totalRead / (r * blocks * transactions));
+                (t2 - t1) / (blocks * transactions), (t4 - t3) / (blocks * transactions),
+                totalWrite / (r * blocks * transactions), totalRead / (r * blocks * transactions));
         }
     }
 }

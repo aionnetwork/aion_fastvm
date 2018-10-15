@@ -31,9 +31,8 @@ import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.fastvm.TestVMProvider;
-import org.aion.vm.DummyRepository;
 import org.aion.fastvm.TestUtils;
+import org.aion.fastvm.TestVMProvider;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.types.DataWord;
@@ -46,6 +45,7 @@ import org.aion.solidity.SolidityType.DynamicArrayType;
 import org.aion.solidity.SolidityType.IntType;
 import org.aion.solidity.SolidityType.StaticArrayType;
 import org.aion.solidity.SolidityType.StringType;
+import org.aion.vm.DummyRepository;
 import org.aion.vm.TransactionExecutor;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
@@ -54,12 +54,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 
 public class SolidityTypeTest {
+
     static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
     private AionTransaction createTransaction(byte[] callData) {
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from = Address.wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address.wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222"));
+        Address from = Address
+            .wrap(Hex.decode("1111111111111111111111111111111111111111111111111111111111111111"));
+        Address to = Address
+            .wrap(Hex.decode("2222222222222222222222222222222222222222222222222222222222222222"));
         byte[] value = DataWord.ZERO.getData();
         byte[] data = callData;
         long nrg = new DataWord(100000L).longValue();
@@ -69,7 +72,7 @@ public class SolidityTypeTest {
 
     private DummyRepository createRepository(AionTransaction tx) throws IOException {
         Compiler.Result r = Compiler.getInstance().compile(
-                ContractUtils.readContract("SolidityType.sol"), Options.BIN);
+            ContractUtils.readContract("SolidityType.sol"), Options.BIN);
         CompilationResult cr = CompilationResult.parse(r.output);
         String deployer = cr.contracts.get("SolidityType").bin;
         String contract = deployer.substring(deployer.indexOf("60506040", 1));
@@ -114,7 +117,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(Hex.decode("00000000ffffffffffffffffffffffff"), receipt.getExecutionResult());
+        assertArrayEquals(Hex.decode("00000000ffffffffffffffffffffffff"),
+            receipt.getExecutionResult());
         assertEquals(bi, new IntType("int96").decode(receipt.getExecutionResult()));
     }
 
@@ -181,7 +185,8 @@ public class SolidityTypeTest {
     public void testString1() throws IOException {
         String x = "hello, world!";
         SolidityType type = new StringType();
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("61cb5a01"), params));
@@ -201,7 +206,8 @@ public class SolidityTypeTest {
     public void testString2() throws IOException {
         String x = "hello, world!hello, world!hello, world!hello, world!hello, world!hello, world!";
         SolidityType type = new StringType();
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("61cb5a01"), params));
@@ -221,7 +227,8 @@ public class SolidityTypeTest {
     public void testBytes1() throws IOException {
         byte[] x = Hex.decode("1122334455667788");
         SolidityType type = new BytesType();
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("61cb5a01"), params));
@@ -239,9 +246,11 @@ public class SolidityTypeTest {
 
     @Test
     public void testBytes2() throws IOException {
-        byte[] x = Hex.decode("11223344556677881122334455667788112233445566778811223344556677881122334455667788");
+        byte[] x = Hex.decode(
+            "11223344556677881122334455667788112233445566778811223344556677881122334455667788");
         SolidityType type = new BytesType();
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("61cb5a01"), params));
@@ -321,7 +330,8 @@ public class SolidityTypeTest {
         x.add(BigInteger.valueOf(3L));
 
         SolidityType type = new DynamicArrayType("uint16[]");
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("8c0c5523"), params));
@@ -349,7 +359,8 @@ public class SolidityTypeTest {
         x.add(Hex.decode("3122334455667788112233445566778811223344"));
 
         SolidityType type = new DynamicArrayType("bytes20[]");
-        byte[] params = ByteUtil.merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
+        byte[] params = ByteUtil
+            .merge(Hex.decode("00000000000000000000000000000010"), type.encode(x));
         System.out.println(Hex.toHexString(params));
 
         AionTransaction tx = createTransaction(ByteUtil.merge(Hex.decode("97c3b2db"), params));

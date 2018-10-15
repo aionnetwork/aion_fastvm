@@ -20,10 +20,10 @@
  ******************************************************************************/
 package org.aion.vm.types;
 
+import static junit.framework.TestCase.assertEquals;
+
 import org.aion.mcf.vm.types.DataWord;
 import org.junit.Test;
-
-import static junit.framework.TestCase.assertEquals;
 
 public class DataWordTest {
 

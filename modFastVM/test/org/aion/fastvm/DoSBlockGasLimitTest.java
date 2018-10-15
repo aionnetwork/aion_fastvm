@@ -22,6 +22,10 @@
  */
 package org.aion.fastvm;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.math.BigInteger;
 import org.aion.base.type.Address;
 import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
@@ -34,11 +38,6 @@ import org.aion.vm.ExecutionContext;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.math.BigInteger;
-
-import static org.junit.Assert.assertEquals;
 
 public class DoSBlockGasLimitTest {
 
@@ -84,9 +83,9 @@ public class DoSBlockGasLimitTest {
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
-                nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+            nrgLimit, callValue,
+            callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -108,9 +107,9 @@ public class DoSBlockGasLimitTest {
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
-                nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+            nrgLimit, callValue,
+            callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -132,9 +131,9 @@ public class DoSBlockGasLimitTest {
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
-                nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+            nrgLimit, callValue,
+            callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+            blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);

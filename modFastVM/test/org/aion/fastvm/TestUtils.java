@@ -22,14 +22,13 @@
  */
 package org.aion.fastvm;
 
+import java.util.Collections;
+import java.util.List;
 import org.aion.base.type.Address;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;
-
-import java.util.Collections;
-import java.util.List;
 
 public class TestUtils {
 
@@ -49,8 +48,9 @@ public class TestUtils {
         byte[] solutions = new byte[0];
 
         // TODO: set a dummy limit of 5000000 for now
-        return new AionBlock(parentHash, Address.wrap(coinbase), logsBloom, difficulty, number, timestamp, extraData, nonce,
-                receiptsRoot, transactionsRoot, stateRoot, transactionsList, solutions, 0, 5000000);
+        return new AionBlock(parentHash, Address.wrap(coinbase), logsBloom, difficulty, number,
+            timestamp, extraData, nonce,
+            receiptsRoot, transactionsRoot, stateRoot, transactionsList, solutions, 0, 5000000);
     }
 
 }

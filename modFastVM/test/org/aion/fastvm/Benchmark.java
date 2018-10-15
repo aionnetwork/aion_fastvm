@@ -57,7 +57,8 @@ public class Benchmark {
 
     private static AionBlock block = TestUtils.createDummyBlock();
     private static AionRepositoryImpl db = AionRepositoryImpl.inst();
-    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db
+        .startTracking();
 
     private static ECKey key;
     private static Address owner;

@@ -20,7 +20,14 @@
  ******************************************************************************/
 package org.aion.fastvm;
 
-import static org.aion.fastvm.Instruction.Tier.*;
+import static org.aion.fastvm.Instruction.Tier.BASE;
+import static org.aion.fastvm.Instruction.Tier.EXT_CODE;
+import static org.aion.fastvm.Instruction.Tier.HIGH;
+import static org.aion.fastvm.Instruction.Tier.LOW;
+import static org.aion.fastvm.Instruction.Tier.MID;
+import static org.aion.fastvm.Instruction.Tier.SPECIAL;
+import static org.aion.fastvm.Instruction.Tier.VERY_LOW;
+import static org.aion.fastvm.Instruction.Tier.ZERO;
 
 /**
  * Instruction set for the Aion fast virtual machine.
@@ -341,11 +348,6 @@ public enum Instruction {
 
     SELFDESTRUCT(0xff, 1, 0, ZERO);
 
-    private final byte code;
-    private final int req;
-    private final int ret;
-    private final Tier tier;
-
     private static final Instruction[] map = new Instruction[256];
 
     static {
@@ -353,6 +355,11 @@ public enum Instruction {
             map[i.code & 0xFF] = i;
         }
     }
+
+    private final byte code;
+    private final int req;
+    private final int ret;
+    private final Tier tier;
 
     Instruction(int op, int req, int ret, Tier tier) {
         this.code = (byte) op;
@@ -362,9 +369,14 @@ public enum Instruction {
     }
 
     /**
+     * Converts from code to instruction.
+     */
+    public static Instruction of(int code) {
+        return map[code & 0xFF];
+    }
+
+    /**
      * Returns the code in byte.
-     *
-     * @return
      */
     public byte code() {
         return code;
@@ -372,8 +384,6 @@ public enum Instruction {
 
     /**
      * Returns the required # of stack items.
-     *
-     * @return
      */
     public int req() {
         return req;
@@ -381,8 +391,6 @@ public enum Instruction {
 
     /**
      * Returns the returned # of stack items.
-     *
-     * @return
      */
     public int ret() {
         return ret;
@@ -390,21 +398,9 @@ public enum Instruction {
 
     /**
      * Returns the energy cost tier
-     *
-     * @return
      */
     public Tier tier() {
         return this.tier;
-    }
-
-    /**
-     * Converts from code to instruction.
-     *
-     * @param code
-     * @return
-     */
-    public static Instruction of(int code) {
-        return map[code & 0xFF];
     }
 
     /**

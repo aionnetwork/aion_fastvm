@@ -16,25 +16,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.crypto.HashUtil;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
+import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
+import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionHelper;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.ExecutionContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +44,7 @@ import org.mockito.Mockito;
  * Unit tests for Callback class.
  */
 public class CallbackUnitTest {
+
     private DummyRepository dummyRepo;
 
     @Before
@@ -55,7 +56,11 @@ public class CallbackUnitTest {
     public void tearDown() {
         dummyRepo = null;
         while (true) {
-            try { Callback.pop(); } catch (NoSuchElementException e) { break; }
+            try {
+                Callback.pop();
+            } catch (NoSuchElementException e) {
+                break;
+            }
         }
     }
 
@@ -103,7 +108,11 @@ public class CallbackUnitTest {
         for (int i = 0; i < reps; i++) {
             Callback.pop();
         }
-        try { Callback.pop(); } catch (NoSuchElementException e) { return; }    // hit bottom as wanted.
+        try {
+            Callback.pop();
+        } catch (NoSuchElementException e) {
+            return;
+        }    // hit bottom as wanted.
         fail();
     }
 
@@ -127,7 +136,11 @@ public class CallbackUnitTest {
             compareRepos((IRepositoryCache) pair.getRight(), Callback.repo());
             Callback.pop();
         }
-        try { Callback.pop(); } catch (NoSuchElementException e) { return; }    // hit bottom as wanted.
+        try {
+            Callback.pop();
+        } catch (NoSuchElementException e) {
+            return;
+        }    // hit bottom as wanted.
         fail();
     }
 
@@ -226,7 +239,8 @@ public class CallbackUnitTest {
             addresses[depths - 1 - i] = pushNewBalance(balances[depths - 1 - i]);
         }
         for (int i = 0; i < depths; i++) {
-            assertArrayEquals(new DataWord(balances[i]).getData(), Callback.getBalance(addresses[i].toBytes()));
+            assertArrayEquals(new DataWord(balances[i]).getData(),
+                Callback.getBalance(addresses[i].toBytes()));
             Callback.pop();
         }
     }
@@ -332,10 +346,11 @@ public class CallbackUnitTest {
         for (int i = 0; i < num; i++) {
             keys[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
             values[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
-            addresses[num - 1 - i] = putInStorage(keys[num -1 - i], values[num - 1 - i]);
+            addresses[num - 1 - i] = putInStorage(keys[num - 1 - i], values[num - 1 - i]);
         }
         for (int i = 0; i < num; i++) {
-            assertArrayEquals(values[i], repo.getStorageValue(addresses[i], new DataWord(keys[i])).getData());
+            assertArrayEquals(values[i],
+                repo.getStorageValue(addresses[i], new DataWord(keys[i])).getData());
         }
     }
 
@@ -349,7 +364,8 @@ public class CallbackUnitTest {
         byte[][] keys = unpackKeys(packs);
         byte[][] values = unpackValues(packs);
         for (int i = 0; i < numAddrs; i++) {
-            assertArrayEquals(values[i], repo.getStorageValue(addresses[i], new DataWord(keys[i])).getData());
+            assertArrayEquals(values[i],
+                repo.getStorageValue(addresses[i], new DataWord(keys[i])).getData());
         }
     }
 
@@ -539,14 +555,14 @@ public class CallbackUnitTest {
     public void testParseMessage() {
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
-            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), false,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
-            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), false,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
         byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
             ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
@@ -561,7 +577,7 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         for (int i = 0; i < depths; i++) {
             ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
-                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
+                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), false,
                 false, ExecutionContext.DELEGATECALL, nrgLimit);
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
@@ -571,7 +587,7 @@ public class CallbackUnitTest {
         for (int i = 0; i < depths; i++) {
             // test every other ctx with empty data
             ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
-                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),i % 2 == 0,
+                new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), i % 2 == 0,
                 false, ExecutionContext.DELEGATECALL, nrgLimit);
             byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
                 ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
@@ -585,14 +601,14 @@ public class CallbackUnitTest {
     public void testParseMessageUsingZeroLengthData() {
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
-            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), false,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
         Callback.push(pair);
         ExecutionContext ctx = newExecutionContext(getNewAddress(), getNewAddress(),
-            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),true,
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), true,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
         byte[] message = generateContextMessage(ctx.address(), ctx.sender(), ctx.nrgLimit(),
             ctx.callValue(), ctx.callData(), ctx.depth(), ctx.kind(), ctx.flags());
@@ -606,7 +622,7 @@ public class CallbackUnitTest {
         IRepositoryCache repo = new DummyRepository();
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(getNewAddress(), getNewAddress(),
-            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),false,
+            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)), false,
             false, ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -627,7 +643,7 @@ public class CallbackUnitTest {
         Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context = newExecutionContext(caller, getNewAddress(),
-            new DataWord(balance.add(BigInteger.ONE)),false, false,
+            new DataWord(balance.add(BigInteger.ONE)), false, false,
             ExecutionContext.DELEGATECALL, nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -703,7 +719,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoRecipientSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
@@ -718,7 +735,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoRecipientSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
@@ -763,12 +781,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(
+            ExecutionContext.CALLCODE);
     }
 
     @Test
@@ -778,12 +798,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(
+            ExecutionContext.CALLCODE);
     }
 
     @Test
@@ -793,12 +815,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(
+            ExecutionContext.CALLCODE);
     }
 
     @Test
@@ -808,12 +832,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(
+            ExecutionContext.DELEGATECALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(
+            ExecutionContext.CALLCODE);
     }
 
     @Test
@@ -916,7 +942,8 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, false, ExecutionContext.CREATE,
             null, false, true, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null);   // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -936,7 +963,8 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, true, ExecutionContext.CREATE,
             null, false, true, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null);   // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -956,11 +984,13 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, false, ExecutionContext.CREATE,
             null, false, true, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
-        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);  // nrgLimit causes failure post-execution.
+        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(),
+            0);  // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
             false, true, new byte[0]);
         checkContextHelper(false);
@@ -977,11 +1007,13 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, true, ExecutionContext.CREATE, null,
             false, true, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
-        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);  // nrgLimit causes failure post-execution.
+        mockedResult.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(),
+            0);  // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
             false, true, new byte[0]);
         checkContextHelper(false);
@@ -999,7 +1031,8 @@ public class CallbackUnitTest {
             null, false, false, nrgLimit);
 
         byte[] code = RandomUtils.nextBytes(50);
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
@@ -1020,7 +1053,8 @@ public class CallbackUnitTest {
             false, false, nrgLimit);
 
         byte[] code = RandomUtils.nextBytes(50);
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
@@ -1043,11 +1077,13 @@ public class CallbackUnitTest {
                     null, false, false, nrgLimit);
 
                 byte[] code = RandomUtils.nextBytes(50);
-                ExecutionResult mockedResult = new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                ExecutionResult mockedResult = new ExecutionResult(resCode,
+                    Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false,
+                    ExecutionContext.CREATE,
                     false, false, code);
                 checkContextHelper(false);
                 checkPerformCallState(context, callerBalance, false, false,
@@ -1068,11 +1104,13 @@ public class CallbackUnitTest {
                     null, false, false, nrgLimit);
 
                 byte[] code = RandomUtils.nextBytes(50);
-                ExecutionResult mockedResult = new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                ExecutionResult mockedResult = new ExecutionResult(resCode,
+                    Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);
 
-                runPerformCallAndCheck(context, vm, factory, mockedResult, false, ExecutionContext.CREATE,
+                runPerformCallAndCheck(context, vm, factory, mockedResult, false,
+                    ExecutionContext.CREATE,
                     false, false, code);
                 checkContextHelper(false);
                 checkPerformCallState(context, callerBalance, false,
@@ -1091,7 +1129,8 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, false, kind, new byte[0],
             false, false, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
@@ -1134,7 +1173,8 @@ public class CallbackUnitTest {
             callerBalance, recipientBalance, true, kind, new byte[0],
             false, false, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
@@ -1178,7 +1218,8 @@ public class CallbackUnitTest {
                 callerBalance, recipientBalance, false, kind, null,
                 false, false, nrgLimit);
 
-            ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            ExecutionResult mockedResult = new ExecutionResult(code,
+                RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1202,7 +1243,8 @@ public class CallbackUnitTest {
                 callerBalance, recipientBalance, true, kind, null,
                 false, false, nrgLimit);
 
-            ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            ExecutionResult mockedResult = new ExecutionResult(code,
+                RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1226,7 +1268,8 @@ public class CallbackUnitTest {
                 callerBalance, recipientBalance, false, kind, new byte[0],
                 false, false, nrgLimit);
 
-            ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            ExecutionResult mockedResult = new ExecutionResult(code,
+                RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1250,7 +1293,8 @@ public class CallbackUnitTest {
                 callerBalance, recipientBalance, true, kind, new byte[0],
                 false, false, nrgLimit);
 
-            ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            ExecutionResult mockedResult = new ExecutionResult(code,
+                RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1274,7 +1318,8 @@ public class CallbackUnitTest {
             RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false, false,
             nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1296,9 +1341,11 @@ public class CallbackUnitTest {
                     RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
                     false, nrgLimit);
 
-                ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+                ExecutionResult mockedResult = new ExecutionResult(code,
+                    RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
+                ContractFactory factory = mockFactory(
+                    null);    // signal not a precompiled contract.
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
@@ -1319,7 +1366,8 @@ public class CallbackUnitTest {
             RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
             false, nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        ExecutionResult mockedResult = new ExecutionResult(ResultCode.SUCCESS,
+            RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
 
@@ -1341,9 +1389,11 @@ public class CallbackUnitTest {
                     RandomUtils.nextBytes(RandomUtils.nextInt(5, 30)), false,
                     false, nrgLimit);
 
-                ExecutionResult mockedResult = new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+                ExecutionResult mockedResult = new ExecutionResult(code,
+                    RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null);    // signal not a precompiled contract.
+                ContractFactory factory = mockFactory(
+                    null);    // signal not a precompiled contract.
 
                 runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind,
                     false, false, null);
@@ -1387,7 +1437,8 @@ public class CallbackUnitTest {
         return context;
     }
 
-    private ExecutionContext newExecutionContext(Address caller, Address recipient, DataWord callValue,
+    private ExecutionContext newExecutionContext(Address caller, Address recipient,
+        DataWord callValue,
         boolean isEmptyData, boolean septForkEnabled, int kind, long nrgLimit) {
 
         byte[] txHash = RandomUtils.nextBytes(32);
@@ -1411,7 +1462,8 @@ public class CallbackUnitTest {
         long blockTimestamp = RandomUtils.nextLong(100, 100_000);
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
         DataWord blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
-        return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit, callValue,
+        return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit,
+            callValue,
             callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty);
     }
@@ -1420,8 +1472,8 @@ public class CallbackUnitTest {
      * Generates a message that is to be passed into the parseMessage method. This message is of the
      * following format:
      *
-     *   |32b - address|32b - caller|8b - nrgLimit|16b - callValue|4b - callDataLength|?b - callData|
-     *   4b - depth|4b - kind|4b - flags|
+     * |32b - address|32b - caller|8b - nrgLimit|16b - callValue|4b - callDataLength|?b - callData|
+     * 4b - depth|4b - kind|4b - flags|
      */
     private byte[] generateContextMessage(Address address, Address caller, long nrgLimit,
         DataWord callValue, byte[] callData, int depth, int kind, int flags) {
@@ -1483,7 +1535,8 @@ public class CallbackUnitTest {
         assertEquals(cache.getCode(addr), other.getCode(addr));
     }
 
-    private Address getNewAddressInRepo(IRepositoryCache repo, BigInteger balance, BigInteger nonce) {
+    private Address getNewAddressInRepo(IRepositoryCache repo, BigInteger balance,
+        BigInteger nonce) {
         Address address = getNewAddress();
         repo.createAccount(address);
         repo.addBalance(address, balance);
@@ -1559,7 +1612,9 @@ public class CallbackUnitTest {
             assertArrayEquals(topic, Arrays.copyOfRange(topics, index, index + 32));
             index += 32;
         }
-        if (logTopics.isEmpty()) { assertEquals(0,topics.length); }
+        if (logTopics.isEmpty()) {
+            assertEquals(0, topics.length);
+        }
     }
 
     /**
@@ -1567,7 +1622,8 @@ public class CallbackUnitTest {
      * the context at the top of the stack when the fields in context are used to generate the
      * message given to the parseMessage method.
      */
-    private ExecutionContext makeExpectedContext(ExecutionContext previous, ExecutionContext context) {
+    private ExecutionContext makeExpectedContext(ExecutionContext previous,
+        ExecutionContext context) {
         return new ExecutionContext(previous.transactionHash(), context.address(),
             previous.origin(), context.sender(), previous.nrgPrice(), context.nrgLimit(),
             context.callValue(), context.callData(), context.depth(), context.kind(),
@@ -1633,7 +1689,8 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            keys[i] = Arrays.copyOfRange(pack, Address.ADDRESS_LEN, Address.ADDRESS_LEN + DataWord.BYTES);
+            keys[i] = Arrays
+                .copyOfRange(pack, Address.ADDRESS_LEN, Address.ADDRESS_LEN + DataWord.BYTES);
         }
         return keys;
     }
@@ -1643,7 +1700,7 @@ public class CallbackUnitTest {
         byte[][] values = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            values[i] = Arrays.copyOfRange(pack,pack.length - DataWord.BYTES, pack.length);
+            values[i] = Arrays.copyOfRange(pack, pack.length - DataWord.BYTES, pack.length);
         }
         return values;
     }
@@ -1775,7 +1832,8 @@ public class CallbackUnitTest {
         ExecutionContext ctx = Callback.context();
         checkInternalTransaction(context, ctx.helper().getInternalTransactions().get(0),
             isCreateContract);
-        checkPerformCallBalances(context.sender(), callerBalance, context.address(), recipientBalance,
+        checkPerformCallBalances(context.sender(), callerBalance, context.address(),
+            recipientBalance,
             context.callValue().value(), wasNoRecipient, kind);
     }
 
@@ -1794,14 +1852,16 @@ public class CallbackUnitTest {
      * @param postExecuteWasSuccess If in post execute the result is SUCCESS
      * @param code The code to add to contract after CREATE call.
      */
-    private void runPerformCallAndCheck(ExecutionContext context, FastVM mockVM, ContractFactory mockFac,
+    private void runPerformCallAndCheck(ExecutionContext context, FastVM mockVM,
+        ContractFactory mockFac,
         ExecutionResult expectedResult, boolean vmGotBadCode, int kind, boolean contractExisted,
         boolean postExecuteWasSuccess, byte[] code) {
 
         byte[] message = generateContextMessage(context.address(), context.sender(),
             context.nrgLimit(), context.callValue(), context.callData(), context.depth(),
             kind, 0);
-        ExecutionResult result = ExecutionResult.parse(Callback.performCall(message, mockVM, mockFac));
+        ExecutionResult result = ExecutionResult
+            .parse(Callback.performCall(message, mockVM, mockFac));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
             assertEquals(context.nrgLimit(), result.getNrgLeft());
@@ -1839,7 +1899,8 @@ public class CallbackUnitTest {
         IRepositoryCache repo = new DummyRepository();
         Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
-            Address contract = new Address(HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
+            Address contract = new Address(
+                HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }
@@ -1871,10 +1932,11 @@ public class CallbackUnitTest {
     }
 
     /**
-     * Asserts that the account balances are in the expected state after a call to performCall.
-     * Note if we are doing CALLCODE or DELEGATECALL then no value gets transferred in Callback.
+     * Asserts that the account balances are in the expected state after a call to performCall. Note
+     * if we are doing CALLCODE or DELEGATECALL then no value gets transferred in Callback.
      */
-    private void checkPerformCallBalances(Address caller, BigInteger callerPrevBalance, Address recipient,
+    private void checkPerformCallBalances(Address caller, BigInteger callerPrevBalance,
+        Address recipient,
         BigInteger recipientPrevBalance, BigInteger callValue, boolean wasNoRecipient, int kind) {
 
         if (caller.equals(recipient)) {
@@ -1899,7 +1961,8 @@ public class CallbackUnitTest {
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
                     assertEquals(recipientPrevBalance, Callback.repo().getBalance(recipient));
                 } else {
-                    assertEquals(recipientPrevBalance.add(callValue), Callback.repo().getBalance(recipient));
+                    assertEquals(recipientPrevBalance.add(callValue),
+                        Callback.repo().getBalance(recipient));
                 }
             }
         }
@@ -1973,7 +2036,8 @@ public class CallbackUnitTest {
         boolean contractExisted, boolean wasSuccess, boolean nrgLessThanDeposit) {
 
         checkInternalTransactionsAfterCreate(wasSuccess);
-        checkCreateBalances(context, callerBalance, contractExisted, wasSuccess, nrgLessThanDeposit);
+        checkCreateBalances(context, callerBalance, contractExisted, wasSuccess,
+            nrgLessThanDeposit);
     }
 
     /**

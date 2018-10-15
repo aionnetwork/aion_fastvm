@@ -21,8 +21,10 @@
  *     Aion foundation.
  */
 package org.aion.vm;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
 
 public class ExecutionContextUnitTest {
+
     private Address recipient, origin, caller, coinbase;
     private DataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;
@@ -202,10 +205,12 @@ public class ExecutionContextUnitTest {
     // <-------------------------------------HELPERS BELOW----------------------------------------->
 
     /**
-     * Returns a new ExecutionContext whose fields will be initialized using the fields of this class.
+     * Returns a new ExecutionContext whose fields will be initialized using the fields of this
+     * class.
      */
     private ExecutionContext newExecutionContext() {
-        return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit, callValue,
+        return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit,
+            callValue,
             callData, depth, kind, flags, coinbase, blockNumber, blockTimestamp, blockNrgLimit,
             blockDifficulty);
     }
@@ -269,7 +274,8 @@ public class ExecutionContextUnitTest {
         assertEquals(context.flags(), intBuf.getInt());
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.blockCoinbase(),
+            new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -289,7 +295,8 @@ public class ExecutionContextUnitTest {
         assertEquals(context.blockNrgLimit(), longBuf.getLong());
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.blockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.blockDifficulty(),
+            new DataWord(Arrays.copyOfRange(encoding, start, end)));
     }
 
 }

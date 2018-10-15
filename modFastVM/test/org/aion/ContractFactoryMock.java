@@ -12,6 +12,7 @@ import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 
 public class ContractFactoryMock implements IContractFactory {
+
     public static final String CALL_ME = "9999999999999999999999999999999999999999999999999999999999999999";
 
 
@@ -20,16 +21,19 @@ public class ContractFactoryMock implements IContractFactory {
      */
     @Override
     public IPrecompiledContract getPrecompiledContract(
-                ExecutionContext context,
-                IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
+        ExecutionContext context,
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
 
         switch (context.address().toString()) {
-            case CALL_ME: return new CallMePrecompiledContract();
-            default: return null;
+            case CALL_ME:
+                return new CallMePrecompiledContract();
+            default:
+                return null;
         }
     }
 
     public static class CallMePrecompiledContract implements IPrecompiledContract {
+
         public static final String head = "echo: ";
         public static boolean youCalledMe = false;
 

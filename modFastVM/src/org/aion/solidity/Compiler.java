@@ -20,7 +20,12 @@
  ******************************************************************************/
 package org.aion.solidity;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,14 +34,12 @@ import java.util.stream.Collectors;
 
 public class Compiler {
 
-    private final File solc;
-
     private static Compiler instance;
-
     private static String helloAion = "pragma solidity ^0.4.15;\n"
         + "contract HelloAion {\n"
         + "\n"
         + "}";
+    private final File solc;
 
     private Compiler() {
         solc = Paths.get("native", "linux", "solidity", "solc").toFile();
@@ -55,7 +58,7 @@ public class Compiler {
     }
 
     public Result compile(byte[] source, boolean optimize, boolean combinedJson, Options... options)
-            throws IOException {
+        throws IOException {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(solc.getCanonicalPath());
 
@@ -64,15 +67,18 @@ public class Compiler {
         }
         if (combinedJson) {
             commandParts.add("--combined-json");
-            commandParts.add(Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
+            commandParts.add(
+                Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
         } else {
             for (Options option : options) {
                 commandParts.add("--" + option.getName());
             }
         }
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(solc.getParentFile());
-        processBuilder.environment().put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
+        ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
+            .directory(solc.getParentFile());
+        processBuilder.environment()
+            .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 
@@ -103,8 +109,10 @@ public class Compiler {
         commandParts.add(solc.getCanonicalPath());
         commandParts.add("--version");
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(solc.getParentFile());
-        processBuilder.environment().put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
+        ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
+            .directory(solc.getParentFile());
+        processBuilder.environment()
+            .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 

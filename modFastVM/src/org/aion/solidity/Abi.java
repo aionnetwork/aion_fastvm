@@ -20,14 +20,6 @@
  ******************************************************************************/
 package org.aion.solidity;
 
-import org.aion.base.util.ByteUtil;
-import org.apache.commons.collections4.Predicate;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static java.lang.String.format;
 import static org.aion.crypto.HashUtil.h256;
 import static org.aion.solidity.SolidityType.IntType.decodeInt;
@@ -36,6 +28,13 @@ import static org.apache.commons.collections4.ListUtils.select;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.aion.base.util.ByteUtil;
+import org.apache.commons.collections4.Predicate;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public final class Abi {
 
@@ -61,7 +60,8 @@ public final class Abi {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Entry> T find(Class<T> resultClass, final Entry.Type type, final Predicate<T> searchPredicate) {
+    private <T extends Entry> T find(Class<T> resultClass, final Entry.Type type,
+        final Predicate<T> searchPredicate) {
         for (Entry entry : entries) {
             if (entry.type == type && searchPredicate.evaluate((T) entry)) {
                 return (T) entry;
@@ -100,54 +100,6 @@ public final class Abi {
 
     public static abstract class Entry {
 
-        public enum Type {
-            constructor, fallback, function, event
-        }
-
-        public static class Param {
-            public Boolean indexed;
-            public String name;
-            public SolidityType type;
-
-            public static Param fromJSON(JSONObject obj) {
-                Param p = new Param();
-                p.indexed = obj.has("indexed") ? obj.getBoolean("indexed") : null;
-                p.name = obj.has("name") ? obj.getString("name") : null;
-                p.type = obj.has("type") ? SolidityType.getType(obj.getString("type")) : null;
-                return p;
-            }
-
-            public JSONObject toJSON() {
-                JSONObject o = new JSONObject();
-                o.put("indexed", indexed);
-                o.put("name", name);
-                o.put("type", type.toString());
-                return o;
-            }
-
-            public static List<?> decodeList(List<Param> params, byte[] encoded) {
-                List<Object> result = new ArrayList<>(params.size());
-
-                int offset = 0;
-                for (Param param : params) {
-                    Object decoded = param.type.isDynamicType()
-                            ? param.type.decode(encoded, decodeInt(encoded, offset).intValue())
-                            : param.type.decode(encoded, offset);
-                    result.add(decoded);
-
-                    offset += param.type.getFixedSize();
-                }
-
-                return result;
-            }
-
-            @Override
-            public String toString() {
-                return format("%s%s%s", type.getCanonicalName(), (indexed != null && indexed) ? " indexed " : " ",
-                        name);
-            }
-        }
-
         public final Boolean anonymous;
         public final Boolean constant;
         public final Boolean payable;
@@ -155,9 +107,9 @@ public final class Abi {
         public final List<Param> inputs;
         public final List<Param> outputs;
         public final Type type;
-
-        public Entry(Boolean anonymous, Boolean constant, Boolean payable, String name, List<Param> inputs, List<Param> outputs,
-                     Type type) {
+        public Entry(Boolean anonymous, Boolean constant, Boolean payable, String name,
+            List<Param> inputs, List<Param> outputs,
+            Type type) {
             this.anonymous = anonymous;
             this.constant = constant;
             this.payable = payable;
@@ -198,8 +150,31 @@ public final class Abi {
                 case "event":
                     return (T) new Event(anonymous, name, inputs, outputs);
                 default:
-                    throw new RuntimeException("Unrecognized ABI entry type: " + obj.getString("type"));
+                    throw new RuntimeException(
+                        "Unrecognized ABI entry type: " + obj.getString("type"));
             }
+        }
+
+        public static Entry create(boolean anonymous, boolean constant, boolean payable,
+            String name, List<Param> inputs,
+            List<Param> outputs, Type type) {
+            Entry result = null;
+            switch (type) {
+                case constructor:
+                    result = new Constructor(payable, inputs, outputs);
+                    break;
+                case fallback:
+                    result = new Fallback(payable, inputs, outputs);
+                    break;
+                case function:
+                    result = new Function(constant, payable, name, inputs, outputs);
+                    break;
+                case event:
+                    result = new Event(anonymous, name, inputs, outputs);
+                    break;
+            }
+
+            return result;
         }
 
         public JSONObject toJSON() {
@@ -239,25 +214,54 @@ public final class Abi {
             return fingerprintSignature();
         }
 
-        public static Entry create(boolean anonymous, boolean constant, boolean payable, String name, List<Param> inputs,
-                                   List<Param> outputs, Type type) {
-            Entry result = null;
-            switch (type) {
-                case constructor:
-                    result = new Constructor(payable, inputs, outputs);
-                    break;
-                case fallback:
-                    result = new Fallback(payable, inputs, outputs);
-                    break;
-                case function:
-                    result = new Function(constant, payable, name, inputs, outputs);
-                    break;
-                case event:
-                    result = new Event(anonymous, name, inputs, outputs);
-                    break;
+        public enum Type {
+            constructor, fallback, function, event
+        }
+
+        public static class Param {
+
+            public Boolean indexed;
+            public String name;
+            public SolidityType type;
+
+            public static Param fromJSON(JSONObject obj) {
+                Param p = new Param();
+                p.indexed = obj.has("indexed") ? obj.getBoolean("indexed") : null;
+                p.name = obj.has("name") ? obj.getString("name") : null;
+                p.type = obj.has("type") ? SolidityType.getType(obj.getString("type")) : null;
+                return p;
             }
 
-            return result;
+            public static List<?> decodeList(List<Param> params, byte[] encoded) {
+                List<Object> result = new ArrayList<>(params.size());
+
+                int offset = 0;
+                for (Param param : params) {
+                    Object decoded = param.type.isDynamicType()
+                        ? param.type.decode(encoded, decodeInt(encoded, offset).intValue())
+                        : param.type.decode(encoded, offset);
+                    result.add(decoded);
+
+                    offset += param.type.getFixedSize();
+                }
+
+                return result;
+            }
+
+            public JSONObject toJSON() {
+                JSONObject o = new JSONObject();
+                o.put("indexed", indexed);
+                o.put("name", name);
+                o.put("type", type.toString());
+                return o;
+            }
+
+            @Override
+            public String toString() {
+                return format("%s%s%s", type.getCanonicalName(),
+                    (indexed != null && indexed) ? " indexed " : " ",
+                    name);
+            }
         }
     }
 
@@ -287,8 +291,13 @@ public final class Abi {
 
         private static final int ENCODED_SIGN_LENGTH = 4;
 
-        public Function(boolean constant, boolean payable, String name, List<Param> inputs, List<Param> outputs) {
+        public Function(boolean constant, boolean payable, String name, List<Param> inputs,
+            List<Param> outputs) {
             super(null, constant, payable, name, inputs, outputs, Type.function);
+        }
+
+        public static byte[] extractSignature(byte[] data) {
+            return subarray(data, 0, ENCODED_SIGN_LENGTH);
         }
 
         public byte[] encode(Object... args) {
@@ -296,8 +305,10 @@ public final class Abi {
         }
 
         private byte[] encodeArguments(Object... args) {
-            if (args.length > inputs.size())
-                throw new RuntimeException("Too many arguments: " + args.length + " > " + inputs.size());
+            if (args.length > inputs.size()) {
+                throw new RuntimeException(
+                    "Too many arguments: " + args.length + " > " + inputs.size());
+            }
 
             int staticSize = 0;
             int dynamicCnt = 0;
@@ -343,10 +354,6 @@ public final class Abi {
         @Override
         public byte[] encodeSignature() {
             return extractSignature(super.encodeSignature());
-        }
-
-        public static byte[] extractSignature(byte[] data) {
-            return subarray(data, 0, ENCODED_SIGN_LENGTH);
         }
 
     }

@@ -20,12 +20,10 @@
  ******************************************************************************/
 package org.aion.solidity;
 
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONObject;
 
 
 public class CompilationResult {
@@ -36,9 +34,6 @@ public class CompilationResult {
 
     /**
      * Parses the compilation results from JSON string.
-     *
-     * @param json
-     * @return
      */
     public static CompilationResult parse(String json) {
         if (json == null || json.isEmpty()) {
@@ -53,7 +48,8 @@ public class CompilationResult {
             if (obj.has("contracts")) {
                 JSONObject c = obj.getJSONObject("contracts");
                 for (String k : c.keySet()) {
-                    result.contracts.put(k.replace("<stdin>:", ""), Contract.fromJSON(c.getJSONObject(k)));
+                    result.contracts
+                        .put(k.replace("<stdin>:", ""), Contract.fromJSON(c.getJSONObject(k)));
                 }
             }
             return result;
@@ -64,6 +60,7 @@ public class CompilationResult {
      * Represents a compiled contract.
      */
     public static class Contract {
+
         public String abi;
         public String bin;
         public String interface0;

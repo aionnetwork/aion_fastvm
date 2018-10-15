@@ -29,14 +29,15 @@ import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionHelper;
+import org.aion.vm.ExecutionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class CacheTest {
+
     private byte[] txHash = RandomUtils.nextBytes(32);
     private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
@@ -72,9 +73,10 @@ public class CacheTest {
     @Ignore
     public void testCache() {
         callData = Hex.decode("8256cff3");
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice,
+            nrgLimit, callValue,
+            callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+            blockDifficulty);
         FastVM vm = new FastVM();
 
         long t1 = System.currentTimeMillis();

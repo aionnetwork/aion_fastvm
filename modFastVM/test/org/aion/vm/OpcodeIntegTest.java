@@ -58,6 +58,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 
 public class OpcodeIntegTest {
+
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
@@ -95,7 +96,8 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("f854bb89"), new DataWord(6).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
+            BigInteger.ZERO.toByteArray(),
             input, nrg, nrgPrice);
         tx.sign(deployerKey);
 
@@ -135,7 +137,8 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(5).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
+            BigInteger.ZERO.toByteArray(),
             input, nrg, nrgPrice);
         tx.sign(deployerKey);
 
@@ -171,7 +174,8 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("10462fd0"), new DataWord(7).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
+            BigInteger.ZERO.toByteArray(),
             input, nrg, nrgPrice);
         tx.sign(deployerKey);
 
@@ -215,7 +219,8 @@ public class OpcodeIntegTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
+            BigInteger.ZERO.toByteArray(),
             input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
@@ -277,7 +282,8 @@ public class OpcodeIntegTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(0).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
+        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D,
+            BigInteger.ZERO.toByteArray(),
             input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
@@ -354,7 +360,8 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input = ByteUtil
+            .merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
         AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
@@ -416,7 +423,8 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input = ByteUtil
+            .merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
         AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
@@ -457,7 +465,8 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input = ByteUtil
+            .merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
         AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
@@ -643,7 +652,8 @@ public class OpcodeIntegTest {
      * Returns the address of the newly deployed contract.
      */
     private Address deployContract(IRepositoryCache repo, AionTransaction tx, String contractName,
-        String contractFilename, BigInteger value, long nrg, long nrgPrice, BigInteger expectedNonce)
+        String contractFilename, BigInteger value, long nrg, long nrgPrice,
+        BigInteger expectedNonce)
         throws IOException {
 
         tx.sign(deployerKey);
@@ -675,7 +685,8 @@ public class OpcodeIntegTest {
      * equal to whatever value was transferred to it when deployed.
      */
     private void checkStateOfNewContract(IRepositoryCache repo, String contractName,
-        String contractFilename, Address contractAddr, BigInteger valueTransferred) throws IOException {
+        String contractFilename, Address contractAddr, BigInteger valueTransferred)
+        throws IOException {
 
         byte[] expectedBodyCode = ContractUtils.getContractBody(contractFilename, contractName);
         assertArrayEquals(expectedBodyCode, repo.getCode(contractAddr));
@@ -705,7 +716,8 @@ public class OpcodeIntegTest {
         assertArrayEquals(Arrays.copyOfRange(data, 0, Address.ADDRESS_LEN), owner.toBytes());
         assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN, Address.ADDRESS_LEN * 2),
             caller.toBytes());
-        assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN * 2, Address.ADDRESS_LEN * 3),
+        assertArrayEquals(
+            Arrays.copyOfRange(data, Address.ADDRESS_LEN * 2, Address.ADDRESS_LEN * 3),
             origin.toBytes());
         assertArrayEquals(Arrays.copyOfRange(data, data.length - DataWord.BYTES, data.length),
             DataWord.ZERO.getData());

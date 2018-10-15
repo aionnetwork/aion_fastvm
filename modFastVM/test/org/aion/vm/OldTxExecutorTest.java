@@ -32,6 +32,7 @@ import org.slf4j.Logger;
  * they will be moved.
  */
 public class OldTxExecutorTest {
+
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
 
     @Test

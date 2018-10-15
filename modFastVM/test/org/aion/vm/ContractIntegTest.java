@@ -66,6 +66,7 @@ import org.slf4j.Logger;
  * contract.
  */
 public class ContractIntegTest {
+
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
@@ -341,7 +342,8 @@ public class ContractIntegTest {
     @Test
     public void testConstructorIsCalledOnCodeDeployment() throws IOException {
         String contractName = "MultiFeatureContract";
-        byte[] deployCode = ContractUtils.getContractDeployer("MultiFeatureContract.sol", "MultiFeatureContract");
+        byte[] deployCode = ContractUtils
+            .getContractDeployer("MultiFeatureContract.sol", "MultiFeatureContract");
         long nrg = 1_000_000;
         long nrgPrice = 1;
         BigInteger value = BigInteger.ONE;
@@ -474,7 +476,8 @@ public class ContractIntegTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
     }
 
@@ -513,7 +516,8 @@ public class ContractIntegTest {
         assertNotEquals(nrg, tx.getNrgConsume());
 
         // Check that the deployer did get the requested value sent back.
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost).add(value), repo.getBalance(deployer));
     }
 
@@ -556,7 +560,8 @@ public class ContractIntegTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
 
         // Check that the recipient received the value.
@@ -601,7 +606,8 @@ public class ContractIntegTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
 
         // Check that the recipient received the value.
@@ -657,7 +663,8 @@ public class ContractIntegTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
         deployerBalance = repo.getBalance(deployer);
         deployerNonce = repo.getNonce(deployer);
@@ -727,7 +734,8 @@ public class ContractIntegTest {
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertNotEquals(nrg, tx.getNrgConsume());
 
-        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
+        BigInteger txCost = BigInteger.valueOf(tx.getNrgConsume())
+            .multiply(BigInteger.valueOf(nrgPrice));
         assertEquals(deployerBalance.subtract(txCost), repo.getBalance(deployer));
 
         deployerBalance = repo.getBalance(deployer);
@@ -765,7 +773,8 @@ public class ContractIntegTest {
         BigInteger value = BigInteger.ZERO;
         BigInteger nonce = BigInteger.ZERO;
         AionTransaction tx = new AionTransaction(nonce.toByteArray(),
-            Address.wrap(ContractFactoryMock.CALL_ME), value.toByteArray(), tagToSend.getBytes(), nrg,
+            Address.wrap(ContractFactoryMock.CALL_ME), value.toByteArray(), tagToSend.getBytes(),
+            nrg,
             nrgPrice);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
 
@@ -961,9 +970,9 @@ public class ContractIntegTest {
     }
 
     /**
-     * Checks that the newly deployed contract at address contractAddr is in the expected state after
-     * the contract whose name is contractName (inside the file named contractFilename) is deployed
-     * to it.
+     * Checks that the newly deployed contract at address contractAddr is in the expected state
+     * after the contract whose name is contractName (inside the file named contractFilename) is
+     * deployed to it.
      */
     private void checkStateOfNewContract(IRepositoryCache repo, String contractName,
         String contractFilename, Address contractAddr, ExecutionResult result, BigInteger value)
@@ -984,14 +993,12 @@ public class ContractIntegTest {
     /**
      * Checks the state of the deployer after a successful contract deployment. In this case we
      * expect the deployer's nonce to have incremented to one and their new balance to be equal to:
-     *     D - UP - V
+     * D - UP - V
      *
-     * D is default starting amount
-     * U is energy used
-     * P is energy price
-     * V is value transferred
+     * D is default starting amount U is energy used P is energy price V is value transferred
      */
-    private void checkStateOfDeployer(IRepositoryCache repo, AionTxExecSummary summary, long nrgPrice,
+    private void checkStateOfDeployer(IRepositoryCache repo, AionTxExecSummary summary,
+        long nrgPrice,
         BigInteger value, BigInteger nonce) {
 
         assertEquals(nonce, repo.getNonce(deployer));
@@ -1000,8 +1007,8 @@ public class ContractIntegTest {
     }
 
     /**
-     * Checks the state of the deployer after a failed attempt to deploy a contract. In this case
-     * we expect the deployer's nonce to still be zero and their balance still default and unchanged.
+     * Checks the state of the deployer after a failed attempt to deploy a contract. In this case we
+     * expect the deployer's nonce to still be zero and their balance still default and unchanged.
      */
     private void checkStateOfDeployerOnBadDeploy(IRepositoryCache repo) {
 
@@ -1010,8 +1017,8 @@ public class ContractIntegTest {
     }
 
     /**
-     * Extracts output from rawOutput under the assumption that rawOutput is the result output of
-     * a call to the fastVM and this output is of variable length not predefined length.
+     * Extracts output from rawOutput under the assumption that rawOutput is the result output of a
+     * call to the fastVM and this output is of variable length not predefined length.
      */
     private byte[] extractOutput(byte[] rawOutput) {
         int headerLen = new DataWord(Arrays.copyOfRange(rawOutput, 0, DataWord.BYTES)).intValue();

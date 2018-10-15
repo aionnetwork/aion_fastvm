@@ -38,13 +38,16 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 
-public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
-    private DummyRepository parent;
+public class DummyRepository implements
+    IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
+
     Map<Address, AccountState> accounts = new HashMap<>();
     Map<Address, byte[]> contracts = new HashMap<>();
     Map<Address, Map<String, byte[]>> storage = new HashMap<>();
+    private DummyRepository parent;
 
-    public DummyRepository() { }
+    public DummyRepository() {
+    }
 
     public DummyRepository(DummyRepository parent) {
         // Note: only references are copied
@@ -220,7 +223,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
 
     @Override
     public void updateBatch(Map<Address, AccountState> accountStates,
-                            Map<Address, IContractDetails<DataWord>> contractDetailes) {
+        Map<Address, IContractDetails<DataWord>> contractDetailes) {
         throw new UnsupportedOperationException();
     }
 
@@ -231,7 +234,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
 
     @Override
     public void loadAccountState(Address addr, Map<Address, AccountState> cacheAccounts,
-                                 Map<Address, IContractDetails<DataWord>> cacheDetails) {
+        Map<Address, IContractDetails<DataWord>> cacheDetails) {
         throw new UnsupportedOperationException();
     }
 
@@ -263,6 +266,6 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     @Override
     public void compact() {
         throw new UnsupportedOperationException(
-                "The tracking cache cannot be compacted. \'Compact\' should be called on the tracked repository.");
+            "The tracking cache cannot be compacted. \'Compact\' should be called on the tracked repository.");
     }
 }

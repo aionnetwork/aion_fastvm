@@ -20,22 +20,18 @@
  ******************************************************************************/
 package org.aion.contract;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.aion.base.util.Hex;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 public class ContractUtils {
 
     /**
      * Reads the given contract.
-     *
-     * @param fileName
-     * @return
      */
     public static byte[] readContract(String fileName) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -51,36 +47,27 @@ public class ContractUtils {
 
 
     /**
-     * Compiles the given solidity source file and returns the deployer code for
-     * the given contract.
-     *
-     * @param fileName
-     * @param contractName
-     * @return
-     * @throws IOException
+     * Compiles the given solidity source file and returns the deployer code for the given
+     * contract.
      */
-    public static byte[] getContractDeployer(String fileName, String contractName) throws IOException {
+    public static byte[] getContractDeployer(String fileName, String contractName)
+        throws IOException {
         Compiler.Result r = Compiler.getInstance()
-                .compile(readContract(fileName), Options.BIN);
+            .compile(readContract(fileName), Options.BIN);
         CompilationResult cr = CompilationResult.parse(r.output);
         String deployer = cr.contracts.get(contractName).bin;
         return Hex.decode(deployer);
     }
 
     /**
-     * Compiles the given solidity source file and returns the contract code for
-     * the given contract.
+     * Compiles the given solidity source file and returns the contract code for the given
+     * contract.
      * <p>
      * NOTE: This method assumes the constructor is empty.
-     *
-     * @param fileName
-     * @param contractName
-     * @return
-     * @throws IOException
      */
     public static byte[] getContractBody(String fileName, String contractName) throws IOException {
         Compiler.Result r = Compiler.getInstance()
-                .compile(readContract(fileName), Options.BIN);
+            .compile(readContract(fileName), Options.BIN);
         CompilationResult cr = CompilationResult.parse(r.output);
         String deployer = cr.contracts.get(contractName).bin;
         String contract = deployer.substring(deployer.indexOf("60506040", 1));
