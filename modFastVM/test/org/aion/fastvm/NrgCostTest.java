@@ -511,8 +511,7 @@ public class NrgCostTest {
      * <p>
      * It simulate the situation where there are <code>X</code> blocks, each of which contains
      * <code>Y</code> transactions. Each transaction reads/writes one storage entry of an unique
-     * account.
-     * This whole process is repeated <code>Z</code> time.
+     * account. This whole process is repeated <code>Z</code> time.
      * <p>
      * There will be <code>X * Y</code> accounts created. Trie serialization/deserialization is
      * expected to happen during the test.
