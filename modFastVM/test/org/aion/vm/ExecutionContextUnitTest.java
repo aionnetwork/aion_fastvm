@@ -21,8 +21,10 @@
  *     Aion foundation.
  */
 package org.aion.vm;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -51,7 +53,7 @@ public class ExecutionContextUnitTest {
         nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
         callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
         txHash = RandomUtils.nextBytes(32);
-        callData = new byte[]{0x07};
+        callData = new byte[] {0x07};
         depth = 8;
         kind = 9;
         flags = 10;
@@ -202,12 +204,27 @@ public class ExecutionContextUnitTest {
     // <-------------------------------------HELPERS BELOW----------------------------------------->
 
     /**
-     * Returns a new ExecutionContext whose fields will be initialized using the fields of this class.
+     * Returns a new ExecutionContext whose fields will be initialized using the fields of this
+     * class.
      */
     private ExecutionContext newExecutionContext() {
-        return new ExecutionContext(txHash, recipient, origin, caller, nrgPrice, nrgLimit, callValue,
-            callData, depth, kind, flags, coinbase, blockNumber, blockTimestamp, blockNrgLimit,
-            blockDifficulty);
+        return new ExecutionContext(
+                txHash,
+                recipient,
+                origin,
+                caller,
+                nrgPrice,
+                nrgLimit,
+                callValue,
+                callData,
+                depth,
+                kind,
+                flags,
+                coinbase,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
     }
 
     /**
@@ -269,7 +286,8 @@ public class ExecutionContextUnitTest {
         assertEquals(context.flags(), intBuf.getInt());
         start = end;
         end += Address.ADDRESS_LEN;
-        assertEquals(context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(
+                context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -289,7 +307,7 @@ public class ExecutionContextUnitTest {
         assertEquals(context.blockNrgLimit(), longBuf.getLong());
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.blockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(
+                context.blockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
     }
-
 }

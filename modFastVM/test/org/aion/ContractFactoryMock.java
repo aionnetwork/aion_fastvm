@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
+ *
+ *     This file is part of the aion network project.
+ *
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Aion foundation.
+ */
+
 package org.aion;
 
 import org.aion.base.db.IRepositoryCache;
@@ -12,20 +35,20 @@ import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 
 public class ContractFactoryMock implements IContractFactory {
-    public static final String CALL_ME = "9999999999999999999999999999999999999999999999999999999999999999";
+    public static final String CALL_ME =
+            "9999999999999999999999999999999999999999999999999999999999999999";
 
-
-    /**
-     * A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract.
-     */
+    /** A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract. */
     @Override
     public IPrecompiledContract getPrecompiledContract(
-                ExecutionContext context,
-                IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
+            ExecutionContext context,
+            IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
 
         switch (context.address().toString()) {
-            case CALL_ME: return new CallMePrecompiledContract();
-            default: return null;
+            case CALL_ME:
+                return new CallMePrecompiledContract();
+            default:
+                return null;
         }
     }
 
@@ -45,7 +68,5 @@ public class ContractFactoryMock implements IContractFactory {
             System.arraycopy(input, 0, msg, head.getBytes().length, input.length);
             return new ExecutionResult(ResultCode.SUCCESS, nrgLimit, msg);
         }
-
     }
-
 }

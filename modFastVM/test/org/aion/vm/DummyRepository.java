@@ -38,13 +38,14 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 
-public class DummyRepository implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
+public class DummyRepository
+        implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
     private DummyRepository parent;
     Map<Address, AccountState> accounts = new HashMap<>();
     Map<Address, byte[]> contracts = new HashMap<>();
     Map<Address, Map<String, byte[]>> storage = new HashMap<>();
 
-    public DummyRepository() { }
+    public DummyRepository() {}
 
     public DummyRepository(DummyRepository parent) {
         // Note: only references are copied
@@ -189,14 +190,10 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public void rollback() {
-
-    }
+    public void rollback() {}
 
     @Override
-    public void syncToRoot(byte[] root) {
-
-    }
+    public void syncToRoot(byte[] root) {}
 
     @Override
     public boolean isClosed() {
@@ -204,9 +201,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public void close() {
-
-    }
+    public void close() {}
 
     @Override
     public boolean isValidRoot(byte[] root) {
@@ -219,8 +214,9 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public void updateBatch(Map<Address, AccountState> accountStates,
-                            Map<Address, IContractDetails<DataWord>> contractDetailes) {
+    public void updateBatch(
+            Map<Address, AccountState> accountStates,
+            Map<Address, IContractDetails<DataWord>> contractDetailes) {
         throw new UnsupportedOperationException();
     }
 
@@ -230,8 +226,10 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public void loadAccountState(Address addr, Map<Address, AccountState> cacheAccounts,
-                                 Map<Address, IContractDetails<DataWord>> cacheDetails) {
+    public void loadAccountState(
+            Address addr,
+            Map<Address, AccountState> cacheAccounts,
+            Map<Address, IContractDetails<DataWord>> cacheDetails) {
         throw new UnsupportedOperationException();
     }
 
@@ -251,14 +249,10 @@ public class DummyRepository implements IRepositoryCache<AccountState, DataWord,
     }
 
     @Override
-    public void addTxBatch(Map<byte[], byte[]> pendingTx, boolean isPool) {
-
-    }
+    public void addTxBatch(Map<byte[], byte[]> pendingTx, boolean isPool) {}
 
     @Override
-    public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {
-
-    }
+    public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {}
 
     @Override
     public void compact() {

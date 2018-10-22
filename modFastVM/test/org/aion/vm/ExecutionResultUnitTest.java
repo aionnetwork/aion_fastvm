@@ -140,7 +140,7 @@ public class ExecutionResultUnitTest {
 
     @Test
     public void testEncodingLengthOneOutput() {
-        output = new byte[]{ (byte) 0x4A };
+        output = new byte[] {(byte) 0x4A};
         checkEncoding(new ExecutionResult(code, nrgLeft, output));
     }
 
@@ -168,5 +168,4 @@ public class ExecutionResultUnitTest {
         ExecutionResult decodedResult = ExecutionResult.parse(encoding);
         assertEquals(original, decodedResult);
     }
-
 }
