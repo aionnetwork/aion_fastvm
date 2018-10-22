@@ -31,8 +31,8 @@ import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.apache.commons.lang3.RandomUtils;
@@ -51,7 +51,6 @@ public class DoSUnexpectedThrowTest {
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
     private DataWord blockDifficulty = new DataWord(0x100000000L);
-
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -82,14 +81,30 @@ public class DoSUnexpectedThrowTest {
 
         int bid = 100;
 
-        callData = ByteUtil
-            .merge(Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
+        callData =
+                ByteUtil.merge(
+                        Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
         nrgLimit = 69;
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result =  vm.run(contract, ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
     }
@@ -106,15 +121,31 @@ public class DoSUnexpectedThrowTest {
 
         int bid = 100;
 
-        callData = ByteUtil
-            .merge(Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
+        callData =
+                ByteUtil.merge(
+                        Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
 
         nrgLimit = 100_000L;
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result =  vm.run(contract, ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
     }
@@ -131,15 +162,31 @@ public class DoSUnexpectedThrowTest {
 
         int bid = 100;
 
-        callData = ByteUtil
-            .merge(Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+        callData =
+                ByteUtil.merge(
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
 
         nrgLimit = 100_000L;
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result =  vm.run(contract, ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
     }
@@ -156,13 +203,29 @@ public class DoSUnexpectedThrowTest {
 
         int bid = 100;
 
-        callData = ByteUtil
-            .merge(Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+        callData =
+                ByteUtil.merge(
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
 
         nrgLimit = 10000;
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
         FastVM vm = new FastVM();
         IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
@@ -181,18 +244,32 @@ public class DoSUnexpectedThrowTest {
 
         int bid = 100;
 
-        callData = ByteUtil
-            .merge(Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+        callData =
+                ByteUtil.merge(
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
 
         nrgLimit = 369;
-        ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
-                callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
-                blockDifficulty);
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result =  vm.run(contract, ctx, repo);
+        IExecutionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
         assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
     }
-
-
 }

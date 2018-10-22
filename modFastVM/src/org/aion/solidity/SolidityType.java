@@ -1,27 +1,26 @@
-/*******************************************************************************
- *
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     This file is part of the aion network project.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
+ *
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.solidity;
-
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
@@ -29,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.aion.base.util.ByteUtil;
+import org.aion.base.util.Hex;
 
 public abstract class SolidityType {
 
@@ -38,36 +39,27 @@ public abstract class SolidityType {
         this.name = name;
     }
 
-    /**
-     * The type name as it was specified in the interface description
-     */
+    /** The type name as it was specified in the interface description */
     public String getName() {
         return name;
     }
 
     /**
-     * The canonical type name (used for the method signature creation) E.g.
-     * 'int' - canonical 'int128'
+     * The canonical type name (used for the method signature creation) E.g. 'int' - canonical
+     * 'int128'
      */
     public String getCanonicalName() {
         return getName();
     }
 
     public static SolidityType getType(String typeName) {
-        if (typeName.contains("["))
-            return ArrayType.getType(typeName);
-        if ("bool".equals(typeName))
-            return new BoolType();
-        if (typeName.startsWith("int") || typeName.startsWith("uint"))
-            return new IntType(typeName);
-        if ("address".equals(typeName))
-            return new AddressType();
-        if ("string".equals(typeName))
-            return new StringType();
-        if ("bytes".equals(typeName))
-            return new BytesType();
-        if (typeName.startsWith("bytes"))
-            return new Bytes32Type(typeName);
+        if (typeName.contains("[")) return ArrayType.getType(typeName);
+        if ("bool".equals(typeName)) return new BoolType();
+        if (typeName.startsWith("int") || typeName.startsWith("uint")) return new IntType(typeName);
+        if ("address".equals(typeName)) return new AddressType();
+        if ("string".equals(typeName)) return new StringType();
+        if ("bytes".equals(typeName)) return new BytesType();
+        if (typeName.startsWith("bytes")) return new Bytes32Type(typeName);
         throw new RuntimeException("Unknown type: " + typeName);
     }
 
@@ -85,9 +77,8 @@ public abstract class SolidityType {
     }
 
     /**
-     * @return fixed size in bytes. For the dynamic types returns
-     * IntType.getFixedSize() which is effectively the int offset to
-     * dynamic data
+     * @return fixed size in bytes. For the dynamic types returns IntType.getFixedSize() which is
+     *     effectively the int offset to dynamic data
      */
     public abstract int getFixedSize();
 
@@ -100,7 +91,7 @@ public abstract class SolidityType {
         return getName();
     }
 
-    public static abstract class ArrayType extends SolidityType {
+    public abstract static class ArrayType extends SolidityType {
         public static ArrayType getType(String typeName) {
             int idx1 = typeName.indexOf("[");
             int idx2 = typeName.indexOf("]", idx1);
@@ -163,7 +154,8 @@ public abstract class SolidityType {
         @Override
         public byte[] encodeList(List<?> l) {
             if (l.size() != size)
-                throw new RuntimeException("List size (" + l.size() + ") != " + size + " for type " + getName());
+                throw new RuntimeException(
+                        "List size (" + l.size() + ") != " + size + " for type " + getName());
             byte[][] elems = new byte[size][];
             for (int i = 0; i < l.size(); i++) {
                 elems[i] = elementType.encode(l.get(i));
@@ -230,7 +222,10 @@ public abstract class SolidityType {
 
             for (int i = 0; i < len; i++) {
                 if (elementType.isDynamicType()) {
-                    ret[i] = elementType.decode(encoded, origOffset + IntType.decodeInt(encoded, offset).intValue());
+                    ret[i] =
+                            elementType.decode(
+                                    encoded,
+                                    origOffset + IntType.decodeInt(encoded, offset).intValue());
                 } else {
                     ret[i] = elementType.decode(encoded, offset);
                 }
@@ -274,8 +269,7 @@ public abstract class SolidityType {
         @Override
         public Object decode(byte[] encoded, int offset) {
             int len = IntType.decodeInt(encoded, offset).intValue();
-            if (len == 0)
-                return new byte[0];
+            if (len == 0) return new byte[0];
             offset += 16;
             return Arrays.copyOfRange(encoded, offset, offset + len);
         }
@@ -402,10 +396,8 @@ public abstract class SolidityType {
 
         @Override
         public String getCanonicalName() {
-            if (getName().equals("int"))
-                return "int128";
-            if (getName().equals("uint"))
-                return "uint128";
+            if (getName().equals("int")) return "int128";
+            if (getName().equals("uint")) return "uint128";
             return super.getCanonicalName();
         }
 
@@ -419,7 +411,11 @@ public abstract class SolidityType {
                 if (s.startsWith("0x")) {
                     s = s.substring(2);
                     radix = 16;
-                } else if (s.contains("a") || s.contains("b") || s.contains("c") || s.contains("d") || s.contains("e")
+                } else if (s.contains("a")
+                        || s.contains("b")
+                        || s.contains("c")
+                        || s.contains("d")
+                        || s.contains("e")
                         || s.contains("f")) {
                     radix = 16;
                 }
@@ -432,7 +428,13 @@ public abstract class SolidityType {
                 bigInt = ByteUtil.bytesToBigInteger((byte[]) value);
             } else {
                 throw new RuntimeException(
-                        "Invalid value for type '" + this + "': " + value + " (" + value.getClass() + ")");
+                        "Invalid value for type '"
+                                + this
+                                + "': "
+                                + value
+                                + " ("
+                                + value.getClass()
+                                + ")");
             }
             return encodeInt(bigInt);
         }
@@ -477,5 +479,4 @@ public abstract class SolidityType {
             return Boolean.valueOf(((Number) super.decode(encoded, offset)).intValue() != 0);
         }
     }
-
 }

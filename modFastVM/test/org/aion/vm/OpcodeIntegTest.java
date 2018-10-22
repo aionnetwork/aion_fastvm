@@ -66,10 +66,11 @@ public class OpcodeIntegTest {
 
     @Before
     public void setup() {
-        StandaloneBlockchain.Bundle bundle = (new StandaloneBlockchain.Builder())
-            .withValidatorConfiguration("simple")
-            .withDefaultAccounts()
-            .build();
+        StandaloneBlockchain.Bundle bundle =
+                (new StandaloneBlockchain.Builder())
+                        .withValidatorConfiguration("simple")
+                        .withDefaultAccounts()
+                        .build();
         blockchain = bundle.bc;
         deployerKey = bundle.privateKeys.get(0);
         deployer = new Address(deployerKey.getAddress());
@@ -95,12 +96,19 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("f854bb89"), new DataWord(6).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -135,12 +143,19 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("8256cff3"), new DataWord(5).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -171,12 +186,19 @@ public class OpcodeIntegTest {
         BigInteger nonce = BigInteger.ONE;
 
         byte[] input = ByteUtil.merge(Hex.decode("10462fd0"), new DataWord(7).getData());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -215,14 +237,21 @@ public class OpcodeIntegTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -233,14 +262,21 @@ public class OpcodeIntegTest {
 
         // When we call into contract D we should find its storage is modified so that 'n' is set.
         input = Hex.decode("3e955225");
-        tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(), input, nrg,
-            nrgPrice);
+        tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         BigInteger inStore = new BigInteger(exec.execute().getResult());
@@ -249,14 +285,21 @@ public class OpcodeIntegTest {
         nonce = nonce.add(BigInteger.ONE);
 
         // When we call into contract E we should find its storage is unmodified.
-        tx = new AionTransaction(nonce.toByteArray(), E, BigInteger.ZERO.toByteArray(), input, nrg,
-            nrgPrice);
+        tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        E,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(E, tx.getTo());
 
-        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         inStore = new BigInteger(exec.execute().getResult());
@@ -269,7 +312,8 @@ public class OpcodeIntegTest {
         Address D = deployContract(repo, "D", "D.sol", BigInteger.ZERO);
         Address E = deployContract(repo, "E", "D.sol", BigInteger.ZERO);
 
-        // Deployer calls contract D which performs CALLCODE to call contract E. From the perspective
+        // Deployer calls contract D which performs CALLCODE to call contract E. From the
+        // perspective
         // of the internal transaction, however, it looks like D calls D.
         long nrg = 1_000_000;
         long nrgPrice = 1;
@@ -277,14 +321,21 @@ public class OpcodeIntegTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(0).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -317,14 +368,16 @@ public class OpcodeIntegTest {
         byte[] input = ByteUtil.merge(Hex.decode("5cce9fc2"), E.toBytes()); // use CALLCODE on E.
         input = ByteUtil.merge(input, new DataWord(0).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(),
-            input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -354,17 +407,20 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input =
+                ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
-            nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -375,14 +431,21 @@ public class OpcodeIntegTest {
 
         // When we call into contract D we should find its storage is modified so that 'n' is set.
         input = Hex.decode("3e955225");
-        tx = new AionTransaction(nonce.toByteArray(), D, BigInteger.ZERO.toByteArray(), input, nrg,
-            nrgPrice);
+        tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        D,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         BigInteger inStore = new BigInteger(exec.execute().getResult());
@@ -390,14 +453,21 @@ public class OpcodeIntegTest {
         nonce = nonce.add(BigInteger.ONE);
 
         // When we call into contract E we should find its storage is unmodified.
-        tx = new AionTransaction(nonce.toByteArray(), E, BigInteger.ZERO.toByteArray(), input, nrg,
-            nrgPrice);
+        tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        E,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(E, tx.getTo());
 
-        context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         inStore = new BigInteger(exec.execute().getResult());
@@ -416,17 +486,20 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input =
+                ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
-            nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -434,7 +507,8 @@ public class OpcodeIntegTest {
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getNrgLeft());
 
-        // We expect there to be one internal transaction and it should look like deployer sent to D.
+        // We expect there to be one internal transaction and it should look like deployer sent to
+        // D.
         List<AionInternalTx> internalTxs = summary.getInternalTransactions();
         assertEquals(1, internalTxs.size());
         assertEquals(deployer, internalTxs.get(0).getFrom());
@@ -457,17 +531,20 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger value = new BigInteger("4364463");
         BigInteger nonce = BigInteger.TWO;
-        byte[] input = ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
+        byte[] input =
+                ByteUtil.merge(Hex.decode("32817e1d"), E.toBytes()); // use DELEGATECALL on E.
         input = ByteUtil.merge(input, new DataWord(n).getData()); // pass in 'n' also.
 
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), D, value.toByteArray(), input,
-            nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
         assertEquals(deployer, tx.getFrom());
         assertEquals(D, tx.getTo());
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -488,10 +565,8 @@ public class OpcodeIntegTest {
     @Test
     public void testOpcodesActors() throws IOException {
         IRepositoryCache repo = blockchain.getRepository().startTracking();
-        Address callerContract = deployContract(repo, "Caller", "Opcodes.sol",
-            BigInteger.ZERO);
-        Address calleeContract = deployContract(repo, "Callee", "Opcodes.sol",
-            BigInteger.ZERO);
+        Address callerContract = deployContract(repo, "Caller", "Opcodes.sol", BigInteger.ZERO);
+        Address calleeContract = deployContract(repo, "Callee", "Opcodes.sol", BigInteger.ZERO);
 
         System.err.println("Deployer: " + deployer);
         System.err.println("Caller: " + callerContract);
@@ -501,12 +576,19 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger nonce = BigInteger.TWO;
         byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), calleeContract.toBytes());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), callerContract,
-            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        callerContract,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -536,8 +618,7 @@ public class OpcodeIntegTest {
         Address recipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
         repo.createAccount(recipient);
 
-        Address contract = deployContract(repo, "Suicide", "Suicide.sol",
-            BigInteger.ZERO);
+        Address contract = deployContract(repo, "Suicide", "Suicide.sol", BigInteger.ZERO);
         repo.addBalance(contract, balance);
 
         BigInteger balanceDeployer = repo.getBalance(deployer);
@@ -548,12 +629,19 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger nonce = BigInteger.ONE;
         byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), recipient.toBytes());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), contract,
-            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        contract,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -578,8 +666,7 @@ public class OpcodeIntegTest {
         BigInteger balance = new BigInteger("32522224");
         Address recipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
 
-        Address contract = deployContract(repo, "Suicide", "Suicide.sol",
-            BigInteger.ZERO);
+        Address contract = deployContract(repo, "Suicide", "Suicide.sol", BigInteger.ZERO);
         repo.addBalance(contract, balance);
 
         BigInteger balanceDeployer = repo.getBalance(deployer);
@@ -590,12 +677,19 @@ public class OpcodeIntegTest {
         long nrgPrice = 1;
         BigInteger nonce = BigInteger.ONE;
         byte[] input = ByteUtil.merge(Hex.decode("fc68521a"), recipient.toBytes());
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), contract,
-            BigInteger.ZERO.toByteArray(), input, nrg, nrgPrice);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(),
+                        contract,
+                        BigInteger.ZERO.toByteArray(),
+                        input,
+                        nrg,
+                        nrgPrice);
         tx.sign(deployerKey);
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
@@ -616,22 +710,25 @@ public class OpcodeIntegTest {
         assertEquals(contract, summary.getDeletedAccounts().get(0));
     }
 
-    //<-------------------------------------------------------------------------------------------->
+    // <-------------------------------------------------------------------------------------------->
 
     /**
      * Deploys the contract named contractName in the file named contractFilename with value value.
      */
-    private Address deployContract(IRepositoryCache repo, String contractName,
-        String contractFilename, BigInteger value) throws IOException {
+    private Address deployContract(
+            IRepositoryCache repo, String contractName, String contractFilename, BigInteger value)
+            throws IOException {
 
         byte[] deployCode = ContractUtils.getContractDeployer(contractFilename, contractName);
         long nrg = 1_000_000;
         long nrgPrice = 1;
         BigInteger nonce = repo.getNonce(deployer);
-        AionTransaction tx = new AionTransaction(nonce.toByteArray(), null, value.toByteArray(),
-            deployCode, nrg, nrgPrice);
-        Address contract = deployContract(repo, tx, contractName, contractFilename, value, nrg,
-            nrgPrice, nonce);
+        AionTransaction tx =
+                new AionTransaction(
+                        nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
+        Address contract =
+                deployContract(
+                        repo, tx, contractName, contractFilename, value, nrg, nrgPrice, nonce);
         deployerBalance = repo.getBalance(deployer);
         return contract;
     }
@@ -640,19 +737,27 @@ public class OpcodeIntegTest {
      * Deploys a contract named contractName in a file named contractFilename and checks the state
      * of the deployed contract and the contract deployer.
      *
-     * Returns the address of the newly deployed contract.
+     * <p>Returns the address of the newly deployed contract.
      */
-    private Address deployContract(IRepositoryCache repo, AionTransaction tx, String contractName,
-        String contractFilename, BigInteger value, long nrg, long nrgPrice, BigInteger expectedNonce)
-        throws IOException {
+    private Address deployContract(
+            IRepositoryCache repo,
+            AionTransaction tx,
+            String contractName,
+            String contractFilename,
+            BigInteger value,
+            long nrg,
+            long nrgPrice,
+            BigInteger expectedNonce)
+            throws IOException {
 
         tx.sign(deployerKey);
         assertTrue(tx.isContractCreation());
         assertEquals(deployerBalance, repo.getBalance(deployer));
         assertEquals(expectedNonce, repo.getNonce(deployer));
 
-        BlockContext context = blockchain.createNewBlockContext(blockchain.getBestBlock(),
-            Collections.singletonList(tx), false);
+        BlockContext context =
+                blockchain.createNewBlockContext(
+                        blockchain.getBestBlock(), Collections.singletonList(tx), false);
 
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
@@ -664,8 +769,13 @@ public class OpcodeIntegTest {
 
         Address contract = tx.getContractAddress();
         checkStateOfNewContract(repo, contractName, contractFilename, contract, value);
-        checkStateOfDeployer(repo, deployerBalance, summary.getNrgUsed().longValue(), nrgPrice,
-            value, expectedNonce);
+        checkStateOfDeployer(
+                repo,
+                deployerBalance,
+                summary.getNrgUsed().longValue(),
+                nrgPrice,
+                value,
+                expectedNonce);
         return contract;
     }
 
@@ -674,8 +784,13 @@ public class OpcodeIntegTest {
      * deployed at address contractAddr with the expected body code and a zero nonce and balance
      * equal to whatever value was transferred to it when deployed.
      */
-    private void checkStateOfNewContract(IRepositoryCache repo, String contractName,
-        String contractFilename, Address contractAddr, BigInteger valueTransferred) throws IOException {
+    private void checkStateOfNewContract(
+            IRepositoryCache repo,
+            String contractName,
+            String contractFilename,
+            Address contractAddr,
+            BigInteger valueTransferred)
+            throws IOException {
 
         byte[] expectedBodyCode = ContractUtils.getContractBody(contractFilename, contractName);
         assertArrayEquals(expectedBodyCode, repo.getCode(contractAddr));
@@ -688,8 +803,13 @@ public class OpcodeIntegTest {
      * expect the deployer's nonce to have incremented by one and their new balance to be equal to
      * the prior balance minus the tx cost and the value transferred.
      */
-    private void checkStateOfDeployer(IRepositoryCache repo, BigInteger priorBalance, long nrgUsed,
-        long nrgPrice, BigInteger value, BigInteger priorNonce) {
+    private void checkStateOfDeployer(
+            IRepositoryCache repo,
+            BigInteger priorBalance,
+            long nrgUsed,
+            long nrgPrice,
+            BigInteger value,
+            BigInteger priorNonce) {
 
         assertEquals(priorNonce.add(BigInteger.ONE), repo.getNonce(deployer));
         BigInteger txCost = BigInteger.valueOf(nrgUsed * nrgPrice);
@@ -703,12 +823,14 @@ public class OpcodeIntegTest {
      */
     private void verifyLogData(byte[] data, Address owner, Address caller, Address origin) {
         assertArrayEquals(Arrays.copyOfRange(data, 0, Address.ADDRESS_LEN), owner.toBytes());
-        assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN, Address.ADDRESS_LEN * 2),
-            caller.toBytes());
-        assertArrayEquals(Arrays.copyOfRange(data, Address.ADDRESS_LEN * 2, Address.ADDRESS_LEN * 3),
-            origin.toBytes());
-        assertArrayEquals(Arrays.copyOfRange(data, data.length - DataWord.BYTES, data.length),
-            DataWord.ZERO.getData());
+        assertArrayEquals(
+                Arrays.copyOfRange(data, Address.ADDRESS_LEN, Address.ADDRESS_LEN * 2),
+                caller.toBytes());
+        assertArrayEquals(
+                Arrays.copyOfRange(data, Address.ADDRESS_LEN * 2, Address.ADDRESS_LEN * 3),
+                origin.toBytes());
+        assertArrayEquals(
+                Arrays.copyOfRange(data, data.length - DataWord.BYTES, data.length),
+                DataWord.ZERO.getData());
     }
-
 }

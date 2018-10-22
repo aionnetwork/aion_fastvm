@@ -1,26 +1,35 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017 Aion foundation.
+ *     This file is part of the aion network project.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ *     The aion network project is free software: you can redistribute it
+ *     and/or modify it under the terms of the GNU General Public License
+ *     as published by the Free Software Foundation, either version 3 of
+ *     the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ *     The aion network project is distributed in the hope that it will
+ *     be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *     See the GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ *     along with the aion network project source files.
+ *     If not, see <https://www.gnu.org/licenses/>.
  *
  * Contributors:
  *     Aion foundation.
- ******************************************************************************/
+ */
 package org.aion.fastvm;
 
-import static org.aion.fastvm.Instruction.Tier.*;
+import static org.aion.fastvm.Instruction.Tier.BASE;
+import static org.aion.fastvm.Instruction.Tier.EXT_CODE;
+import static org.aion.fastvm.Instruction.Tier.HIGH;
+import static org.aion.fastvm.Instruction.Tier.LOW;
+import static org.aion.fastvm.Instruction.Tier.MID;
+import static org.aion.fastvm.Instruction.Tier.SPECIAL;
+import static org.aion.fastvm.Instruction.Tier.VERY_LOW;
+import static org.aion.fastvm.Instruction.Tier.ZERO;
 
 /**
  * Instruction set for the Aion fast virtual machine.
