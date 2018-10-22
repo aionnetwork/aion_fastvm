@@ -1,23 +1,22 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  *
- * Copyright (c) 2017-2018 Aion foundation.
+ * <p>Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ * <p>You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <https://www.gnu.org/licenses/>
  *
- * Contributors:
- *     Aion foundation.
- ******************************************************************************/
+ * <p>Contributors: Aion foundation.
+ * ****************************************************************************
+ */
 package org.aion.fastvm;
 
 import org.aion.base.db.IRepositoryCache;
@@ -48,33 +47,24 @@ public class FastVM implements VirtualMachine {
         init();
     }
 
-    /**
-     * Creates a FastVM instance.
-     */
-    public FastVM() {
-    }
+    /** Creates a FastVM instance. */
+    public FastVM() {}
 
-    /**
-     * Initializes library. One time
-     */
-    private native static void init();
+    /** Initializes library. One time */
+    private static native void init();
 
     /**
      * Creates a new VM instance.
      *
      * @return instance
      */
-    private native static long create();
+    private static native long create();
 
-    /**
-     * Executes the given code and returns the execution results.
-     */
-    private native static byte[] run(long instance, byte[] code, byte[] context, int revision);
+    /** Executes the given code and returns the execution results. */
+    private static native byte[] run(long instance, byte[] code, byte[] context, int revision);
 
-    /**
-     * Destroys the given VM instance.
-     */
-    private native static void destroy(long instance);
+    /** Destroys the given VM instance. */
+    private static native void destroy(long instance);
 
     @SuppressWarnings("unchecked")
     public ExecutionResult run(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
@@ -86,5 +76,4 @@ public class FastVM implements VirtualMachine {
 
         return ExecutionResult.parse(result);
     }
-
 }

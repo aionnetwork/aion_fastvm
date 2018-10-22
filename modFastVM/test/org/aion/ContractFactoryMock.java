@@ -12,20 +12,20 @@ import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 
 public class ContractFactoryMock implements IContractFactory {
-    public static final String CALL_ME = "9999999999999999999999999999999999999999999999999999999999999999";
+    public static final String CALL_ME =
+            "9999999999999999999999999999999999999999999999999999999999999999";
 
-
-    /**
-     * A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract.
-     */
+    /** A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract. */
     @Override
     public IPrecompiledContract getPrecompiledContract(
-                ExecutionContext context,
-                IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
+            ExecutionContext context,
+            IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
 
         switch (context.address().toString()) {
-            case CALL_ME: return new CallMePrecompiledContract();
-            default: return null;
+            case CALL_ME:
+                return new CallMePrecompiledContract();
+            default:
+                return null;
         }
     }
 
@@ -45,7 +45,5 @@ public class ContractFactoryMock implements IContractFactory {
             System.arraycopy(input, 0, msg, head.getBytes().length, input.length);
             return new ExecutionResult(ResultCode.SUCCESS, nrgLimit, msg);
         }
-
     }
-
 }

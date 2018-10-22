@@ -284,7 +284,9 @@ public class ExecutionHelperUnitTest {
         Collection<Address> collection = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             collection.add(getNewAddress());
-            if (i < numNull) { collection.add(null); }
+            if (i < numNull) {
+                collection.add(null);
+            }
         }
         return collection;
     }
@@ -322,7 +324,10 @@ public class ExecutionHelperUnitTest {
         int numTopics = RandomUtils.nextInt(0, 50);
         int topicSize = RandomUtils.nextInt(0, 100);
         int dataSize = RandomUtils.nextInt(0, 100);
-        return new Log(getNewAddress(), generateTopics(numTopics, topicSize), RandomUtils.nextBytes(dataSize));
+        return new Log(
+                getNewAddress(),
+                generateTopics(numTopics, topicSize),
+                RandomUtils.nextBytes(dataSize));
     }
 
     /**
@@ -370,13 +375,14 @@ public class ExecutionHelperUnitTest {
         byte[] data = RandomUtils.nextBytes(arraySizes);
         int deep = RandomUtils.nextInt(0, 1000);
         int index = RandomUtils.nextInt(0, 1000);
-        return new AionInternalTx(parentHash, deep, index, nonce, sender, recipient, value, data, note);
+        return new AionInternalTx(
+                parentHash, deep, index, nonce, sender, recipient, value, data, note);
     }
 
     /**
      * Returns a new ExecutionHelper that has numTxs internal transactions, numAddrs deleted
-     * addresses, numLogs logs and numCalls Calls. Each of these objects are randomly generated.
-     * All Call objects added are null.
+     * addresses, numLogs logs and numCalls Calls. Each of these objects are randomly generated. All
+     * Call objects added are null.
      *
      * @param numTxs The number of internal transactions.
      * @param numAddrs The number of addresses.
@@ -394,5 +400,4 @@ public class ExecutionHelperUnitTest {
         }
         return helper;
     }
-
 }

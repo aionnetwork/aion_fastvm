@@ -12,7 +12,8 @@ public class TestVMProvider implements ExecutorProvider {
     private IContractFactory factory = new ContractFactory();
 
     @Override
-    public IPrecompiledContract getPrecompiledContract(ExecutionContext context, IRepositoryCache track) {
+    public IPrecompiledContract getPrecompiledContract(
+            ExecutionContext context, IRepositoryCache track) {
         return factory.getPrecompiledContract(context, track);
     }
 

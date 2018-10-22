@@ -57,7 +57,8 @@ public class Benchmark {
 
     private static AionBlock block = TestUtils.createDummyBlock();
     private static AionRepositoryImpl db = AionRepositoryImpl.inst();
-    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = db.startTracking();
+    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
+            db.startTracking();
 
     private static ECKey key;
     private static Address owner;
@@ -84,8 +85,8 @@ public class Benchmark {
         repo.addBalance(owner, BigInteger.valueOf(1_000_000_000L));
 
         // create transaction
-        byte[] deployer = ContractUtils
-            .getContractDeployer("BenchmarkERC20.sol", "FixedSupplyToken");
+        byte[] deployer =
+                ContractUtils.getContractDeployer("BenchmarkERC20.sol", "FixedSupplyToken");
         byte[] nonce = DataWord.ZERO.getData();
         Address from = owner;
         Address to = null;
@@ -122,9 +123,11 @@ public class Benchmark {
             Address from = owner;
             Address to = contract;
             byte[] value = DataWord.ZERO.getData();
-            byte[] data = ByteUtil
-                .merge(Hex.decode("fbb001d6" + "000000000000000000000000"), recipient,
-                    DataWord.ONE.getData());
+            byte[] data =
+                    ByteUtil.merge(
+                            Hex.decode("fbb001d6" + "000000000000000000000000"),
+                            recipient,
+                            DataWord.ONE.getData());
             long nrg = 1_000_000L;
             long nrgPrice = 1L;
             AionTransaction tx = new AionTransaction(nonce, from, to, value, data, nrg, nrgPrice);
@@ -144,16 +147,21 @@ public class Benchmark {
         List<AionTxReceipt> list = new ArrayList<>();
 
         for (AionTransaction tx : txs) {
-            boolean valid = tx.getHash() != null && tx.getHash().length == 32 //
-                && tx.getValue() != null && tx.getValue().length == 16 //
-                && tx.getData() != null //
-                && tx.getFrom() != null //
-                && tx.getTo() == null  //
-                && tx.getNonce() != null && tx.getNonce().length == 16 //
-                && tx.getNrg() > 0 //
-                && tx.getNrgPrice() > 0 //
-                && SignatureFac
-                .verify(tx.getRawHash(), tx.getSignature()); // TODO: verify signature here
+            boolean valid =
+                    tx.getHash() != null
+                            && tx.getHash().length == 32 //
+                            && tx.getValue() != null
+                            && tx.getValue().length == 16 //
+                            && tx.getData() != null //
+                            && tx.getFrom() != null //
+                            && tx.getTo() == null //
+                            && tx.getNonce() != null
+                            && tx.getNonce().length == 16 //
+                            && tx.getNrg() > 0 //
+                            && tx.getNrgPrice() > 0 //
+                            && SignatureFac.verify(
+                                    tx.getRawHash(),
+                                    tx.getSignature()); // TODO: verify signature here
             assertTrue(valid);
         }
 
@@ -200,8 +208,9 @@ public class Benchmark {
             Address from = owner;
             Address to = contract;
             byte[] value = DataWord.ZERO.getData();
-            byte[] data = ByteUtil
-                .merge(Hex.decode("70a08231" + "000000000000000000000000"), recipients.get(i));
+            byte[] data =
+                    ByteUtil.merge(
+                            Hex.decode("70a08231" + "000000000000000000000000"), recipients.get(i));
             long nrg = 1_000_000L;
             long nrgPrice = 1L;
             AionTransaction tx = new AionTransaction(nonce, from, to, value, data, nrg, nrgPrice);

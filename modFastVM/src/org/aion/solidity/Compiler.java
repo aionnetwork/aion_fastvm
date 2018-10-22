@@ -1,26 +1,30 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  *
- * Copyright (c) 2017-2018 Aion foundation.
+ * <p>Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ * <p>You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <https://www.gnu.org/licenses/>
  *
- * Contributors:
- *     Aion foundation.
- ******************************************************************************/
+ * <p>Contributors: Aion foundation.
+ * ****************************************************************************
+ */
 package org.aion.solidity;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,10 +37,8 @@ public class Compiler {
 
     private static Compiler instance;
 
-    private static String helloAion = "pragma solidity ^0.4.15;\n"
-        + "contract HelloAion {\n"
-        + "\n"
-        + "}";
+    private static String helloAion =
+            "pragma solidity ^0.4.15;\n" + "contract HelloAion {\n" + "\n" + "}";
 
     private Compiler() {
         solc = Paths.get("native", "linux", "solidity", "solc").toFile();
@@ -64,15 +66,19 @@ public class Compiler {
         }
         if (combinedJson) {
             commandParts.add("--combined-json");
-            commandParts.add(Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
+            commandParts.add(
+                    Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
         } else {
             for (Options option : options) {
                 commandParts.add("--" + option.getName());
             }
         }
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(solc.getParentFile());
-        processBuilder.environment().put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
+        ProcessBuilder processBuilder =
+                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+        processBuilder
+                .environment()
+                .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 
@@ -103,8 +109,11 @@ public class Compiler {
         commandParts.add(solc.getCanonicalPath());
         commandParts.add("--version");
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(solc.getParentFile());
-        processBuilder.environment().put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
+        ProcessBuilder processBuilder =
+                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+        processBuilder
+                .environment()
+                .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 
@@ -120,9 +129,11 @@ public class Compiler {
         return output.getContent();
     }
 
-
     public enum Options {
-        AST("ast"), BIN("bin"), INTERFACE("interface"), ABI("abi");
+        AST("ast"),
+        BIN("bin"),
+        INTERFACE("interface"),
+        ABI("abi");
 
         private final String name;
 
@@ -144,6 +155,7 @@ public class Compiler {
 
         public String errors;
         public String output;
+
         @SuppressWarnings("unused")
         private boolean isFailed;
 

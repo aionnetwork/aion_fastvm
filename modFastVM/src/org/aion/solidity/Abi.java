@@ -1,32 +1,23 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  *
- * Copyright (c) 2017-2018 Aion foundation.
+ * <p>Copyright (c) 2017-2018 Aion foundation.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ * <p>You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <https://www.gnu.org/licenses/>
  *
- * Contributors:
- *     Aion foundation.
- ******************************************************************************/
+ * <p>Contributors: Aion foundation.
+ * ****************************************************************************
+ */
 package org.aion.solidity;
-
-import org.aion.base.util.ByteUtil;
-import org.apache.commons.collections4.Predicate;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.lang.String.format;
 import static org.aion.crypto.HashUtil.h256;
@@ -36,6 +27,13 @@ import static org.apache.commons.collections4.ListUtils.select;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.aion.base.util.ByteUtil;
+import org.apache.commons.collections4.Predicate;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public final class Abi {
 
@@ -61,7 +59,8 @@ public final class Abi {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Entry> T find(Class<T> resultClass, final Entry.Type type, final Predicate<T> searchPredicate) {
+    private <T extends Entry> T find(
+            Class<T> resultClass, final Entry.Type type, final Predicate<T> searchPredicate) {
         for (Entry entry : entries) {
             if (entry.type == type && searchPredicate.evaluate((T) entry)) {
                 return (T) entry;
@@ -79,12 +78,15 @@ public final class Abi {
     }
 
     public Abi.Constructor findConstructor() {
-        return find(Constructor.class, Entry.Type.constructor, new Predicate<Constructor>() {
-            @Override
-            public boolean evaluate(Constructor object) {
-                return true;
-            }
-        });
+        return find(
+                Constructor.class,
+                Entry.Type.constructor,
+                new Predicate<Constructor>() {
+                    @Override
+                    public boolean evaluate(Constructor object) {
+                        return true;
+                    }
+                });
     }
 
     public Entry[] getEntries() {
@@ -98,10 +100,13 @@ public final class Abi {
         return toJSON();
     }
 
-    public static abstract class Entry {
+    public abstract static class Entry {
 
         public enum Type {
-            constructor, fallback, function, event
+            constructor,
+            fallback,
+            function,
+            event
         }
 
         public static class Param {
@@ -130,9 +135,11 @@ public final class Abi {
 
                 int offset = 0;
                 for (Param param : params) {
-                    Object decoded = param.type.isDynamicType()
-                            ? param.type.decode(encoded, decodeInt(encoded, offset).intValue())
-                            : param.type.decode(encoded, offset);
+                    Object decoded =
+                            param.type.isDynamicType()
+                                    ? param.type.decode(
+                                            encoded, decodeInt(encoded, offset).intValue())
+                                    : param.type.decode(encoded, offset);
                     result.add(decoded);
 
                     offset += param.type.getFixedSize();
@@ -143,7 +150,10 @@ public final class Abi {
 
             @Override
             public String toString() {
-                return format("%s%s%s", type.getCanonicalName(), (indexed != null && indexed) ? " indexed " : " ",
+                return format(
+                        "%s%s%s",
+                        type.getCanonicalName(),
+                        (indexed != null && indexed) ? " indexed " : " ",
                         name);
             }
         }
@@ -156,8 +166,14 @@ public final class Abi {
         public final List<Param> outputs;
         public final Type type;
 
-        public Entry(Boolean anonymous, Boolean constant, Boolean payable, String name, List<Param> inputs, List<Param> outputs,
-                     Type type) {
+        public Entry(
+                Boolean anonymous,
+                Boolean constant,
+                Boolean payable,
+                String name,
+                List<Param> inputs,
+                List<Param> outputs,
+                Type type) {
             this.anonymous = anonymous;
             this.constant = constant;
             this.payable = payable;
@@ -198,7 +214,8 @@ public final class Abi {
                 case "event":
                     return (T) new Event(anonymous, name, inputs, outputs);
                 default:
-                    throw new RuntimeException("Unrecognized ABI entry type: " + obj.getString("type"));
+                    throw new RuntimeException(
+                            "Unrecognized ABI entry type: " + obj.getString("type"));
             }
         }
 
@@ -239,8 +256,14 @@ public final class Abi {
             return fingerprintSignature();
         }
 
-        public static Entry create(boolean anonymous, boolean constant, boolean payable, String name, List<Param> inputs,
-                                   List<Param> outputs, Type type) {
+        public static Entry create(
+                boolean anonymous,
+                boolean constant,
+                boolean payable,
+                String name,
+                List<Param> inputs,
+                List<Param> outputs,
+                Type type) {
             Entry result = null;
             switch (type) {
                 case constructor:
@@ -287,7 +310,12 @@ public final class Abi {
 
         private static final int ENCODED_SIGN_LENGTH = 4;
 
-        public Function(boolean constant, boolean payable, String name, List<Param> inputs, List<Param> outputs) {
+        public Function(
+                boolean constant,
+                boolean payable,
+                String name,
+                List<Param> inputs,
+                List<Param> outputs) {
             super(null, constant, payable, name, inputs, outputs, Type.function);
         }
 
@@ -297,7 +325,8 @@ public final class Abi {
 
         private byte[] encodeArguments(Object... args) {
             if (args.length > inputs.size())
-                throw new RuntimeException("Too many arguments: " + args.length + " > " + inputs.size());
+                throw new RuntimeException(
+                        "Too many arguments: " + args.length + " > " + inputs.size());
 
             int staticSize = 0;
             int dynamicCnt = 0;
@@ -348,7 +377,6 @@ public final class Abi {
         public static byte[] extractSignature(byte[] data) {
             return subarray(data, 0, ENCODED_SIGN_LENGTH);
         }
-
     }
 
     public static class Event extends Entry {
@@ -372,12 +400,14 @@ public final class Abi {
         }
 
         private List<Param> filteredInputs(final boolean indexed) {
-            return select(inputs, new Predicate<Param>() {
-                @Override
-                public boolean evaluate(Param param) {
-                    return param.indexed == indexed;
-                }
-            });
+            return select(
+                    inputs,
+                    new Predicate<Param>() {
+                        @Override
+                        public boolean evaluate(Param param) {
+                            return param.indexed == indexed;
+                        }
+                    });
         }
 
         @Override
@@ -385,5 +415,4 @@ public final class Abi {
             return format("event %s(%s);", name, join(inputs, ", "));
         }
     }
-
 }
