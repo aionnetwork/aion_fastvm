@@ -862,6 +862,8 @@ public:
 		EDVerify, ///< CALL to special contract for edverify
 		SHA256, ///< CALL to special contract for sha256
 		RIPEMD160, ///< CALL to special contract for ripemd160
+		BLAKE2b256, ///< CALL to special contract for blake2b 256bits
+		TXHash, ///< CALL to special contract for the transaction hash of the context
 		Log0,
 		Log1,
 		Log2,
@@ -1012,8 +1014,8 @@ public:
 	/// Can contain a nullptr in which case indicates absence of documentation
 	ASTPointer<ASTString> documentation() const;
 
-	/// true iff arguments are to be padded to multiples of 32 bytes for external calls
-	bool padArguments() const { return !(m_kind == Kind::SHA3 || m_kind == Kind::SHA256 || m_kind == Kind::RIPEMD160); }
+	/// true if arguments are to be padded to multiples of 32 bytes for external calls
+	bool padArguments() const { return !(m_kind == Kind::SHA3 || m_kind == Kind::SHA256 || m_kind == Kind::RIPEMD160 || m_kind == Kind::BLAKE2b256); }
 	bool takesArbitraryParameters() const { return m_arbitraryParameters; }
 	bool gasSet() const { return m_gasSet; }
 	bool valueSet() const { return m_valueSet; }
