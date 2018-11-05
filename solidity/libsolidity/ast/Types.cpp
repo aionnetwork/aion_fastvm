@@ -2194,8 +2194,8 @@ string FunctionType::identifier() const
 	case Kind::EDVerify: id += "edverify"; break;
 	case Kind::SHA256: id += "sha256"; break;
 	case Kind::RIPEMD160: id += "ripemd160"; break;
-        case Kind::BLAKE2b256: id += "black2b256"; break;
-        case Kind::TXHash: id += "transactionhash"; break;
+	case Kind::BLAKE2b256: id += "black2b256"; break;
+	case Kind::TXHash: id += "transactionhash"; break;
 	case Kind::Log0: id += "log0"; break;
 	case Kind::Log1: id += "log1"; break;
 	case Kind::Log2: id += "log2"; break;
@@ -2521,8 +2521,8 @@ bool FunctionType::isBareCall() const
 	case Kind::EDVerify:
 	case Kind::SHA256:
 	case Kind::RIPEMD160:
-        case Kind::BLAKE2b256:
-        case Kind::TXHash:
+	case Kind::BLAKE2b256:
+	case Kind::TXHash:
 		return true;
 	default:
 		return false;
@@ -2563,8 +2563,8 @@ bool FunctionType::isPure() const
 		m_kind == Kind::EDVerify ||
 		m_kind == Kind::SHA256 ||
 		m_kind == Kind::RIPEMD160 ||
-                m_kind == Kind::BLAKE2b256 ||
-                m_kind == Kind::TXHash ||
+		m_kind == Kind::BLAKE2b256 ||
+		m_kind == Kind::TXHash ||
 		m_kind == Kind::AddMod ||
 		m_kind == Kind::MulMod ||
 		m_kind == Kind::ObjectCreation;
