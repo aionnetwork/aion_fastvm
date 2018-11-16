@@ -34,8 +34,6 @@
 # Build files
 build/
 
-# IntelliJ config files
-*.iml
-
 # Gradle 
 modFastVM/.gradle/**
+modFastVM/out/
