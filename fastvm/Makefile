@@ -5,7 +5,7 @@ LLVM_LIB_NAME=LLVM-4.0
 
 JDK_INC=$(JAVA_HOME)/include
 
-DIST=./dist
+DIST=../dist
 
 EVMJIT_NAME=libevmjit.so
 EVMJIT_TARGET=$(DIST)/$(EVMJIT_NAME)
@@ -15,7 +15,7 @@ JNI_TARGET=$(DIST)/$(JNI_NAME)
 
 .PHONY: all evmjit jni clean
 
-all: evmjit
+all: evmjit jni
 
 evmjit:
 	g++ -std=c++0x -I. -I./include -I./libevmjit -I$(LLVM_INCLUDE) -I$(LLVM_C_INCLUDE) -O3 -Wall -fPIC \
