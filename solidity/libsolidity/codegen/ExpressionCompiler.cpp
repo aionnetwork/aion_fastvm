@@ -823,11 +823,19 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		case FunctionType::Kind::ECRecover:
 		case FunctionType::Kind::SHA256:
 		case FunctionType::Kind::RIPEMD160:
+		case FunctionType::Kind::EDVerify:
+		case FunctionType::Kind::BLAKE2b256:
+		case FunctionType::Kind::TXHash:
 		{
 			_functionCall.expression().accept(*this);
-			static const map<FunctionType::Kind, u128> contractAddresses{{FunctionType::Kind::ECRecover, 1},
-															   {FunctionType::Kind::SHA256, 2},
-															   {FunctionType::Kind::RIPEMD160, 3}};
+			static const map<FunctionType::Kind, u128> contractAddresses{
+				{FunctionType::Kind::ECRecover, 1},
+				{FunctionType::Kind::SHA256, 2},
+				{FunctionType::Kind::RIPEMD160, 3},
+				{FunctionType::Kind::EDVerify, 16},
+				{FunctionType::Kind::BLAKE2b256, 17},
+				{FunctionType::Kind::TXHash, 18}};
+
 			m_context << contractAddresses.find(function.kind())->second;
 			m_context << u128(0); // as address should take two stack items
 			for (unsigned i = function.sizeOnStack(); i > 0; --i)
@@ -1029,8 +1037,11 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				case FunctionType::Kind::Log3:
 				case FunctionType::Kind::Log4:
 				case FunctionType::Kind::ECRecover:
+				case FunctionType::Kind::EDVerify:
 				case FunctionType::Kind::SHA256:
 				case FunctionType::Kind::RIPEMD160:
+				case FunctionType::Kind::BLAKE2b256:
+				case FunctionType::Kind::TXHash:
 				default:
 					solAssert(false, "unsupported member function");
 				}
