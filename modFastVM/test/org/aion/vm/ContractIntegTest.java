@@ -941,7 +941,7 @@ public class ContractIntegTest {
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
         ExecutionResult result = (ExecutionResult) exec.getResult();
-        assertEquals(ResultCode.CONTRACT_ALREADY_EXISTS, result.getResultCode());
+        assertEquals(ResultCode.FAILURE, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
         assertEquals(nrg, tx.getNrgConsume());
     }

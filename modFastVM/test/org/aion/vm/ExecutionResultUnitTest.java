@@ -39,7 +39,7 @@ public class ExecutionResultUnitTest {
 
     @Before
     public void setup() {
-        code = ResultCode.INTERNAL_ERROR;
+        code = ResultCode.SUCCESS;
         nrgLeft = 0x12345678L;
         output = RandomUtils.nextBytes(32);
     }

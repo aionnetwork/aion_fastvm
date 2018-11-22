@@ -170,9 +170,8 @@ public class TransactionExecutorUnitTest {
 
     @Test
     public void testBuildReceiptGetErrorWhenResultNotSuccess() {
-        for (int i = -1; i < 12; i++) {
-            if (!ResultCode.fromInt(i).equals(ResultCode.SUCCESS)) {
-                ResultCode code = ResultCode.fromInt(i);
+        for (ResultCode code : ResultCode.values()) {
+            if (!code.equals(ResultCode.SUCCESS)) {
                 TransactionExecutor executor = getNewExecutor(mockTx(), false, 10);
                 byte[] output = RandomUtils.nextBytes(RandomUtils.nextInt(0, 1000));
                 executor.setExecutionResult(new ExecutionResult(code, 0, output));
@@ -679,19 +678,19 @@ public class TransactionExecutorUnitTest {
                 new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
         executor.repoTrack = cache;
         executor.create();
-        checkExecutionResults(executor.getResult(), ResultCode.CONTRACT_ALREADY_EXISTS.toInt(), 0);
+        checkExecutionResults(executor.getResult(), ResultCode.FAILURE.toInt(), 0);
 
         // Test second constructor.
         executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
         executor.repoTrack = cache;
         executor.create();
-        checkExecutionResults(executor.getResult(), ResultCode.CONTRACT_ALREADY_EXISTS.toInt(), 0);
+        checkExecutionResults(executor.getResult(), ResultCode.FAILURE.toInt(), 0);
 
         // Test third constructor.
         executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
         executor.repoTrack = cache;
         executor.create();
-        checkExecutionResults(executor.getResult(), ResultCode.CONTRACT_ALREADY_EXISTS.toInt(), 0);
+        checkExecutionResults(executor.getResult(), ResultCode.FAILURE.toInt(), 0);
     }
 
     @Test
@@ -796,7 +795,8 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(coinbase);
 
         for (ResultCode code : ResultCode.values()) {
-            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)
+                    && !code.equals(ResultCode.VM_REJECTED) && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
                 ExecutionResult result = new ExecutionResult(code, 0, RandomUtils.nextBytes(10));
                 doFinishAndCheck(tx, block, helper, result, coinbase, true);
             }
@@ -835,7 +835,8 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(coinbase);
 
         for (ResultCode code : ResultCode.values()) {
-            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)) {
+            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)
+                    && !code.equals(ResultCode.VM_REJECTED) && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
                 ExecutionResult result = new ExecutionResult(code, 0, RandomUtils.nextBytes(10));
                 doFinishAndCheck(tx, block, helper, result, coinbase, false);
             }
@@ -1880,7 +1881,7 @@ public class TransactionExecutorUnitTest {
 
     private boolean determineIfFailed(ExecutionResult result) {
         switch (result.getResultCode()) {
-            case CONTRACT_ALREADY_EXISTS:
+            /* failure */
             case FAILURE:
             case OUT_OF_NRG:
             case BAD_INSTRUCTION:
@@ -1888,7 +1889,8 @@ public class TransactionExecutorUnitTest {
             case STACK_OVERFLOW:
             case STACK_UNDERFLOW:
             case REVERT:
-            case INTERNAL_ERROR:
+            case STATIC_MODE_ERROR:
+                /* rejection */
             case INVALID_NONCE:
             case INVALID_NRG_LIMIT:
             case INSUFFICIENT_BALANCE:
