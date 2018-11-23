@@ -50,7 +50,7 @@ m_magicVariables(vector<shared_ptr<MagicVariableDeclaration const>>{make_shared<
 							make_shared<FunctionType>(strings(), strings{"bytes32"}, FunctionType::Kind::SHA3, true)),
 					make_shared<MagicVariableDeclaration>("keccak256",
 							make_shared<FunctionType>(strings(), strings{"bytes32"}, FunctionType::Kind::SHA3, true)),
-					make_shared<MagicVariableDeclaration>("black2b256",
+					make_shared<MagicVariableDeclaration>("blake2b256",
 							make_shared<FunctionType>(strings(), strings{"bytes32"}, FunctionType::Kind::BLAKE2b256, true)),
 					make_shared<MagicVariableDeclaration>("transactionhash",
 							make_shared<FunctionType>(strings(), strings{"bytes32"}, FunctionType::Kind::TXHash, true)),
