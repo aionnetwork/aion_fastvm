@@ -1006,6 +1006,80 @@ public class FastVMTest {
         assertEquals(11, new DataWord(info4.getReceipt().getExecutionResult()).intValue());
     }
 
+    @Test
+    public void testBytes32Array() throws IOException {
+        byte[] code = ContractUtils.getContractBody("Bytes32.sol", "Test");
+
+        callData = Hex.decode("26121ff0");
+        nrgLimit = 100000L;
+
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
+        DummyRepository repo = new DummyRepository();
+        repo.addContract(address, code);
+
+        FastVM vm = new FastVM();
+        ExecutionResult result = vm.run(code, ctx, repo);
+        System.out.println(result);
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals("0011223344556677889900112233445566778899001122334455667788990011", Hex.toHexString(result.getOutput()));
+    }
+
+    @Test
+    public void testBytes32Array2() throws IOException {
+        byte[] code = ContractUtils.getContractBody("Bytes32.sol", "Test");
+
+        callData = Hex.decode("31e9552c"
+                + "00000000000000000000000000000010"
+                + "00000000000000000000000000000001"
+                + "00112233445566778899001122334455"
+                + "66778899001122334455667788990011");
+        nrgLimit = 100000L;
+
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
+        DummyRepository repo = new DummyRepository();
+        repo.addContract(address, code);
+
+        FastVM vm = new FastVM();
+        ExecutionResult result = vm.run(code, ctx, repo);
+        System.out.println(result);
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals("00000000000000000000000000000010000000000000000000000000000000010011223344556677889900112233445566778899001122334455667788990011", Hex.toHexString(result.getOutput()));
+    }
+
     @After
     public void teardown() {}
 }
