@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
@@ -19,7 +21,6 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
@@ -92,7 +93,7 @@ public class TransactionExecutorTest {
         // fee plus the refund
         byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
 
-        ExecutionResult res = (ExecutionResult) exec.exeResult;
+        TransactionResult res = (TransactionResult) exec.exeResult;
         assertEquals(ResultCode.SUCCESS, res.getResultCode());
         assertArrayEquals(body, res.getOutput());
 
@@ -173,12 +174,12 @@ public class TransactionExecutorTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult res = (ExecutionResult) exec.exeResult;
+        TransactionResult res = (TransactionResult) exec.exeResult;
         assertEquals(ResultCode.SUCCESS, res.getResultCode());
         System.out.println(Hex.toHexString(res.getOutput()));
 
         // We called the function f() which returns nothing.
-        assertEquals(0, summary.getReceipt().getExecutionResult().length);
+        assertEquals(0, summary.getReceipt().getTransactionOutput().length);
 
         byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
         assertArrayEquals(body, blockchain.getRepository().getCode(contract));
@@ -205,7 +206,7 @@ public class TransactionExecutorTest {
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
 
-        res = (ExecutionResult) exec.exeResult;
+        res = (TransactionResult) exec.exeResult;
         byte[] output = res.getOutput();
         System.out.println(Hex.toHexString(output));
         System.out.println(res.getOutput().length);
@@ -259,7 +260,7 @@ public class TransactionExecutorTest {
         AionTxExecSummary summary = exec.execute();
         System.out.println(summary.getReceipt());
 
-        ExecutionResult res = (ExecutionResult) exec.exeResult;
+        TransactionResult res = (TransactionResult) exec.exeResult;
         //        System.out.println(Hex.toHexString(res.getOutput()));
         //        System.out.println(res.getOutput().length);
 

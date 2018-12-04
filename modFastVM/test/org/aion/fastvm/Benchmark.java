@@ -198,7 +198,7 @@ public class Benchmark {
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
-            assertEquals(1, new DataWord(summary.getReceipt().getExecutionResult()).longValue());
+            assertEquals(1, new DataWord(summary.getReceipt().getTransactionOutput()).longValue());
         }
     }
 

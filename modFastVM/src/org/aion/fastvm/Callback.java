@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
-import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.vm.IDataWord;
 import org.aion.crypto.HashUtil;
@@ -19,9 +20,7 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
@@ -212,18 +211,18 @@ public class Callback {
 
         // check call stack depth
         if (ctx.depth() >= Constants.MAX_CALL_DEPTH) {
-            return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
+            return new TransactionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // check value
         BigInteger endowment = ctx.callValue().value();
         BigInteger callersBalance = repo().getBalance(ctx.sender());
         if (callersBalance.compareTo(endowment) < 0) {
-            return new ExecutionResult(ResultCode.FAILURE, 0).toBytes();
+            return new TransactionResult(ResultCode.FAILURE, 0).toBytes();
         }
 
         // call sub-routine
-        IExecutionResult result;
+        TransactionResult result;
         if (ctx.kind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
@@ -231,7 +230,7 @@ public class Callback {
         }
 
         // merge the effects
-        context().helper().merge(ctx.helper(), result.getCode() == ResultCode.SUCCESS.toInt());
+        context().helper().merge(ctx.helper(), result.getResultCode().toInt() == ResultCode.SUCCESS.toInt());
 
         return result.toBytes();
     }
@@ -252,7 +251,7 @@ public class Callback {
      * @param ctx
      * @return
      */
-    private static IExecutionResult doCall(
+    private static TransactionResult doCall(
             ExecutionContext ctx, FastVM jit, IContractFactory factory) {
         Address codeAddress = ctx.address();
         if (ctx.kind() == ExecutionContext.CALLCODE
@@ -262,7 +261,7 @@ public class Callback {
 
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track =
                 repo().startTracking();
-        IExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
+        TransactionResult result = new TransactionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // add internal transaction
         AionInternalTx internalTx =
@@ -300,7 +299,7 @@ public class Callback {
         }
 
         // post execution
-        if (result.getCode() != ResultCode.SUCCESS.toInt()) {
+        if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
             ctx.helper().rejectInternalTransactions(); // reject all
 
@@ -318,10 +317,10 @@ public class Callback {
      * @param ctx execution context
      * @return
      */
-    private static ExecutionResult doCreate(ExecutionContext ctx, FastVM jit) {
+    private static TransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track =
                 repo().startTracking();
-        ExecutionResult result = new ExecutionResult(ResultCode.SUCCESS, ctx.nrgLimit());
+        TransactionResult result = new TransactionResult(ResultCode.SUCCESS, ctx.nrgLimit());
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.sender()).toByteArray();
@@ -368,7 +367,7 @@ public class Callback {
 
         // execute transaction
         if (alreadyExsits) {
-            result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
+            result.setResultCodeAndEnergyRemaining(ResultCode.FAILURE, 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.callData())) {
                 result = jit.run(ctx.callData(), ctx, track);
@@ -376,15 +375,15 @@ public class Callback {
         }
 
         // post execution
-        if (result.getCode() != ResultCode.SUCCESS.toInt()) {
+        if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
             internalTx.reject();
             ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
         } else {
             // charge the codedeposit
-            if (result.getNrgLeft() < Constants.NRG_CODE_DEPOSIT) {
-                result.setCodeAndNrgLeft(ResultCode.FAILURE.toInt(), 0);
+            if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
+                result.setResultCodeAndEnergyRemaining(ResultCode.FAILURE, 0);
                 return result;
             }
             byte[] code = result.getOutput();

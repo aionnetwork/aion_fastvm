@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteArrayWrapper;
@@ -26,11 +28,9 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionHelper;
-import org.aion.vm.ExecutionResult;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
@@ -703,9 +703,9 @@ public class CallbackUnitTest {
                         context.depth(),
                         Constants.MAX_CALL_DEPTH,
                         0);
-        ExecutionResult result = ExecutionResult.parse(Callback.call(message));
+        TransactionResult result = TransactionResult.fromBytes(Callback.call(message));
         assertEquals(ResultCode.FAILURE, result.getResultCode());
-        assertEquals(0, result.getNrgLeft());
+        assertEquals(0, result.getEnergyRemaining());
     }
 
     @Test
@@ -737,9 +737,9 @@ public class CallbackUnitTest {
                         context.depth(),
                         0,
                         0);
-        ExecutionResult result = ExecutionResult.parse(Callback.call(message));
+        TransactionResult result = TransactionResult.fromBytes(Callback.call(message));
         assertEquals(ResultCode.FAILURE, result.getResultCode());
-        assertEquals(0, result.getNrgLeft());
+        assertEquals(0, result.getEnergyRemaining());
     }
 
     @Test
@@ -952,7 +952,7 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        TransactionResult mockedResult = new TransactionResult(ResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -986,7 +986,7 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        TransactionResult mockedResult = new TransactionResult(ResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -1021,7 +1021,7 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        TransactionResult mockedResult = new TransactionResult(ResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -1059,7 +1059,7 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult = new ExecutionResult(ResultCode.FAILURE, 0);
+        TransactionResult mockedResult = new TransactionResult(ResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -1097,8 +1097,8 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -1133,8 +1133,8 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
         ContractFactory factory = mockFactory(null);
 
@@ -1169,13 +1169,13 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
-        mockedResult.setCodeAndNrgLeft(
-                ResultCode.FAILURE.toInt(), 0); // nrgLimit causes failure post-execution.
+        mockedResult.setResultCodeAndEnergyRemaining(
+                ResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(
                 context,
                 vm,
@@ -1207,13 +1207,13 @@ public class CallbackUnitTest {
                         true,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
-        mockedResult.setCodeAndNrgLeft(
-                ResultCode.FAILURE.toInt(), 0); // nrgLimit causes failure post-execution.
+        mockedResult.setResultCodeAndEnergyRemaining(
+                ResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(
                 context,
                 vm,
@@ -1245,8 +1245,8 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         byte[] code = RandomUtils.nextBytes(50);
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
@@ -1281,8 +1281,8 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         byte[] code = RandomUtils.nextBytes(50);
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null);
 
@@ -1319,8 +1319,8 @@ public class CallbackUnitTest {
                                 nrgLimit);
 
                 byte[] code = RandomUtils.nextBytes(50);
-                ExecutionResult mockedResult =
-                        new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                TransactionResult mockedResult =
+                        new TransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);
 
@@ -1359,8 +1359,8 @@ public class CallbackUnitTest {
                                 nrgLimit);
 
                 byte[] code = RandomUtils.nextBytes(50);
-                ExecutionResult mockedResult =
-                        new ExecutionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                TransactionResult mockedResult =
+                        new TransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null);
 
@@ -1397,8 +1397,8 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
@@ -1424,7 +1424,7 @@ public class CallbackUnitTest {
                                 false,
                                 nrgLimit);
 
-                ExecutionResult mockedResult = new ExecutionResult(code, 0);
+                TransactionResult mockedResult = new TransactionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(mockedResult);
 
@@ -1453,8 +1453,8 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(mockedResult);
 
@@ -1480,7 +1480,7 @@ public class CallbackUnitTest {
                                 false,
                                 nrgLimit);
 
-                ExecutionResult mockedResult = new ExecutionResult(code, 0);
+                TransactionResult mockedResult = new TransactionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(mockedResult);
 
@@ -1510,14 +1510,14 @@ public class CallbackUnitTest {
                             false,
                             nrgLimit);
 
-            ExecutionResult mockedResult =
-                    new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            TransactionResult mockedResult =
+                    new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
-            mockedResult.setCode(ResultCode.SUCCESS.toInt());
+            mockedResult.setResultCode(ResultCode.SUCCESS);
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
@@ -1541,14 +1541,14 @@ public class CallbackUnitTest {
                             false,
                             nrgLimit);
 
-            ExecutionResult mockedResult =
-                    new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            TransactionResult mockedResult =
+                    new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
-            mockedResult.setCode(ResultCode.SUCCESS.toInt());
+            mockedResult.setResultCode(ResultCode.SUCCESS);
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
@@ -1572,14 +1572,14 @@ public class CallbackUnitTest {
                             false,
                             nrgLimit);
 
-            ExecutionResult mockedResult =
-                    new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            TransactionResult mockedResult =
+                    new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
-            mockedResult.setCode(ResultCode.SUCCESS.toInt());
+            mockedResult.setResultCode(ResultCode.SUCCESS);
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
@@ -1603,14 +1603,14 @@ public class CallbackUnitTest {
                             false,
                             nrgLimit);
 
-            ExecutionResult mockedResult =
-                    new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+            TransactionResult mockedResult =
+                    new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
             ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
-            mockedResult.setCode(ResultCode.SUCCESS.toInt());
+            mockedResult.setResultCode(ResultCode.SUCCESS);
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
@@ -1633,8 +1633,8 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
@@ -1660,8 +1660,8 @@ public class CallbackUnitTest {
                                 false,
                                 nrgLimit);
 
-                ExecutionResult mockedResult =
-                        new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+                TransactionResult mockedResult =
+                        new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
@@ -1690,8 +1690,8 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
-        ExecutionResult mockedResult =
-                new ExecutionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+        TransactionResult mockedResult =
+                new TransactionResult(ResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
         ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
@@ -1717,8 +1717,8 @@ public class CallbackUnitTest {
                                 false,
                                 nrgLimit);
 
-                ExecutionResult mockedResult =
-                        new ExecutionResult(code, RandomUtils.nextLong(0, 10_000));
+                TransactionResult mockedResult =
+                        new TransactionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
                 ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
@@ -2161,7 +2161,7 @@ public class CallbackUnitTest {
      * Unless result is null! In this case the mocked factory returns null, which tells Callback
      * that the transaction is not a precompiled contract.
      */
-    private ContractFactory mockFactory(ExecutionResult result) {
+    private ContractFactory mockFactory(TransactionResult result) {
         IPrecompiledContract contract = mock(IPrecompiledContract.class);
         when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
         ContractFactory factory = mock(ContractFactory.class);
@@ -2181,7 +2181,7 @@ public class CallbackUnitTest {
     }
 
     /** Returns a mocked FastVM whose run method returns result. */
-    private FastVM mockFastVM(ExecutionResult result) {
+    private FastVM mockFastVM(TransactionResult result) {
         FastVM vm = mock(FastVM.class);
         when(vm.run(
                         Mockito.any(byte[].class),
@@ -2242,7 +2242,7 @@ public class CallbackUnitTest {
             ExecutionContext context,
             FastVM mockVM,
             ContractFactory mockFac,
-            ExecutionResult expectedResult,
+            TransactionResult expectedResult,
             boolean vmGotBadCode,
             int kind,
             boolean contractExisted,
@@ -2259,13 +2259,13 @@ public class CallbackUnitTest {
                         context.depth(),
                         kind,
                         0);
-        ExecutionResult result =
-                ExecutionResult.parse(Callback.performCall(message, mockVM, mockFac));
+        TransactionResult result =
+                TransactionResult.fromBytes(Callback.performCall(message, mockVM, mockFac));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
-            assertEquals(context.nrgLimit(), result.getNrgLeft());
+            assertEquals(context.nrgLimit(), result.getEnergyRemaining());
         } else {
-            assertEquals(expectedResult.getNrgLeft(), result.getNrgLeft());
+            assertEquals(expectedResult.getEnergyRemaining(), result.getEnergyRemaining());
         }
         if (kind == ExecutionContext.CREATE) {
             checkCodeAfterCreate(contractExisted, postExecuteWasSuccess, result, code);
@@ -2279,7 +2279,7 @@ public class CallbackUnitTest {
     private void checkCodeAfterCreate(
             boolean contractAlreadyExists,
             boolean postExecuteWasSuccess,
-            ExecutionResult result,
+            TransactionResult result,
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {

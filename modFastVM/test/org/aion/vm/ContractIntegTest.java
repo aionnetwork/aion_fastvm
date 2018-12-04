@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.ContractFactoryMock;
 import org.aion.ContractFactoryMock.CallMePrecompiledContract;
 import org.aion.base.db.IRepositoryCache;
@@ -25,7 +27,6 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
@@ -97,9 +98,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
 
         Address contract = tx.getContractAddress();
         checkStateOfNewContract(repo, contractName, contract, result, value);
@@ -131,9 +132,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
 
         Address contract = tx.getContractAddress();
         assertArrayEquals(new byte[0], result.getOutput());
@@ -172,9 +173,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
-        assertEquals(ResultCode.OUT_OF_NRG, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        TransactionResult result = (TransactionResult) exec.getResult();
+        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertEquals(nrg, tx.getNrgConsume());
 
         Address contract = tx.getContractAddress();
@@ -214,9 +215,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.REVERT, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume()); // all energy is not used up.
 
         Address contract = tx.getContractAddress();
@@ -251,9 +252,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume()); // all energy is not used up.
 
         Address contract = tx.getContractAddress();
@@ -288,10 +289,10 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.INSUFFICIENT_BALANCE, result.getResultCode());
         assertEquals(0, tx.getNrgConsume());
-        assertEquals(0, result.getNrgLeft());
+        assertEquals(0, result.getEnergyRemaining());
 
         Address contract = tx.getContractAddress();
         checkStateOfNewContract(repo, contractName, contract, result, BigInteger.ZERO);
@@ -367,9 +368,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         String expectedMsg = "Im alive!";
@@ -413,9 +414,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         // Since input takes in uint8 we only want the last byte of num. Output size is well-defined
@@ -444,9 +445,9 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         summary = exec.execute();
-        result = (ExecutionResult) exec.getResult();
+        result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         // Since input takes in uint8 we only want the last byte of num. Output size is well-defined
@@ -492,9 +493,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.REVERT, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -539,9 +540,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         // Check that the deployer did get the requested value sent back.
@@ -592,9 +593,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -646,9 +647,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -712,9 +713,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -748,9 +749,9 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        result = (ExecutionResult) exec.getResult();
+        result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
@@ -798,9 +799,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -832,9 +833,9 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        result = (ExecutionResult) exec.getResult();
+        result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.REVERT, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         txCost = BigInteger.valueOf(tx.getNrgConsume()).multiply(BigInteger.valueOf(nrgPrice));
@@ -874,9 +875,9 @@ public class ContractIntegTest {
         ((TestVMProvider) provider).setFactory(new ContractFactoryMock());
         exec.setExecutorProvider(provider);
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         // Check that we actually did call the contract and received its output.
@@ -918,9 +919,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.FAILURE, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertEquals(nrg, tx.getNrgConsume());
     }
 
@@ -976,10 +977,10 @@ public class ContractIntegTest {
         ((TestVMProvider) provider).setFactory(new ContractFactoryMock());
         exec.setExecutorProvider(provider);
         exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
 
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         BigInteger txCost =
@@ -1018,9 +1019,9 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        ExecutionResult result = (ExecutionResult) exec.getResult();
+        TransactionResult result = (TransactionResult) exec.getResult();
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(nrg - tx.getNrgConsume(), result.getNrgLeft());
+        assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
         Address contract = tx.getContractAddress();
@@ -1059,7 +1060,7 @@ public class ContractIntegTest {
             IRepositoryCache repo,
             String contractName,
             Address contractAddr,
-            ExecutionResult result,
+            TransactionResult result,
             BigInteger value)
             throws IOException {
 
@@ -1085,7 +1086,7 @@ public class ContractIntegTest {
             String contractName,
             String contractFilename,
             Address contractAddr,
-            ExecutionResult result,
+            TransactionResult result,
             BigInteger value)
             throws IOException {
 
