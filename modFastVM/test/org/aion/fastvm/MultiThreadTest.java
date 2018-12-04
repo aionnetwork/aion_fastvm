@@ -30,16 +30,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.base.type.Address;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionHelper;
-import org.aion.vm.ExecutionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -120,8 +120,8 @@ public class MultiThreadTest {
                             DummyRepository repo = new DummyRepository();
 
                             FastVM vm = new FastVM();
-                            ExecutionResult result = vm.run(code, ctx, repo);
-                            assertEquals(ResultCode.SUCCESS, result.getCode());
+                            TransactionResult result = vm.run(code, ctx, repo);
+                            assertEquals(ResultCode.SUCCESS, result.getResultCode());
                         }
                     });
         }

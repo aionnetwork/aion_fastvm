@@ -8,6 +8,8 @@ module aion.fastvm {
     requires aion.vm.api;
     requires aion.precompiled;
     requires commons.lang3;
+    requires libJson;
+    requires commons.collections4;
 
     exports org.aion.solidity;
     exports org.aion.fastvm;

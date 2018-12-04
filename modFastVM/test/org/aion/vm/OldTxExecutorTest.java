@@ -94,7 +94,7 @@ public class OldTxExecutorTest {
         System.out.println(receipt);
 
         assertArrayEquals(
-                Hex.decode("00000000000000000000000000000000"), receipt.getExecutionResult());
+                Hex.decode("00000000000000000000000000000000"), receipt.getTransactionOutput());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class OldTxExecutorTest {
 
         assertArrayEquals(
                 Hex.decode(deployer.substring(deployer.indexOf("60506040", 1))),
-                receipt.getExecutionResult());
+                receipt.getTransactionOutput());
     }
 
     @Test

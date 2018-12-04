@@ -26,13 +26,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.aion.base.type.Address;
-import org.aion.base.type.IExecutionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.apache.commons.lang3.RandomUtils;
@@ -104,9 +104,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        TransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
+        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
     }
 
     @Test
@@ -145,9 +145,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        TransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -186,9 +186,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        TransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -227,9 +227,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        TransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -268,8 +268,8 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        TransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
+        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
     }
 }

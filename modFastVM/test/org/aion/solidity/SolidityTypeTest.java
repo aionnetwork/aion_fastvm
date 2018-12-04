@@ -104,8 +104,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(Boolean.TRUE, new BoolType().decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(Boolean.TRUE, new BoolType().decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -124,8 +124,8 @@ public class SolidityTypeTest {
         System.out.println(receipt);
 
         assertArrayEquals(
-                Hex.decode("00000000ffffffffffffffffffffffff"), receipt.getExecutionResult());
-        assertEquals(bi, new IntType("int96").decode(receipt.getExecutionResult()));
+                Hex.decode("00000000ffffffffffffffffffffffff"), receipt.getTransactionOutput());
+        assertEquals(bi, new IntType("int96").decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -143,8 +143,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) new AddressType().decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) new AddressType().decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -163,8 +163,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -183,8 +183,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -204,8 +204,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(x, type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(x, type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -225,8 +225,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(x, type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(x, type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -246,8 +246,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -269,8 +269,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -293,9 +293,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult());
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput());
         for (Object d : decoded) {
             System.out.println(d);
         }
@@ -321,9 +321,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult());
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput());
         for (Object d : decoded) {
             System.out.println(Hex.toHexString((byte[]) d));
         }
@@ -350,9 +350,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult(), 16);
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput(), 16);
         for (Object d : decoded) {
             System.out.println(d);
         }
@@ -379,9 +379,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult(), 16);
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput(), 16);
         for (Object d : decoded) {
             System.out.println(d);
         }

@@ -26,13 +26,14 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.vm.api.ResultCode;
+import org.aion.vm.api.TransactionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ExecutionResultUnitTest {
+public class TransactionResultUnitTest {
     private ResultCode code;
     private long nrgLeft;
     private byte[] output;
@@ -52,102 +53,102 @@ public class ExecutionResultUnitTest {
 
     @Test
     public void testGettersBasicWithOutputSpecified() {
-        ExecutionResult result = new ExecutionResult(code, nrgLeft, output);
+        TransactionResult result = new TransactionResult(code, nrgLeft, output);
         assertEquals(code, result.getResultCode());
-        assertEquals(code.toInt(), result.getCode());
-        assertEquals(nrgLeft, result.getNrgLeft());
+        assertEquals(code, result.getResultCode());
+        assertEquals(nrgLeft, result.getEnergyRemaining());
         assertEquals(output, result.getOutput());
     }
 
     @Test
     public void testGettersBasicNoOutputSpecified() {
-        ExecutionResult result = new ExecutionResult(code, nrgLeft);
+        TransactionResult result = new TransactionResult(code, nrgLeft);
         assertEquals(code, result.getResultCode());
-        assertEquals(code.toInt(), result.getCode());
-        assertEquals(nrgLeft, result.getNrgLeft());
+        assertEquals(code, result.getResultCode());
+        assertEquals(nrgLeft, result.getEnergyRemaining());
     }
 
     @Test
     public void testSettersBasicWithOutputSpecified() {
-        ExecutionResult result = new ExecutionResult(code, nrgLeft, output);
+        TransactionResult result = new TransactionResult(code, nrgLeft, output);
         int newCode = ResultCode.values()[0].toInt();
         long newNrg = 0;
-        result.setCodeAndNrgLeft(newCode, newNrg);
+        result.setResultCodeAndEnergyRemaining(ResultCode.fromInt(newCode), newNrg);
         result.setOutput(null);
-        assertEquals(newCode, result.getCode());
+        assertEquals(newCode, result.getResultCode().toInt());
         assertEquals(ResultCode.fromInt(newCode), result.getResultCode());
-        assertEquals(newNrg, result.getNrgLeft());
-        assertNull(result.getOutput());
+        assertEquals(newNrg, result.getEnergyRemaining());
+        assertEquals(0, result.getOutput().length);
     }
 
     @Test
     public void testSettersBasicNoOutputSpecified() {
-        ExecutionResult result = new ExecutionResult(code, nrgLeft, output);
+        TransactionResult result = new TransactionResult(code, nrgLeft, output);
         int newCode = ResultCode.values()[0].toInt();
         long newNrg = 0;
-        result.setCodeAndNrgLeft(newCode, newNrg);
-        assertEquals(newCode, result.getCode());
+        result.setResultCodeAndEnergyRemaining(ResultCode.fromInt(newCode), newNrg);
+        assertEquals(newCode, result.getResultCode().toInt());
         assertEquals(ResultCode.fromInt(newCode), result.getResultCode());
-        assertEquals(newNrg, result.getNrgLeft());
+        assertEquals(newNrg, result.getEnergyRemaining());
     }
 
     @Test
     public void testGetOutputWhenNoOutputSpecified() {
-        ExecutionResult result = new ExecutionResult(code, nrgLeft);
+        TransactionResult result = new TransactionResult(code, nrgLeft);
         assertArrayEquals(new byte[0], result.getOutput());
     }
 
     @Test
     public void testEncodingResultCodesWithOutputSpecified() {
         for (ResultCode code : ResultCode.values()) {
-            checkEncoding(new ExecutionResult(code, nrgLeft, output));
+            checkEncoding(new TransactionResult(code, nrgLeft, output));
         }
     }
 
     @Test
     public void testEncodingResultCodesNoOutputSpecified() {
         for (ResultCode code : ResultCode.values()) {
-            checkEncoding(new ExecutionResult(code, nrgLeft));
+            checkEncoding(new TransactionResult(code, nrgLeft));
         }
     }
 
     @Test
     public void testEncodingMinMaxEnergyLeftWithOutputSpecified() {
         nrgLeft = 0;
-        checkEncoding(new ExecutionResult(code, nrgLeft, output));
+        checkEncoding(new TransactionResult(code, nrgLeft, output));
         nrgLeft = Long.MAX_VALUE;
-        checkEncoding(new ExecutionResult(code, nrgLeft, output));
+        checkEncoding(new TransactionResult(code, nrgLeft, output));
     }
 
     @Test
     public void testEncodingMinMaxEnergyLeftNoOutputSpecified() {
         nrgLeft = 0;
-        checkEncoding(new ExecutionResult(code, nrgLeft));
+        checkEncoding(new TransactionResult(code, nrgLeft));
         nrgLeft = Long.MAX_VALUE;
-        checkEncoding(new ExecutionResult(code, nrgLeft));
+        checkEncoding(new TransactionResult(code, nrgLeft));
     }
 
     @Test
     public void testEncodingNullOutput() {
-        checkEncoding(new ExecutionResult(code, nrgLeft, null));
+        checkEncoding(new TransactionResult(code, nrgLeft, null));
     }
 
     @Test
     public void testEncodingZeroLengthOutput() {
         output = new byte[0];
-        checkEncoding(new ExecutionResult(code, nrgLeft, output));
+        checkEncoding(new TransactionResult(code, nrgLeft, output));
     }
 
     @Test
     public void testEncodingLengthOneOutput() {
         output = new byte[] {(byte) 0x4A};
-        checkEncoding(new ExecutionResult(code, nrgLeft, output));
+        checkEncoding(new TransactionResult(code, nrgLeft, output));
     }
 
     @Test
     public void testEncodingLongOutput() {
         output = RandomUtils.nextBytes(10_000);
-        checkEncoding(new ExecutionResult(code, nrgLeft, output));
+        checkEncoding(new TransactionResult(code, nrgLeft, output));
     }
 
     @Test
@@ -161,11 +162,18 @@ public class ExecutionResultUnitTest {
      * Checks that if original is encoded and then decoded that the decoded object is equal to
      * original. Any test that calls this and this is not true will fail.
      *
-     * @param original The ExecutionResult to encode and decode.
+     * Note that the encoding is a partial encoding that does not include the
+     * {@link org.aion.vm.api.ExecutionSideEffects} or
+     * {@link org.aion.vm.api.interfaces.KernelInterface} objects, so these are ignored.
+     *
+     * @param original The TransactionResult to encode and decode.
      */
-    private void checkEncoding(ExecutionResult original) {
+    private void checkEncoding(TransactionResult original) {
         byte[] encoding = original.toBytes();
-        ExecutionResult decodedResult = ExecutionResult.parse(encoding);
-        assertEquals(original, decodedResult);
+        TransactionResult decodedResult = TransactionResult.fromBytes(encoding);
+
+        assertEquals(original.getResultCode(), decodedResult.getResultCode());
+        assertEquals(original.getEnergyRemaining(), decodedResult.getEnergyRemaining());
+        assertArrayEquals(original.getOutput(), decodedResult.getOutput());
     }
 }
