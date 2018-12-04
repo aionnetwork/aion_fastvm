@@ -26,34 +26,44 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>include</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/include</locationURI>
+		</link>
+		<link>
 			<name>libdevcore</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libdevcore</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity/libdevcore</locationURI>
 		</link>
 		<link>
 			<name>libevmasm</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libevmasm</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity/libevmasm</locationURI>
+		</link>
+		<link>
+			<name>libevmjit</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/libevmjit</locationURI>
 		</link>
 		<link>
 			<name>libjulia</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libjulia</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity/libjulia</locationURI>
 		</link>
 		<link>
 			<name>libsolidity</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/libsolidity</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity/libsolidity</locationURI>
 		</link>
 		<link>
 			<name>solidity</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity</locationURI>
 		</link>
 		<link>
 			<name>tests</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/solidity/tests</location>
+			<locationURI>$%257BPARENT-2-PROJECT_LOC%257D/solidity/tests</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -26,9 +26,19 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>include</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/include</locationURI>
+		</link>
+		<link>
 			<name>jni</name>
 			<type>2</type>
-			<locationURI>$%7BPARENT-2-PROJECT_LOC%7D/jni</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/jni</locationURI>
+		</link>
+		<link>
+			<name>libevmjit</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/libevmjit</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

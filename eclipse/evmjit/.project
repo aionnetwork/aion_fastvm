@@ -28,17 +28,17 @@
 		<link>
 			<name>include</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/include</location>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/include</locationURI>
 		</link>
 		<link>
 			<name>libevmjit</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/libevmjit</location>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/libevmjit</locationURI>
 		</link>
 		<link>
 			<name>tests</name>
 			<type>2</type>
-			<location>$%7BPARENT-2-PROJECT_LOC%7D/tests</location>
+			<locationURI>PARENT-2-PROJECT_LOC/fastvm/tests</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
