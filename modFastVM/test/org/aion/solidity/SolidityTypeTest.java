@@ -84,8 +84,8 @@ public class SolidityTypeTest {
         String contract = deployer.substring(deployer.indexOf("60506040", 1));
 
         DummyRepository repo = new DummyRepository();
-        repo.addContract(tx.getTo(), Hex.decode(contract));
-        repo.addBalance(tx.getFrom(), tx.nrgPrice().value().multiply(BigInteger.valueOf(500_000L)));
+        repo.addContract(tx.getDestinationAddress(), Hex.decode(contract));
+        repo.addBalance(tx.getSenderAddress(), tx.nrgPrice().value().multiply(BigInteger.valueOf(500_000L)));
 
         return repo;
     }

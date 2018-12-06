@@ -247,8 +247,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -272,8 +272,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         context =
                 blockchain.createNewBlockContext(
@@ -295,8 +295,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(E, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(E, tx.getDestinationAddress());
 
         context =
                 blockchain.createNewBlockContext(
@@ -331,8 +331,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -347,8 +347,8 @@ public class OpcodeIntegTest {
         // We expect that the internal transaction is sent from D to D.
         List<AionInternalTx> internalTxs = summary.getInternalTransactions();
         assertEquals(1, internalTxs.size());
-        assertEquals(D, internalTxs.get(0).getFrom());
-        assertEquals(D, internalTxs.get(0).getTo());
+        assertEquals(D, internalTxs.get(0).getSenderAddress());
+        assertEquals(D, internalTxs.get(0).getDestinationAddress());
     }
 
     @Test
@@ -373,8 +373,8 @@ public class OpcodeIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -416,8 +416,8 @@ public class OpcodeIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -441,8 +441,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         context =
                 blockchain.createNewBlockContext(
@@ -463,8 +463,8 @@ public class OpcodeIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(E, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(E, tx.getDestinationAddress());
 
         context =
                 blockchain.createNewBlockContext(
@@ -495,8 +495,8 @@ public class OpcodeIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -512,8 +512,8 @@ public class OpcodeIntegTest {
         // D.
         List<AionInternalTx> internalTxs = summary.getInternalTransactions();
         assertEquals(1, internalTxs.size());
-        assertEquals(deployer, internalTxs.get(0).getFrom());
-        assertEquals(D, internalTxs.get(0).getTo());
+        assertEquals(deployer, internalTxs.get(0).getSenderAddress());
+        assertEquals(D, internalTxs.get(0).getDestinationAddress());
     }
 
     @Test
@@ -540,8 +540,8 @@ public class OpcodeIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), D, value.toByteArray(), input, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertEquals(deployer, tx.getFrom());
-        assertEquals(D, tx.getTo());
+        assertEquals(deployer, tx.getSenderAddress());
+        assertEquals(D, tx.getDestinationAddress());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -752,7 +752,7 @@ public class OpcodeIntegTest {
             throws IOException {
 
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
         assertEquals(deployerBalance, repo.getBalance(deployer));
         assertEquals(expectedNonce, repo.getNonce(deployer));
 

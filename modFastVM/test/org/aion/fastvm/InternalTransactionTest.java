@@ -147,7 +147,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        AionTxInfo info = bc.getTransactionInfo(tx3.getHash());
+        AionTxInfo info = bc.getTransactionInfo(tx3.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(1, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -173,7 +173,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        info = bc.getTransactionInfo(tx4.getHash());
+        info = bc.getTransactionInfo(tx4.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(2, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -200,7 +200,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        info = bc.getTransactionInfo(tx6.getHash());
+        info = bc.getTransactionInfo(tx6.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(1, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -276,12 +276,12 @@ public class InternalTransactionTest {
 
         assertEquals(2, summary.getInternalTransactions().size());
 
-        assertArrayEquals(tx2.getHash(), summary.getInternalTransactions().get(0).getParentHash());
+        assertArrayEquals(tx2.getTransactionHash(), summary.getInternalTransactions().get(0).getParentHash());
         assertEquals(0, summary.getInternalTransactions().get(0).getDeep());
         assertEquals(0, summary.getInternalTransactions().get(0).getIndex());
 
         assertArrayEquals(
-                summary.getInternalTransactions().get(0).getHash(),
+                summary.getInternalTransactions().get(0).getTransactionHash(),
                 summary.getInternalTransactions().get(1).getParentHash());
         assertEquals(1, summary.getInternalTransactions().get(1).getDeep());
         assertEquals(0, summary.getInternalTransactions().get(1).getIndex());

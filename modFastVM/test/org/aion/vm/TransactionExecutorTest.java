@@ -96,7 +96,7 @@ public class TransactionExecutorTest {
                 new AionTransaction(
                         nonce.toByteArray(), to, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
         BlockContext context =
@@ -144,7 +144,7 @@ public class TransactionExecutorTest {
                 new AionTransaction(
                         nonce.toByteArray(), to, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -188,7 +188,7 @@ public class TransactionExecutorTest {
                         1_000_000,
                         1);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -220,7 +220,7 @@ public class TransactionExecutorTest {
                         1_000_000,
                         1);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         context =
                 blockchain.createNewBlockContext(
@@ -272,7 +272,7 @@ public class TransactionExecutorTest {
                         1_000_000,
                         1);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -305,7 +305,7 @@ public class TransactionExecutorTest {
                 new AionTransaction(
                         nonce.toByteArray(), to, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));

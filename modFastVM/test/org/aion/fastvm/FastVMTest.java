@@ -773,7 +773,7 @@ public class FastVMTest {
                         1_000_000L,
                         1L);
         tx.sign(deployerAccount);
-        assertThat(tx.isContractCreation()).isTrue();
+        assertThat(tx.isContractCreationTransaction()).isTrue();
 
         BlockContext context =
                 bc.createNewBlockContext(bc.getBestBlock(), Collections.singletonList(tx), false);
@@ -853,7 +853,7 @@ public class FastVMTest {
                         1_000_000L,
                         1L);
         tx.sign(deployerAccount);
-        assertThat(tx.isContractCreation()).isTrue();
+        assertThat(tx.isContractCreationTransaction()).isTrue();
 
         BlockContext context =
                 bc.createNewBlockContext(bc.getBestBlock(), Collections.singletonList(tx), false);
@@ -918,7 +918,7 @@ public class FastVMTest {
                         1_000_000L,
                         1L);
         tx.sign(deployerAccount);
-        assertThat(tx.isContractCreation()).isTrue();
+        assertThat(tx.isContractCreationTransaction()).isTrue();
 
         BlockContext context =
                 bc.createNewBlockContext(bc.getBestBlock(), Collections.singletonList(tx), false);
@@ -949,7 +949,7 @@ public class FastVMTest {
 
         // assert failure
         AionTxInfo info2 =
-                bc.getTransactionInfo(context2.block.getTransactionsList().get(0).getHash());
+                bc.getTransactionInfo(context2.block.getTransactionsList().get(0).getTransactionHash());
         assertEquals("REVERT", info2.getReceipt().getError());
 
         // =======================================================================
@@ -976,7 +976,7 @@ public class FastVMTest {
 
         // assert failure
         AionTxInfo info3 =
-                bc.getTransactionInfo(context3.block.getTransactionsList().get(0).getHash());
+                bc.getTransactionInfo(context3.block.getTransactionsList().get(0).getTransactionHash());
         assertEquals("", info3.getReceipt().getError());
         Thread.sleep(1000L);
 
@@ -1001,7 +1001,7 @@ public class FastVMTest {
 
         // assert failure
         AionTxInfo info4 =
-                bc.getTransactionInfo(context4.block.getTransactionsList().get(0).getHash());
+                bc.getTransactionInfo(context4.block.getTransactionsList().get(0).getTransactionHash());
         assertEquals("", info4.getReceipt().getError());
         assertEquals(11, new DataWord(info4.getReceipt().getTransactionOutput()).intValue());
     }

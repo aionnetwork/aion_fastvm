@@ -108,7 +108,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -142,7 +142,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), new byte[0], nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -183,7 +183,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -225,7 +225,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -262,7 +262,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -299,7 +299,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -338,7 +338,7 @@ public class ContractIntegTest {
                 new AionTransaction(
                         nonce.toByteArray(), null, value.toByteArray(), deployCode, nrg, nrgPrice);
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(BigInteger.ZERO, repo.getNonce(deployer));
 
@@ -382,7 +382,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -428,7 +428,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -459,7 +459,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         context =
                 blockchain.createNewBlockContext(
@@ -507,7 +507,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -554,7 +554,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -607,7 +607,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -661,7 +661,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -727,7 +727,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -763,7 +763,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         context =
                 blockchain.createNewBlockContext(
@@ -813,7 +813,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -847,7 +847,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         context =
                 blockchain.createNewBlockContext(
@@ -882,7 +882,7 @@ public class ContractIntegTest {
         IRepositoryCache repo = blockchain.getRepository().startTracking();
 
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -929,7 +929,7 @@ public class ContractIntegTest {
         when(repo.startTracking()).thenReturn(repo);
 
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(Builder.DEFAULT_BALANCE, blockchain.getRepository().getBalance(deployer));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getNonce(deployer));
@@ -988,7 +988,7 @@ public class ContractIntegTest {
                         nrg,
                         nrgPrice);
         tx.sign(deployerKey);
-        assertFalse(tx.isContractCreation());
+        assertFalse(tx.isContractCreationTransaction());
 
         BlockContext context =
                 blockchain.createNewBlockContext(
@@ -1029,7 +1029,7 @@ public class ContractIntegTest {
             throws IOException {
 
         tx.sign(deployerKey);
-        assertTrue(tx.isContractCreation());
+        assertTrue(tx.isContractCreationTransaction());
 
         assertEquals(deployerBalance, repo.getBalance(deployer));
         assertEquals(deployerNonce, repo.getNonce(deployer));

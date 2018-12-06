@@ -148,17 +148,17 @@ public class Benchmark {
 
         for (AionTransaction tx : txs) {
             boolean valid =
-                    tx.getHash() != null
-                            && tx.getHash().length == 32 //
+                    tx.getTransactionHash() != null
+                            && tx.getTransactionHash().length == 32 //
                             && tx.getValue() != null
                             && tx.getValue().length == 16 //
                             && tx.getData() != null //
-                            && tx.getFrom() != null //
-                            && tx.getTo() == null //
+                            && tx.getSenderAddress() != null //
+                            && tx.getDestinationAddress() == null //
                             && tx.getNonce() != null
                             && tx.getNonce().length == 16 //
-                            && tx.getNrg() > 0 //
-                            && tx.getNrgPrice() > 0 //
+                            && tx.getEnergyLimit() > 0 //
+                            && tx.getEnergyPrice() > 0 //
                             && SignatureFac.verify(
                                     tx.getRawHash(),
                                     tx.getSignature()); // TODO: verify signature here

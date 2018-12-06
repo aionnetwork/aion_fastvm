@@ -55,6 +55,7 @@ import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionHelper;
 import org.aion.vm.IPrecompiledContract;
+import org.aion.vm.api.interfaces.Address;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1846,8 +1847,8 @@ public class CallbackUnitTest {
      * callData| 4b - depth|4b - kind|4b - flags|
      */
     private byte[] generateContextMessage(
-            AionAddress address,
-            AionAddress caller,
+            Address address,
+            Address caller,
             long nrgLimit,
             DataWord callValue,
             byte[] callData,
@@ -1964,8 +1965,8 @@ public class CallbackUnitTest {
         assertEquals(helper.getDeleteAccounts().get(0), owner);
         assertEquals(1, helper.getInternalTransactions().size());
         AionInternalTx tx = helper.getInternalTransactions().get(0);
-        assertEquals(owner, tx.getFrom());
-        assertEquals(beneficiary, tx.getTo());
+        assertEquals(owner, tx.getSenderAddress());
+        assertEquals(beneficiary, tx.getDestinationAddress());
         assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
         assertEquals(new DataWord(ownerBalance), new DataWord(tx.getValue()));
         assertArrayEquals(new byte[0], tx.getData());
@@ -2372,9 +2373,9 @@ public class CallbackUnitTest {
      * if we are doing CALLCODE or DELEGATECALL then no value gets transferred in Callback.
      */
     private void checkPerformCallBalances(
-            AionAddress caller,
+            Address caller,
             BigInteger callerPrevBalance,
-            AionAddress recipient,
+            Address recipient,
             BigInteger recipientPrevBalance,
             BigInteger callValue,
             boolean wasNoRecipient,
@@ -2417,7 +2418,7 @@ public class CallbackUnitTest {
     private void checkInternalTransaction(
             ExecutionContext context, AionInternalTx tx, boolean isCreateContract) {
 
-        assertEquals(context.sender(), tx.getFrom());
+        assertEquals(context.sender(), tx.getSenderAddress());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
             AionAddress contract =
@@ -2428,9 +2429,9 @@ public class CallbackUnitTest {
                                             .getNonce(context.sender())
                                             .subtract(BigInteger.ONE)
                                             .toByteArray()));
-            assertEquals(contract, tx.getTo());
+            assertEquals(contract, tx.getDestinationAddress());
         } else {
-            assertEquals(context.address(), tx.getTo());
+            assertEquals(context.address(), tx.getDestinationAddress());
         }
 
         if (isCreateContract) {
@@ -2509,8 +2510,8 @@ public class CallbackUnitTest {
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
     private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
-        AionAddress caller = context.sender();
-        assertEquals(context.sender(), tx.getFrom());
+        Address caller = context.sender();
+        assertEquals(context.sender(), tx.getSenderAddress());
         assertEquals(Callback.repo().getNonce(caller), tx.getNonceBI());
         assertEquals(context.callValue(), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
@@ -2519,7 +2520,7 @@ public class CallbackUnitTest {
         assertArrayEquals(context.transactionHash(), tx.getParentHash());
         assertArrayEquals(new DataWord(Callback.repo().getNonce(caller)).getData(), tx.getNonce());
         assertArrayEquals(context.callData(), tx.getData());
-        assertNull(tx.getTo());
+        assertNull(tx.getDestinationAddress());
     }
 
     /**
@@ -2534,7 +2535,7 @@ public class CallbackUnitTest {
             boolean nrgLessThanDeposit) {
 
         BigInteger value = context.callValue().value();
-        AionAddress caller = Callback.context().sender();
+        Address caller = Callback.context().sender();
         AionAddress contract;
         contract =
                 new AionAddress(
