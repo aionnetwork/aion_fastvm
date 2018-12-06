@@ -23,6 +23,7 @@ import org.aion.precompiled.ContractFactory;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
+import org.aion.vm.api.interfaces.Address;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -253,7 +254,7 @@ public class Callback {
      */
     private static TransactionResult doCall(
             ExecutionContext ctx, FastVM jit, IContractFactory factory) {
-        AionAddress codeAddress = ctx.address();
+        Address codeAddress = ctx.address();
         if (ctx.kind() == ExecutionContext.CALLCODE
                 || ctx.kind() == ExecutionContext.DELEGATECALL) {
             ctx.address = context().address();
@@ -273,7 +274,7 @@ public class Callback {
                         ctx.callData(),
                         "call");
         context().helper().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getHash());
+        ctx.setTransactionHash(internalTx.getTransactionHash());
 
         // transfer balance
         if (ctx.kind() != ExecutionContext.DELEGATECALL
@@ -338,7 +339,7 @@ public class Callback {
                         ctx.callData(),
                         "create");
         context().helper().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getHash());
+        ctx.setTransactionHash(internalTx.getTransactionHash());
 
         // in case of hashing collisions
         boolean alreadyExsits = track.hasAccountState(newAddress);
@@ -413,7 +414,7 @@ public class Callback {
 
         byte[] address = new byte[AionAddress.SIZE];
         buffer.get(address);
-        AionAddress origin = prev.origin();
+        Address origin = prev.origin();
         byte[] caller = new byte[AionAddress.SIZE];
         buffer.get(caller);
 
@@ -429,7 +430,7 @@ public class Callback {
         int kind = buffer.getInt();
         int flags = buffer.getInt();
 
-        AionAddress blockCoinbase = prev.blockCoinbase();
+        Address blockCoinbase = prev.blockCoinbase();
         long blockNumber = prev.blockNumber();
         long blockTimestamp = prev.blockTimestamp();
         long blockNrgLimit = prev.blockNrgLimit();
@@ -456,7 +457,7 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-            AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data, String note) {
+            Address from, Address to, BigInteger nonce, DataWord value, byte[] data, String note) {
         byte[] parentHash = context().transactionHash();
         int depth = context().depth();
         int index = context().helper().getInternalTransactions().size();
