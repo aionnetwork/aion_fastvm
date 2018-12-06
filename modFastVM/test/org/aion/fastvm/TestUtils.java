@@ -24,7 +24,7 @@ package org.aion.fastvm;
 
 import java.util.Collections;
 import java.util.List;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
@@ -34,7 +34,7 @@ public class TestUtils {
 
     public static AionBlock createDummyBlock() {
         byte[] parentHash = new byte[32];
-        byte[] coinbase = RandomUtils.nextBytes(Address.ADDRESS_LEN);
+        byte[] coinbase = RandomUtils.nextBytes(AionAddress.SIZE);
         byte[] logsBloom = new byte[0];
         byte[] difficulty = new DataWord(0x1000000L).getData();
         long number = 1;
@@ -50,7 +50,7 @@ public class TestUtils {
         // TODO: set a dummy limit of 5000000 for now
         return new AionBlock(
                 parentHash,
-                Address.wrap(coinbase),
+                AionAddress.wrap(coinbase),
                 logsBloom,
                 difficulty,
                 number,

@@ -31,7 +31,7 @@ import java.util.Set;
 import org.aion.base.db.IContractDetails;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.vm.IDataWord;
 import org.aion.mcf.core.AccountState;
@@ -41,9 +41,9 @@ import org.aion.mcf.vm.types.DataWord;
 public class DummyRepository
         implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
     private DummyRepository parent;
-    Map<Address, AccountState> accounts = new HashMap<>();
-    Map<Address, byte[]> contracts = new HashMap<>();
-    Map<Address, Map<String, byte[]>> storage = new HashMap<>();
+    Map<AionAddress, AccountState> accounts = new HashMap<>();
+    Map<AionAddress, byte[]> contracts = new HashMap<>();
+    Map<AionAddress, Map<String, byte[]>> storage = new HashMap<>();
 
     public DummyRepository() {}
 
@@ -55,24 +55,24 @@ public class DummyRepository
         this.parent = parent;
     }
 
-    public void addContract(Address address, byte[] code) {
+    public void addContract(AionAddress address, byte[] code) {
         contracts.put(address, code);
     }
 
     @Override
-    public AccountState createAccount(Address addr) {
+    public AccountState createAccount(AionAddress addr) {
         AccountState as = new AccountState();
         accounts.put(addr, as);
         return as;
     }
 
     @Override
-    public boolean hasAccountState(Address addr) {
+    public boolean hasAccountState(AionAddress addr) {
         return accounts.containsKey(addr);
     }
 
     @Override
-    public AccountState getAccountState(Address addr) {
+    public AccountState getAccountState(AionAddress addr) {
         if (!hasAccountState(addr)) {
             createAccount(addr);
         }
@@ -80,12 +80,12 @@ public class DummyRepository
     }
 
     @Override
-    public void deleteAccount(Address addr) {
+    public void deleteAccount(AionAddress addr) {
         accounts.remove(addr);
     }
 
     @Override
-    public BigInteger incrementNonce(Address addr) {
+    public BigInteger incrementNonce(AionAddress addr) {
         // an exception will be thrown if account does not exist
         AccountState as = getAccountState(addr);
         as.incrementNonce();
@@ -94,61 +94,61 @@ public class DummyRepository
     }
 
     @Override
-    public BigInteger setNonce(Address address, BigInteger nonce) {
+    public BigInteger setNonce(AionAddress address, BigInteger nonce) {
         AccountState as = getAccountState(address);
         as.setNonce(nonce);
         return nonce;
     }
 
     @Override
-    public BigInteger getNonce(Address addr) {
+    public BigInteger getNonce(AionAddress addr) {
         // an exception will be thrown if account does not exist
         return getAccountState(addr).getNonce();
     }
 
     @Override
-    public IContractDetails<DataWord> getContractDetails(Address addr) {
+    public IContractDetails<DataWord> getContractDetails(AionAddress addr) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean hasContractDetails(Address addr) {
+    public boolean hasContractDetails(AionAddress addr) {
         return contracts.containsKey(addr);
     }
 
     @Override
-    public void saveCode(Address addr, byte[] code) {
+    public void saveCode(AionAddress addr, byte[] code) {
         contracts.put(addr, code);
     }
 
     @Override
-    public byte[] getCode(Address addr) {
+    public byte[] getCode(AionAddress addr) {
         byte[] code = contracts.get(addr);
         return code == null ? ByteUtil.EMPTY_BYTE_ARRAY : code;
     }
 
     @Override
-    public Map<DataWord, DataWord> getStorage(Address address, Collection<DataWord> keys) {
+    public Map<DataWord, DataWord> getStorage(AionAddress address, Collection<DataWord> keys) {
         throw new RuntimeException("Not supported");
     }
 
-    public int getStorageSize(Address address) {
+    public int getStorageSize(AionAddress address) {
         throw new RuntimeException("Not supported");
     }
 
-    public Set<DataWord> getStorageKeys(Address address) {
+    public Set<DataWord> getStorageKeys(AionAddress address) {
         throw new RuntimeException("Not supported");
     }
 
     @Override
-    public void addStorageRow(Address addr, DataWord key, DataWord value) {
+    public void addStorageRow(AionAddress addr, DataWord key, DataWord value) {
         Map<String, byte[]> map = storage.computeIfAbsent(addr, k -> new HashMap<>());
 
         map.put(key.toString(), value.getData());
     }
 
     @Override
-    public IDataWord getStorageValue(Address addr, DataWord key) {
+    public IDataWord getStorageValue(AionAddress addr, DataWord key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
             return new DataWord(map.get(key.toString()));
@@ -168,12 +168,12 @@ public class DummyRepository
     }
 
     @Override
-    public BigInteger getBalance(Address addr) {
+    public BigInteger getBalance(AionAddress addr) {
         return getAccountState(addr).getBalance();
     }
 
     @Override
-    public BigInteger addBalance(Address addr, BigInteger value) {
+    public BigInteger addBalance(AionAddress addr, BigInteger value) {
         return getAccountState(addr).addToBalance(value);
     }
 
@@ -215,8 +215,8 @@ public class DummyRepository
 
     @Override
     public void updateBatch(
-            Map<Address, AccountState> accountStates,
-            Map<Address, IContractDetails<DataWord>> contractDetailes) {
+            Map<AionAddress, AccountState> accountStates,
+            Map<AionAddress, IContractDetails<DataWord>> contractDetailes) {
         throw new UnsupportedOperationException();
     }
 
@@ -227,9 +227,9 @@ public class DummyRepository
 
     @Override
     public void loadAccountState(
-            Address addr,
-            Map<Address, AccountState> cacheAccounts,
-            Map<Address, IContractDetails<DataWord>> cacheDetails) {
+            AionAddress addr,
+            Map<AionAddress, AccountState> cacheAccounts,
+            Map<AionAddress, IContractDetails<DataWord>> cacheDetails) {
         throw new UnsupportedOperationException();
     }
 

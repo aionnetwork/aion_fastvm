@@ -32,10 +32,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
+import org.aion.base.type.AionAddress;
 import org.aion.vm.api.ResultCode;
 import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
@@ -62,7 +62,7 @@ public class TransactionExecutorTest {
     private static final String g_func = "e2179b8e";
     private StandaloneBlockchain blockchain;
     private ECKey deployerKey;
-    private Address deployer;
+    private AionAddress deployer;
 
     @Before
     public void setup() {
@@ -73,7 +73,7 @@ public class TransactionExecutorTest {
                         .build();
         blockchain = bundle.bc;
         deployerKey = bundle.privateKeys.get(0);
-        deployer = new Address(deployerKey.getAddress());
+        deployer = new AionAddress(deployerKey.getAddress());
     }
 
     @After
@@ -85,7 +85,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testExecutor() throws IOException {
-        Address to = getNewRecipient(true);
+        AionAddress to = getNewRecipient(true);
         byte[] deployCode = ContractUtils.getContractDeployer("ByteArrayMap.sol", "ByteArrayMap");
         long nrg = 1_000_000;
         long nrgPrice = 1;
@@ -120,7 +120,7 @@ public class TransactionExecutorTest {
         assertEquals(ResultCode.SUCCESS, res.getResultCode());
         assertArrayEquals(body, res.getOutput());
 
-        Address contract = summary.getTransaction().getContractAddress();
+        AionAddress contract = summary.getTransaction().getContractAddress();
         assertArrayEquals(body, repo.getCode(contract));
         assertEquals(BigInteger.ZERO, repo.getBalance(contract));
         assertEquals(BigInteger.ZERO, repo.getNonce(contract));
@@ -133,7 +133,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testExecutorBlind() throws IOException {
-        Address to = getNewRecipient(true);
+        AionAddress to = getNewRecipient(true);
         byte[] deployCode = ContractUtils.getContractDeployer("ByteArrayMap.sol", "ByteArrayMap");
         long nrg = 1_000_000;
         long nrgPrice = 1;
@@ -161,7 +161,7 @@ public class TransactionExecutorTest {
         // transaction
         // fee plus the refund
         byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
-        Address contract = tx.getContractAddress();
+        AionAddress contract = tx.getContractAddress();
 
         assertArrayEquals(body, blockchain.getRepository().getCode(contract));
         assertEquals(BigInteger.ZERO, blockchain.getRepository().getBalance(contract));
@@ -176,7 +176,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testDeployedCodeFunctionality() throws IOException {
-        Address contract = deployByteArrayContract();
+        AionAddress contract = deployByteArrayContract();
         byte[] callingCode = Hex.decode(f_func);
         BigInteger nonce = blockchain.getRepository().getNonce(deployer);
         AionTransaction tx =
@@ -260,7 +260,7 @@ public class TransactionExecutorTest {
 
     @Test
     public void testGfunction() throws IOException {
-        Address contract = deployByteArrayContract();
+        AionAddress contract = deployByteArrayContract();
         byte[] callingCode = Hex.decode(g_func);
         BigInteger nonce = blockchain.getRepository().getNonce(deployer);
         AionTransaction tx =
@@ -293,8 +293,8 @@ public class TransactionExecutorTest {
 
     // <-----------------------------------------HELPERS------------------------------------------->
 
-    private Address deployByteArrayContract() throws IOException {
-        Address to = getNewRecipient(true);
+    private AionAddress deployByteArrayContract() throws IOException {
+        AionAddress to = getNewRecipient(true);
         byte[] deployCode = ContractUtils.getContractDeployer("ByteArrayMap.sol", "ByteArrayMap");
         long nrg = 1_000_000;
         long nrgPrice = 1;
@@ -318,10 +318,10 @@ public class TransactionExecutorTest {
         return tx.getContractAddress();
     }
 
-    private Address getNewRecipient(boolean isContractCreation) {
+    private AionAddress getNewRecipient(boolean isContractCreation) {
         return (isContractCreation)
                 ? null
-                : new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+                : new AionAddress(RandomUtils.nextBytes(AionAddress.SIZE));
     }
 
     private byte[] extractActualOutput(byte[] rawOutput) {
