@@ -9,7 +9,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -39,8 +39,8 @@ public class Benchmark {
             db.startTracking();
 
     private static ECKey key;
-    private static Address owner;
-    private static Address contract;
+    private static AionAddress owner;
+    private static AionAddress contract;
 
     private static List<byte[]> recipients = new ArrayList<>();
 
@@ -58,7 +58,7 @@ public class Benchmark {
         // create owner account
         ECKeyFac.setType(ECKeyType.ED25519);
         key = ECKeyFac.inst().create();
-        owner = Address.wrap(key.getAddress());
+        owner = AionAddress.wrap(key.getAddress());
         repo.createAccount(owner);
         repo.addBalance(owner, BigInteger.valueOf(1_000_000_000L));
 
@@ -66,8 +66,8 @@ public class Benchmark {
         byte[] deployer =
                 ContractUtils.getContractDeployer("BenchmarkERC20.sol", "FixedSupplyToken");
         byte[] nonce = DataWord.ZERO.getData();
-        Address from = owner;
-        Address to = null;
+        AionAddress from = owner;
+        AionAddress to = null;
         byte[] value = DataWord.ZERO.getData();
         long nrg = 1_000_000L;
         long nrgPrice = 1L;
@@ -98,8 +98,8 @@ public class Benchmark {
 
             // transfer token to random people
             byte[] nonce = new DataWord(ownerNonce + i).getData();
-            Address from = owner;
-            Address to = contract;
+            AionAddress from = owner;
+            AionAddress to = contract;
             byte[] value = DataWord.ZERO.getData();
             byte[] data =
                     ByteUtil.merge(
@@ -183,8 +183,8 @@ public class Benchmark {
 
         for (int i = 0; i < recipients.size(); i++) {
             byte[] nonce = new DataWord(ownerNonce + i).getData();
-            Address from = owner;
-            Address to = contract;
+            AionAddress from = owner;
+            AionAddress to = contract;
             byte[] value = DataWord.ZERO.getData();
             byte[] data =
                     ByteUtil.merge(

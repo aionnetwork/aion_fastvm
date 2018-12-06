@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
 
 public class ExecutionContextUnitTest {
-    private Address recipient, origin, caller, coinbase;
+    private AionAddress recipient, origin, caller, coinbase;
     private DataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;
     private long nrgLimit, blockNumber, blockTimestamp, blockNrgLimit;
@@ -23,10 +23,10 @@ public class ExecutionContextUnitTest {
 
     @Before
     public void setup() {
-        recipient = new Address("1111111111111111111111111111111111111111111111111111111111111111");
-        origin = new Address("2222222222222222222222222222222222222222222222222222222222222222");
-        caller = new Address("3333333333333333333333333333333333333333333333333333333333333333");
-        coinbase = new Address("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        recipient = new AionAddress("1111111111111111111111111111111111111111111111111111111111111111");
+        origin = new AionAddress("2222222222222222222222222222222222222222222222222222222222222222");
+        caller = new AionAddress("3333333333333333333333333333333333333333333333333333333333333333");
+        coinbase = new AionAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
         nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
         callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
@@ -174,7 +174,7 @@ public class ExecutionContextUnitTest {
     @Test
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
-        Address newRecipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+        AionAddress newRecipient = new AionAddress(RandomUtils.nextBytes(AionAddress.SIZE));
         context.setDestination(newRecipient);
         assertEquals(newRecipient, context.address());
     }
@@ -214,16 +214,16 @@ public class ExecutionContextUnitTest {
      */
     private void checkEncoding(ExecutionContext context, byte[] encoding) {
         int start = 0;
-        int end = Address.ADDRESS_LEN;
+        int end = AionAddress.SIZE;
         ByteBuffer longBuf = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
         ByteBuffer intBuf = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
-        assertEquals(context.address(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.address(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += Address.ADDRESS_LEN;
-        assertEquals(context.origin(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        end += AionAddress.SIZE;
+        assertEquals(context.origin(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += Address.ADDRESS_LEN;
-        assertEquals(context.sender(), new Address(Arrays.copyOfRange(encoding, start, end)));
+        end += AionAddress.SIZE;
+        assertEquals(context.sender(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
         assertEquals(context.nrgPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
@@ -263,9 +263,9 @@ public class ExecutionContextUnitTest {
         intBuf.flip();
         assertEquals(context.flags(), intBuf.getInt());
         start = end;
-        end += Address.ADDRESS_LEN;
+        end += AionAddress.SIZE;
         assertEquals(
-                context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
+                context.blockCoinbase(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
