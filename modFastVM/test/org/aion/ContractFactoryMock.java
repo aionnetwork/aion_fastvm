@@ -6,9 +6,9 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.vm.IDataWord;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.vm.ExecutionContext;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
+import org.aion.vm.api.interfaces.TransactionContext;
 
 public class ContractFactoryMock implements IContractFactory {
     public static final String CALL_ME =
@@ -17,10 +17,10 @@ public class ContractFactoryMock implements IContractFactory {
     /** A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract. */
     @Override
     public IPrecompiledContract getPrecompiledContract(
-            ExecutionContext context,
+            TransactionContext context,
             IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
 
-        switch (context.address().toString()) {
+        switch (context.getDestinationAddress().toString()) {
             case CALL_ME:
                 return new CallMePrecompiledContract();
             default:

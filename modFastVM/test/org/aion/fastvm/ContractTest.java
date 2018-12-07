@@ -12,10 +12,10 @@ import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -293,16 +293,16 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
-        for (AionInternalTx tx : txs) {
+        for (InternalTransactionInterface tx : txs) {
             System.out.println(tx);
         }
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
-        for (Log log : logs) {
+        for (IExecutionLog log : logs) {
             System.out.println(log);
         }
     }
@@ -346,11 +346,11 @@ public class ContractTest {
         assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
     }
 

@@ -17,7 +17,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionHelper;
+import org.aion.vm.SideEffects;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class MultiThreadTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private ExecutionHelper helper;
+    private SideEffects helper;
 
     public MultiThreadTest() throws CloneNotSupportedException {}
 
@@ -54,7 +54,7 @@ public class MultiThreadTest {
         nrgLimit = 20000;
         callValue = DataWord.ZERO;
         callData = new byte[0];
-        helper = new ExecutionHelper();
+        helper = new SideEffects();
     }
 
     private static AtomicInteger count = new AtomicInteger(0);

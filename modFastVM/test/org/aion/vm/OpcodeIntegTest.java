@@ -24,6 +24,7 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
@@ -323,7 +324,7 @@ public class OpcodeIntegTest {
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that the internal transaction is sent from D to D.
-        List<AionInternalTx> internalTxs = summary.getInternalTransactions();
+        List<InternalTransactionInterface> internalTxs = summary.getInternalTransactions();
         assertEquals(1, internalTxs.size());
         assertEquals(D, internalTxs.get(0).getSenderAddress());
         assertEquals(D, internalTxs.get(0).getDestinationAddress());
@@ -488,7 +489,7 @@ public class OpcodeIntegTest {
 
         // We expect there to be one internal transaction and it should look like deployer sent to
         // D.
-        List<AionInternalTx> internalTxs = summary.getInternalTransactions();
+        List<InternalTransactionInterface> internalTxs = summary.getInternalTransactions();
         assertEquals(1, internalTxs.size());
         assertEquals(deployer, internalTxs.get(0).getSenderAddress());
         assertEquals(D, internalTxs.get(0).getDestinationAddress());
