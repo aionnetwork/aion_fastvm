@@ -324,7 +324,7 @@ public class Callback {
 
         // post execution
         if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
-            internalTx.reject();
+            internalTx.markAsRejected();
             ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
@@ -400,7 +400,7 @@ public class Callback {
 
         // post execution
         if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
-            internalTx.reject();
+            internalTx.markAsRejected();
             ctx.helper().rejectInternalTransactions(); // reject all
 
             track.rollback();
