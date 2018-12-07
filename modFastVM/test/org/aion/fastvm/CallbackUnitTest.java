@@ -49,14 +49,17 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionHelper;
+import org.aion.vm.SideEffects;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.api.interfaces.Address;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.vm.api.interfaces.DataWordStub;
+import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
+import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
@@ -106,7 +109,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         Callback.push(pair);
-        ExecutionContext stackContext = Callback.context();
+        TransactionContext stackContext = Callback.context();
         compareMockContexts(context, stackContext);
     }
 
@@ -470,9 +473,9 @@ public class CallbackUnitTest {
         BigInteger ownerNonce = new BigInteger("353245");
         AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
         AionAddress beneficiary = new AionAddress(Arrays.copyOf(owner.toBytes(), AionAddress.SIZE));
-        ExecutionHelper helper = new ExecutionHelper();
+        SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
-        when(ctx.helper()).thenReturn(helper);
+        when(ctx.getSideEffects()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
         when(pair.getRight()).thenReturn(dummyRepo);
@@ -490,9 +493,9 @@ public class CallbackUnitTest {
         BigInteger benNonce = new BigInteger("4334342355");
         AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
         AionAddress beneficiary = getNewAddressInRepo(benBalance, benNonce);
-        ExecutionHelper helper = new ExecutionHelper();
+        SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
-        when(ctx.helper()).thenReturn(helper);
+        when(ctx.getSideEffects()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
         when(pair.getRight()).thenReturn(dummyRepo);
@@ -601,16 +604,16 @@ public class CallbackUnitTest {
                         nrgLimit);
         byte[] message =
                 generateContextMessage(
-                        ctx.address(),
-                        ctx.sender(),
-                        ctx.nrgLimit(),
-                        ctx.callValue(),
-                        ctx.callData(),
-                        ctx.depth(),
-                        ctx.kind(),
-                        ctx.flags());
+                        ctx.getDestinationAddress(),
+                        ctx.getSenderAddress(),
+                        ctx.getTransactionEnergyLimit(),
+                        ctx.getTransferValue(),
+                        ctx.getTransactionData(),
+                        ctx.getTransactionStackDepth(),
+                        ctx.getTransactionKind(),
+                        ctx.getFlags());
 
-        ExecutionContext expectedContext = makeExpectedContext(context, ctx);
+        TransactionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
     }
 
@@ -646,15 +649,15 @@ public class CallbackUnitTest {
                             nrgLimit);
             byte[] message =
                     generateContextMessage(
-                            ctx.address(),
-                            ctx.sender(),
-                            ctx.nrgLimit(),
-                            ctx.callValue(),
-                            ctx.callData(),
-                            ctx.depth(),
-                            ctx.kind(),
-                            ctx.flags());
-            ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
+                            ctx.getDestinationAddress(),
+                            ctx.getSenderAddress(),
+                            ctx.getTransactionEnergyLimit(),
+                            ctx.getTransferValue(),
+                            ctx.getTransactionData(),
+                            ctx.getTransactionStackDepth(),
+                            ctx.getTransactionKind(),
+                            ctx.getFlags());
+            TransactionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
             compareContexts(expectedContext, Callback.parseMessage(message));
             Callback.pop();
         }
@@ -687,16 +690,16 @@ public class CallbackUnitTest {
                         nrgLimit);
         byte[] message =
                 generateContextMessage(
-                        ctx.address(),
-                        ctx.sender(),
-                        ctx.nrgLimit(),
-                        ctx.callValue(),
-                        ctx.callData(),
-                        ctx.depth(),
-                        ctx.kind(),
-                        ctx.flags());
+                        ctx.getDestinationAddress(),
+                        ctx.getSenderAddress(),
+                        ctx.getTransactionEnergyLimit(),
+                        ctx.getTransferValue(),
+                        ctx.getTransactionData(),
+                        ctx.getTransactionStackDepth(),
+                        ctx.getTransactionKind(),
+                        ctx.getFlags());
 
-        ExecutionContext expectedContext = makeExpectedContext(context, ctx);
+        TransactionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
     }
 
@@ -719,12 +722,12 @@ public class CallbackUnitTest {
         Callback.push(pair);
         byte[] message =
                 generateContextMessage(
-                        context.address(),
-                        context.sender(),
-                        context.nrgLimit(),
-                        context.callValue(),
-                        context.callData(),
-                        context.depth(),
+                        context.getDestinationAddress(),
+                        context.getSenderAddress(),
+                        context.getTransactionEnergyLimit(),
+                        context.getTransferValue(),
+                        context.getTransactionData(),
+                        context.getTransactionStackDepth(),
                         Constants.MAX_CALL_DEPTH,
                         0);
         TransactionResult result = TransactionResult.fromBytes(Callback.call(message));
@@ -753,12 +756,12 @@ public class CallbackUnitTest {
         Callback.push(pair);
         byte[] message =
                 generateContextMessage(
-                        context.address(),
-                        context.sender(),
-                        context.nrgLimit(),
-                        context.callValue(),
-                        context.callData(),
-                        context.depth(),
+                        context.getDestinationAddress(),
+                        context.getSenderAddress(),
+                        context.getTransactionEnergyLimit(),
+                        context.getTransferValue(),
+                        context.getTransactionData(),
+                        context.getTransactionStackDepth(),
                         0,
                         0);
         TransactionResult result = TransactionResult.fromBytes(Callback.call(message));
@@ -1454,7 +1457,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().helper());
+                checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
                         context, callerBalance, recipientBalance, false, false, kind);
@@ -1510,7 +1513,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().helper());
+                checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
                         context, callerBalance, recipientBalance, false, false, kind);
@@ -1691,7 +1694,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().helper());
+                checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
                         context, callerBalance, recipientBalance, false, false, kind);
@@ -1748,7 +1751,7 @@ public class CallbackUnitTest {
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().helper());
+                checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
                         context, callerBalance, recipientBalance, false, false, kind);
@@ -1758,7 +1761,7 @@ public class CallbackUnitTest {
 
     // <---------------------------------------HELPERS BELOW--------------------------------------->
 
-    private Pair<ExecutionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
+    private Pair<TransactionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
             mockEmptyPair() {
         return mock(Pair.class);
     }
@@ -1767,11 +1770,11 @@ public class CallbackUnitTest {
      * Returns a mocked pair whose left entry is a mocked context that returns a new helper when
      * helper is called and whose right entry is a new DummyRepository.
      */
-    private Pair<ExecutionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
+    private Pair<TransactionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
             mockPair() {
         ExecutionContext context = mockContext();
-        ExecutionHelper helper = new ExecutionHelper();
-        when(context.helper()).thenReturn(helper);
+        SideEffects helper = new SideEffects();
+        when(context.getSideEffects()).thenReturn(helper);
         Pair pair = mock(Pair.class);
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight()).thenReturn(new DummyRepository());
@@ -1780,13 +1783,13 @@ public class CallbackUnitTest {
 
     private ExecutionContext mockContext() {
         ExecutionContext context = mock(ExecutionContext.class);
-        when(context.blockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.sender()).thenReturn(getNewAddress());
-        when(context.callData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
-        when(context.callValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
-        when(context.nrgLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.transactionHash()).thenReturn(RandomUtils.nextBytes(32));
-        when(context.depth()).thenReturn(RandomUtils.nextInt(0, 1000));
+        when(context.getBlockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getSenderAddress()).thenReturn(getNewAddress());
+        when(context.getTransactionData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
+        when(context.getTransferValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
+        when(context.getTransactionEnergyLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
+        when(context.getTransactionStackDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
         return context;
     }
 
@@ -1850,7 +1853,7 @@ public class CallbackUnitTest {
             Address address,
             Address caller,
             long nrgLimit,
-            DataWord callValue,
+            DataWordStub callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -1875,23 +1878,23 @@ public class CallbackUnitTest {
         return buffer.array();
     }
 
-    private void compareContexts(ExecutionContext context, ExecutionContext other) {
-        assertEquals(context.address(), other.address());
-        assertEquals(context.origin(), other.origin());
-        assertEquals(context.sender(), other.sender());
-        assertEquals(context.blockCoinbase(), other.blockCoinbase());
-        assertEquals(context.nrgPrice(), other.nrgPrice());
-        assertEquals(context.callValue(), other.callValue());
-        assertEquals(context.blockDifficulty(), other.blockDifficulty());
-        assertEquals(context.nrgLimit(), other.nrgLimit());
-        assertEquals(context.blockNumber(), other.blockNumber());
-        assertEquals(context.blockTimestamp(), other.blockTimestamp());
-        assertEquals(context.blockNrgLimit(), other.blockNrgLimit());
-        assertEquals(context.depth(), other.depth());
-        assertEquals(context.kind(), other.kind());
-        assertEquals(context.flags(), other.flags());
-        assertArrayEquals(context.transactionHash(), other.transactionHash());
-        assertArrayEquals(context.callData(), other.callData());
+    private void compareContexts(TransactionContext context, TransactionContext other) {
+        assertEquals(context.getDestinationAddress(), other.getDestinationAddress());
+        assertEquals(context.getOriginAddress(), other.getOriginAddress());
+        assertEquals(context.getSenderAddress(), other.getSenderAddress());
+        assertEquals(context.getMinerAddress(), other.getMinerAddress());
+        assertEquals(context.getTransactionEnergyPrice(), other.getTransactionEnergyPrice());
+        assertEquals(context.getTransferValue(), other.getTransferValue());
+        assertEquals(context.getBlockDifficulty(), other.getBlockDifficulty());
+        assertEquals(context.getTransactionEnergyLimit(), other.getTransactionEnergyLimit());
+        assertEquals(context.getBlockNumber(), other.getBlockNumber());
+        assertEquals(context.getBlockTimestamp(), other.getBlockTimestamp());
+        assertEquals(context.getBlockEnergyLimit(), other.getBlockEnergyLimit());
+        assertEquals(context.getTransactionStackDepth(), other.getTransactionStackDepth());
+        assertEquals(context.getTransactionKind(), other.getTransactionKind());
+        assertEquals(context.getFlags(), other.getFlags());
+        assertArrayEquals(context.getTransactionHash(), other.getTransactionHash());
+        assertArrayEquals(context.getTransactionData(), other.getTransactionData());
     }
 
     private IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> mockRepo() {
@@ -1901,14 +1904,14 @@ public class CallbackUnitTest {
         return cache;
     }
 
-    private void compareMockContexts(ExecutionContext context, ExecutionContext other) {
-        assertEquals(context.blockNumber(), other.blockNumber());
-        assertEquals(context.sender(), other.sender());
-        assertArrayEquals(context.callData(), other.callData());
-        assertEquals(context.callValue(), other.callValue());
-        assertEquals(context.nrgLimit(), other.nrgLimit());
-        assertArrayEquals(context.transactionHash(), other.transactionHash());
-        assertEquals(context.depth(), other.depth());
+    private void compareMockContexts(TransactionContext context, TransactionContext other) {
+        assertEquals(context.getBlockNumber(), other.getBlockNumber());
+        assertEquals(context.getSenderAddress(), other.getSenderAddress());
+        assertArrayEquals(context.getTransactionData(), other.getTransactionData());
+        assertEquals(context.getTransferValue(), other.getTransferValue());
+        assertEquals(context.getTransactionEnergyLimit(), other.getTransactionEnergyLimit());
+        assertArrayEquals(context.getTransactionHash(), other.getTransactionHash());
+        assertEquals(context.getTransactionStackDepth(), other.getTransactionStackDepth());
     }
 
     private void compareRepos(IRepositoryCache cache, IRepositoryCache other) {
@@ -1955,23 +1958,23 @@ public class CallbackUnitTest {
             BigInteger beneficiaryOldBalance) {
 
         IRepositoryCache repo = Callback.repo();
-        ExecutionContext ctx = Callback.context();
-        ExecutionHelper helper = ctx.helper();
+        TransactionContext ctx = Callback.context();
+        TransactionSideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
         if (!owner.equals(beneficiary)) {
             assertEquals(beneficiaryOldBalance.add(ownerBalance), repo.getBalance(beneficiary));
         }
-        assertEquals(1, helper.getDeleteAccounts().size());
-        assertEquals(helper.getDeleteAccounts().get(0), owner);
+        assertEquals(1, helper.getAddressesToBeDeleted().size());
+        assertEquals(helper.getAddressesToBeDeleted().get(0), owner);
         assertEquals(1, helper.getInternalTransactions().size());
-        AionInternalTx tx = helper.getInternalTransactions().get(0);
+        InternalTransactionInterface tx = helper.getInternalTransactions().get(0);
         assertEquals(owner, tx.getSenderAddress());
         assertEquals(beneficiary, tx.getDestinationAddress());
         assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
         assertEquals(new DataWord(ownerBalance), new DataWord(tx.getValue()));
         assertArrayEquals(new byte[0], tx.getData());
         assertEquals("selfdestruct", tx.getNote());
-        assertEquals(ctx.depth(), tx.getStackDepth());
+        assertEquals(ctx.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(0, tx.getIndexOfInternalTransaction());
     }
 
@@ -1987,9 +1990,9 @@ public class CallbackUnitTest {
      * @param data The data passed into log.
      */
     private void checkLog(AionAddress address, byte[] topics, byte[] data) {
-        ExecutionHelper helper = Callback.context().helper();
-        assertEquals(1, helper.getLogs().size());
-        Log log = helper.getLogs().get(0);
+        TransactionSideEffects helper = Callback.context().getSideEffects();
+        assertEquals(1, helper.getExecutionLogs().size());
+        IExecutionLog log = helper.getExecutionLogs().get(0);
         assertEquals(address, log.getLogSourceAddress());
         assertArrayEquals(data, log.getLogData());
         List<byte[]> logTopics = log.getLogTopics();
@@ -2008,25 +2011,25 @@ public class CallbackUnitTest {
      * the context at the top of the stack when the fields in context are used to generate the
      * message given to the parseMessage method.
      */
-    private ExecutionContext makeExpectedContext(
-            ExecutionContext previous, ExecutionContext context) {
+    private TransactionContext makeExpectedContext(
+            TransactionContext previous, TransactionContext context) {
         return new ExecutionContext(
-                previous.transactionHash(),
-                context.address(),
-                previous.origin(),
-                context.sender(),
-                previous.nrgPrice(),
-                context.nrgLimit(),
-                context.callValue(),
-                context.callData(),
-                context.depth(),
-                context.kind(),
-                context.flags(),
-                previous.blockCoinbase(),
-                previous.blockNumber(),
-                previous.blockTimestamp(),
-                previous.blockNrgLimit(),
-                previous.blockDifficulty());
+                previous.getTransactionHash(),
+                context.getDestinationAddress(),
+                previous.getOriginAddress(),
+                context.getSenderAddress(),
+                previous.getTransactionEnergyPrice(),
+                context.getTransactionEnergyLimit(),
+                context.getTransferValue(),
+                context.getTransactionData(),
+                context.getTransactionStackDepth(),
+                context.getTransactionKind(),
+                context.getFlags(),
+                previous.getMinerAddress(),
+                previous.getBlockNumber(),
+                previous.getBlockTimestamp(),
+                previous.getBlockEnergyLimit(),
+                previous.getBlockDifficulty());
     }
 
     /**
@@ -2234,15 +2237,15 @@ public class CallbackUnitTest {
             boolean isCreateContract,
             int kind) {
 
-        ExecutionContext ctx = Callback.context();
+        TransactionContext ctx = Callback.context();
         checkInternalTransaction(
-                context, ctx.helper().getInternalTransactions().get(0), isCreateContract);
+                context, ctx.getSideEffects().getInternalTransactions().get(0), isCreateContract);
         checkPerformCallBalances(
-                context.sender(),
+                context.getSenderAddress(),
                 callerBalance,
-                context.address(),
+                context.getDestinationAddress(),
                 recipientBalance,
-                context.callValue().value(),
+                context.getTransferValue().value(),
                 wasNoRecipient,
                 kind);
     }
@@ -2275,19 +2278,19 @@ public class CallbackUnitTest {
 
         byte[] message =
                 generateContextMessage(
-                        context.address(),
-                        context.sender(),
-                        context.nrgLimit(),
-                        context.callValue(),
-                        context.callData(),
-                        context.depth(),
+                        context.getDestinationAddress(),
+                        context.getSenderAddress(),
+                        context.getTransactionEnergyLimit(),
+                        context.getTransferValue(),
+                        context.getTransactionData(),
+                        context.getTransactionStackDepth(),
                         kind,
                         0);
         TransactionResult result =
                 TransactionResult.fromBytes(Callback.performCall(message, mockVM, mockFac));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
-            assertEquals(context.nrgLimit(), result.getEnergyRemaining());
+            assertEquals(context.getTransactionEnergyLimit(), result.getEnergyRemaining());
         } else {
             assertEquals(expectedResult.getEnergyRemaining(), result.getEnergyRemaining());
         }
@@ -2362,8 +2365,8 @@ public class CallbackUnitTest {
     }
 
     /** Asserts that all of the internal transactions in helper have been rejected. */
-    private void checkHelperForRejections(ExecutionHelper helper) {
-        for (AionInternalTx tx : helper.getInternalTransactions()) {
+    private void checkHelperForRejections(TransactionSideEffects helper) {
+        for (InternalTransactionInterface tx : helper.getInternalTransactions()) {
             assertTrue(tx.isRejected());
         }
     }
@@ -2416,42 +2419,42 @@ public class CallbackUnitTest {
      * context was the context used to set up the performCall test.
      */
     private void checkInternalTransaction(
-            ExecutionContext context, AionInternalTx tx, boolean isCreateContract) {
+            TransactionContext context, InternalTransactionInterface tx, boolean isCreateContract) {
 
-        assertEquals(context.sender(), tx.getSenderAddress());
+        assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
             AionAddress contract =
                     new AionAddress(
                             HashUtil.calcNewAddr(
-                                    context.sender().toBytes(),
+                                    context.getSenderAddress().toBytes(),
                                     Callback.repo()
-                                            .getNonce(context.sender())
+                                            .getNonce(context.getSenderAddress())
                                             .subtract(BigInteger.ONE)
                                             .toByteArray()));
             assertEquals(contract, tx.getDestinationAddress());
         } else {
-            assertEquals(context.address(), tx.getDestinationAddress());
+            assertEquals(context.getDestinationAddress(), tx.getDestinationAddress());
         }
 
         if (isCreateContract) {
             assertEquals(
-                    Callback.repo().getNonce(context.sender()).subtract(BigInteger.ONE),
-                    tx.getNonceBI());
+                    Callback.repo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE),
+                    new BigInteger(1, tx.getNonce()));
         } else {
-            assertEquals(Callback.repo().getNonce(context.sender()), tx.getNonceBI());
+            assertEquals(Callback.repo().getNonce(context.getSenderAddress()), new BigInteger(1, tx.getNonce()));
         }
 
-        assertEquals(context.callValue(), new DataWord(tx.getValue()));
+        assertEquals(context.getTransferValue(), new DataWord(tx.getValue()));
         if (isCreateContract) {
             assertEquals("create", tx.getNote());
         } else {
             assertEquals("call", tx.getNote());
         }
-        assertEquals(context.depth(), tx.getStackDepth());
+        assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(0, tx.getIndexOfInternalTransaction());
-        assertArrayEquals(context.callData(), tx.getData());
-        assertArrayEquals(context.transactionHash(), tx.getParentTransactionHash());
+        assertArrayEquals(context.getTransactionData(), tx.getData());
+        assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
     }
 
     /**
@@ -2461,13 +2464,13 @@ public class CallbackUnitTest {
      */
     private void checkContextHelper(boolean performCallTriggeredDoCall) {
         if (performCallTriggeredDoCall) {
-            assertEquals(1, Callback.context().helper().getInternalTransactions().size());
-            assertEquals(0, Callback.context().helper().getLogs().size());
-            assertEquals(0, Callback.context().helper().getDeleteAccounts().size());
+            assertEquals(1, Callback.context().getSideEffects().getInternalTransactions().size());
+            assertEquals(0, Callback.context().getSideEffects().getExecutionLogs().size());
+            assertEquals(0, Callback.context().getSideEffects().getAddressesToBeDeleted().size());
         } else {
-            assertEquals(2, Callback.context().helper().getInternalTransactions().size());
-            assertEquals(0, Callback.context().helper().getLogs().size());
-            assertEquals(0, Callback.context().helper().getDeleteAccounts().size());
+            assertEquals(2, Callback.context().getSideEffects().getInternalTransactions().size());
+            assertEquals(0, Callback.context().getSideEffects().getExecutionLogs().size());
+            assertEquals(0, Callback.context().getSideEffects().getAddressesToBeDeleted().size());
         }
     }
 
@@ -2498,8 +2501,8 @@ public class CallbackUnitTest {
      * after a call using the CREATE opcode.
      */
     private void checkInternalTransactionsAfterCreate(boolean wasSuccess) {
-        ExecutionContext context = Callback.context();
-        List<AionInternalTx> internalTxs = context.helper().getInternalTransactions();
+        TransactionContext context = Callback.context();
+        List<InternalTransactionInterface> internalTxs = context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
         checkInternalTransaction(context, internalTxs.get(0), true);
         checkSecondInteralTransaction(context, internalTxs.get(1));
@@ -2509,17 +2512,17 @@ public class CallbackUnitTest {
     }
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
-    private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
-        Address caller = context.sender();
-        assertEquals(context.sender(), tx.getSenderAddress());
-        assertEquals(Callback.repo().getNonce(caller), tx.getNonceBI());
-        assertEquals(context.callValue(), new DataWord(tx.getValue()));
+    private void checkSecondInteralTransaction(TransactionContext context, InternalTransactionInterface tx) {
+        Address caller = context.getSenderAddress();
+        assertEquals(context.getSenderAddress(), tx.getSenderAddress());
+        assertEquals(Callback.repo().getNonce(caller), new BigInteger(1, tx.getNonce()));
+        assertEquals(context.getTransferValue(), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
-        assertEquals(context.depth(), tx.getStackDepth());
+        assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(1, tx.getIndexOfInternalTransaction());
-        assertArrayEquals(context.transactionHash(), tx.getParentTransactionHash());
+        assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
         assertArrayEquals(new DataWord(Callback.repo().getNonce(caller)).getData(), tx.getNonce());
-        assertArrayEquals(context.callData(), tx.getData());
+        assertArrayEquals(context.getTransactionData(), tx.getData());
         assertNull(tx.getDestinationAddress());
     }
 
@@ -2534,8 +2537,8 @@ public class CallbackUnitTest {
             boolean postExecuteWasSuccess,
             boolean nrgLessThanDeposit) {
 
-        BigInteger value = context.callValue().value();
-        Address caller = Callback.context().sender();
+        BigInteger value = context.getTransferValue().value();
+        Address caller = Callback.context().getSenderAddress();
         AionAddress contract;
         contract =
                 new AionAddress(

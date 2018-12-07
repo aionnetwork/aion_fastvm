@@ -37,6 +37,7 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.TransactionExecutor;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionTxInfo;
@@ -335,7 +336,7 @@ public class InternalTransactionTest {
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());
-        for (AionInternalTx tx : summary.getInternalTransactions()) {
+        for (InternalTransactionInterface tx : summary.getInternalTransactions()) {
             System.out.println(tx);
         }
     }
