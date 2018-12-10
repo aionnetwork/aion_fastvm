@@ -226,7 +226,7 @@ public class ExecutionContextUnitTest {
         assertEquals(context.getSenderAddress(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getTransactionEnergyPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(context.getTransactionEnergyPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -235,7 +235,7 @@ public class ExecutionContextUnitTest {
         longBuf.clear();
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getTransferValue(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(new DataWord(context.getTransferValue()), new DataWord(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -286,6 +286,6 @@ public class ExecutionContextUnitTest {
         start = end;
         end += DataWord.BYTES;
         assertEquals(
-                context.getBlockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+                context.getBlockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
     }
 }

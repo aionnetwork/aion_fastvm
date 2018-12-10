@@ -20,6 +20,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
+import org.aion.base.vm.IDataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
@@ -98,7 +99,7 @@ public class OldTxExecutorTest {
 
         AionBlock block = TestUtils.createDummyBlock();
 
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo =
                 new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 

@@ -12,7 +12,6 @@ import org.aion.vm.api.ResultCode;
 import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.vm.IDataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -24,7 +23,7 @@ import org.aion.vm.ExecutionContext;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.api.interfaces.Address;
-import org.aion.vm.api.interfaces.DataWordStub;
+import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
@@ -218,7 +217,7 @@ public class Callback {
         }
 
         // check value
-        BigInteger endowment = ctx.getTransferValue().value();
+        BigInteger endowment = ctx.getTransferValue();
         BigInteger callersBalance = repo().getBalance(ctx.getSenderAddress());
         if (callersBalance.compareTo(endowment) < 0) {
             return new TransactionResult(ResultCode.FAILURE, 0).toBytes();
@@ -276,7 +275,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        ctx.getTransferValue(),
+                        new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "call");
         context().getSideEffects().addInternalTransaction(internalTx);
@@ -285,8 +284,9 @@ public class Callback {
         // transfer balance
         if (ctx.getTransactionKind() != ExecutionContext.DELEGATECALL
                 && ctx.getTransactionKind() != ExecutionContext.CALLCODE) {
-            track.addBalance(ctx.getSenderAddress(), ctx.getTransferValue().value().negate());
-            track.addBalance(ctx.getDestinationAddress(), ctx.getTransferValue().value());
+            BigInteger transferAmount = ctx.getTransferValue();
+            track.addBalance(ctx.getSenderAddress(), transferAmount.negate());
+            track.addBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
         IPrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
@@ -341,7 +341,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        ctx.getTransferValue(),
+                        new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "create");
         context().getSideEffects().addInternalTransaction(internalTx);
@@ -355,8 +355,9 @@ public class Callback {
         track.addBalance(newAddress, oldBalance);
 
         // transfer balance
-        track.addBalance(ctx.getSenderAddress(), ctx.getTransferValue().value().negate());
-        track.addBalance(newAddress, ctx.getTransferValue().value());
+        BigInteger transferAmount = ctx.getTransferValue();
+        track.addBalance(ctx.getSenderAddress(), transferAmount.negate());
+        track.addBalance(newAddress, transferAmount);
 
         // update nonce
         track.incrementNonce(ctx.getSenderAddress());
@@ -367,7 +368,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         null,
                         track.getNonce(ctx.getSenderAddress()),
-                        ctx.getTransferValue(),
+                        new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "create");
         ctx.getSideEffects().addInternalTransaction(internalTx);
@@ -424,7 +425,7 @@ public class Callback {
         byte[] caller = new byte[AionAddress.SIZE];
         buffer.get(caller);
 
-        DataWordStub nrgPrice = prev.getTransactionEnergyPrice();
+        IDataWord nrgPrice = new DataWord(prev.getTransactionEnergyPrice());
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
@@ -440,7 +441,7 @@ public class Callback {
         long blockNumber = prev.getBlockNumber();
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
-        DataWordStub blockDifficulty = prev.getBlockDifficulty();
+        IDataWord blockDifficulty = new DataWord(prev.getBlockDifficulty());
 
         return new ExecutionContext(
                 txHash,
@@ -463,7 +464,7 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-            Address from, Address to, BigInteger nonce, DataWordStub value, byte[] data, String note) {
+            Address from, Address to, BigInteger nonce, IDataWord value, byte[] data, String note) {
         byte[] parentHash = context().getTransactionHash();
         int depth = context().getTransactionStackDepth();
         int index = context().getSideEffects().getInternalTransactions().size();
