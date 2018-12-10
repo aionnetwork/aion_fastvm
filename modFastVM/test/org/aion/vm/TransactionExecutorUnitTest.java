@@ -37,6 +37,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.aion.base.type.AionAddress;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.vm.api.ResultCode;
 import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
@@ -1381,9 +1383,9 @@ public class TransactionExecutorUnitTest {
         assertEquals(ctx.getDestinationAddress(), recipient);
         assertEquals(ctx.getOriginAddress(), tx.getSenderAddress());
         assertEquals(ctx.getSenderAddress(), tx.getSenderAddress());
-        assertEquals(ctx.getTransactionEnergyPrice(), tx.nrgPrice());
+        assertEquals(ctx.getTransactionEnergyPrice(), tx.nrgPrice().longValue());
         assertEquals(ctx.getTransactionEnergyLimit(), tx.nrgLimit() - tx.transactionCost(0));
-        assertEquals(ctx.getTransferValue(), new DataWord(value));
+        assertEquals(new DataWord(ctx.getTransferValue()), new DataWord(value));
         assertArrayEquals(ctx.getTransactionData(), data);
         assertEquals(ctx.getTransactionStackDepth(), 0);
         assertEquals(ctx.getTransactionKind(), kind);
@@ -1392,7 +1394,7 @@ public class TransactionExecutorUnitTest {
         assertEquals(ctx.getBlockNumber(), block.getNumber());
         assertEquals(ctx.getBlockTimestamp(), block.getTimestamp());
         assertEquals(ctx.getBlockEnergyLimit(), block.getNrgLimit());
-        assertEquals(ctx.getBlockDifficulty(), new DataWord(diff));
+        assertEquals(ctx.getBlockDifficulty(), new DataWord(diff).longValue());
     }
 
     /**

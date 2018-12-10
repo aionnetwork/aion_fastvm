@@ -55,7 +55,7 @@ import org.aion.vm.ExecutionContext;
 import org.aion.vm.SideEffects;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.api.interfaces.Address;
-import org.aion.vm.api.interfaces.DataWordStub;
+import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -352,7 +352,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorage() {
-        IRepositoryCache repo = new DummyRepository();
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
@@ -363,7 +363,7 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleEntries() {
         int num = RandomUtils.nextInt(3, 10);
-        IRepositoryCache repo = new DummyRepository();
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
         AionAddress[] addresses = new AionAddress[num];
         byte[][] keys = new byte[num][];
@@ -381,7 +381,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorageMultipleAddresses() {
-        IRepositoryCache repo = new DummyRepository();
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -397,7 +397,7 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleAddressesAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        IRepositoryCache[] repos = new IRepositoryCache[depths];
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>>[] repos = new IRepositoryCache[depths];
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
             repos[depths - 1 - i] = new DummyRepository();
@@ -607,7 +607,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergyLimit(),
-                        ctx.getTransferValue(),
+                        new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -652,7 +652,7 @@ public class CallbackUnitTest {
                             ctx.getDestinationAddress(),
                             ctx.getSenderAddress(),
                             ctx.getTransactionEnergyLimit(),
-                            ctx.getTransferValue(),
+                            new DataWord(ctx.getTransferValue()),
                             ctx.getTransactionData(),
                             ctx.getTransactionStackDepth(),
                             ctx.getTransactionKind(),
@@ -693,7 +693,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergyLimit(),
-                        ctx.getTransferValue(),
+                        new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -725,7 +725,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergyLimit(),
-                        context.getTransferValue(),
+                        new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         Constants.MAX_CALL_DEPTH,
@@ -759,7 +759,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergyLimit(),
-                        context.getTransferValue(),
+                        new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         0,
@@ -1786,7 +1786,7 @@ public class CallbackUnitTest {
         when(context.getBlockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getSenderAddress()).thenReturn(getNewAddress());
         when(context.getTransactionData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
-        when(context.getTransferValue()).thenReturn(new DataWord(RandomUtils.nextBytes(DataWord.BYTES)));
+        when(context.getTransferValue()).thenReturn(new BigInteger(1, RandomUtils.nextBytes(DataWord.BYTES)));
         when(context.getTransactionEnergyLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(context.getTransactionStackDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
@@ -1853,7 +1853,7 @@ public class CallbackUnitTest {
             Address address,
             Address caller,
             long nrgLimit,
-            DataWordStub callValue,
+            IDataWord callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -2018,9 +2018,9 @@ public class CallbackUnitTest {
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
                 context.getSenderAddress(),
-                previous.getTransactionEnergyPrice(),
+                new DataWord(previous.getTransactionEnergyPrice()),
                 context.getTransactionEnergyLimit(),
-                context.getTransferValue(),
+                new DataWord(context.getTransferValue()),
                 context.getTransactionData(),
                 context.getTransactionStackDepth(),
                 context.getTransactionKind(),
@@ -2029,7 +2029,7 @@ public class CallbackUnitTest {
                 previous.getBlockNumber(),
                 previous.getBlockTimestamp(),
                 previous.getBlockEnergyLimit(),
-                previous.getBlockDifficulty());
+                new DataWord(previous.getBlockDifficulty()));
     }
 
     /**
@@ -2245,7 +2245,7 @@ public class CallbackUnitTest {
                 callerBalance,
                 context.getDestinationAddress(),
                 recipientBalance,
-                context.getTransferValue().value(),
+                context.getTransferValue(),
                 wasNoRecipient,
                 kind);
     }
@@ -2281,7 +2281,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergyLimit(),
-                        context.getTransferValue(),
+                        new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         kind,
@@ -2445,7 +2445,7 @@ public class CallbackUnitTest {
             assertEquals(Callback.repo().getNonce(context.getSenderAddress()), new BigInteger(1, tx.getNonce()));
         }
 
-        assertEquals(context.getTransferValue(), new DataWord(tx.getValue()));
+        assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
         if (isCreateContract) {
             assertEquals("create", tx.getNote());
         } else {
@@ -2516,7 +2516,7 @@ public class CallbackUnitTest {
         Address caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         assertEquals(Callback.repo().getNonce(caller), new BigInteger(1, tx.getNonce()));
-        assertEquals(context.getTransferValue(), new DataWord(tx.getValue()));
+        assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
         assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(1, tx.getIndexOfInternalTransaction());
@@ -2537,7 +2537,7 @@ public class CallbackUnitTest {
             boolean postExecuteWasSuccess,
             boolean nrgLessThanDeposit) {
 
-        BigInteger value = context.getTransferValue().value();
+        BigInteger value = context.getTransferValue();
         Address caller = Callback.context().getSenderAddress();
         AionAddress contract;
         contract =

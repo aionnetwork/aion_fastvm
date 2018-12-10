@@ -33,14 +33,14 @@ import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.vm.IDataWord;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.api.interfaces.Address;
+import org.aion.base.vm.IDataWord;
 
 public class DummyRepository
-        implements IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> {
+        implements IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> {
     private DummyRepository parent;
     Map<Address, AccountState> accounts = new HashMap<>();
     Map<Address, byte[]> contracts = new HashMap<>();
@@ -108,7 +108,7 @@ public class DummyRepository
     }
 
     @Override
-    public IContractDetails<DataWord> getContractDetails(Address addr) {
+    public IContractDetails<IDataWord> getContractDetails(Address addr) {
         throw new UnsupportedOperationException();
     }
 
@@ -129,7 +129,7 @@ public class DummyRepository
     }
 
     @Override
-    public Map<DataWord, DataWord> getStorage(Address address, Collection<DataWord> keys) {
+    public Map<IDataWord, IDataWord> getStorage(Address address, Collection<IDataWord> keys) {
         throw new RuntimeException("Not supported");
     }
 
@@ -142,14 +142,14 @@ public class DummyRepository
     }
 
     @Override
-    public void addStorageRow(Address addr, DataWord key, DataWord value) {
+    public void addStorageRow(Address addr, IDataWord key, IDataWord value) {
         Map<String, byte[]> map = storage.computeIfAbsent(addr, k -> new HashMap<>());
 
         map.put(key.toString(), value.getData());
     }
 
     @Override
-    public IDataWord getStorageValue(Address addr, DataWord key) {
+    public IDataWord getStorageValue(Address addr, IDataWord key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
             return new DataWord(map.get(key.toString()));
@@ -179,7 +179,7 @@ public class DummyRepository
     }
 
     @Override
-    public IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> startTracking() {
+    public IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> startTracking() {
         return new DummyRepository(this);
     }
 
@@ -217,7 +217,7 @@ public class DummyRepository
     @Override
     public void updateBatch(
             Map<Address, AccountState> accountStates,
-            Map<Address, IContractDetails<DataWord>> contractDetailes) {
+            Map<Address, IContractDetails<IDataWord>> contractDetailes) {
         throw new UnsupportedOperationException();
     }
 
@@ -230,7 +230,7 @@ public class DummyRepository
     public void loadAccountState(
             Address addr,
             Map<Address, AccountState> cacheAccounts,
-            Map<Address, IContractDetails<DataWord>> cacheDetails) {
+            Map<Address, IContractDetails<IDataWord>> cacheDetails) {
         throw new UnsupportedOperationException();
     }
 
