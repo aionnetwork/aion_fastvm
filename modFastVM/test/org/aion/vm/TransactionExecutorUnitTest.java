@@ -1,25 +1,3 @@
-/*
- * Copyright (c) 2017-2018 Aion foundation.
- *
- *     This file is part of the aion network project.
- *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
- *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Aion foundation.
- */
 package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -795,8 +773,10 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(coinbase);
 
         for (ResultCode code : ResultCode.values()) {
-            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)
-                    && !code.equals(ResultCode.VM_REJECTED) && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
+            if (!code.equals(ResultCode.SUCCESS)
+                    && !code.equals(ResultCode.REVERT)
+                    && !code.equals(ResultCode.VM_REJECTED)
+                    && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
                 ExecutionResult result = new ExecutionResult(code, 0, RandomUtils.nextBytes(10));
                 doFinishAndCheck(tx, block, helper, result, coinbase, true);
             }
@@ -835,8 +815,10 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(coinbase);
 
         for (ResultCode code : ResultCode.values()) {
-            if (!code.equals(ResultCode.SUCCESS) && !code.equals(ResultCode.REVERT)
-                    && !code.equals(ResultCode.VM_REJECTED) && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
+            if (!code.equals(ResultCode.SUCCESS)
+                    && !code.equals(ResultCode.REVERT)
+                    && !code.equals(ResultCode.VM_REJECTED)
+                    && !code.equals(ResultCode.VM_INTERNAL_ERROR)) {
                 ExecutionResult result = new ExecutionResult(code, 0, RandomUtils.nextBytes(10));
                 doFinishAndCheck(tx, block, helper, result, coinbase, false);
             }
@@ -1881,7 +1863,7 @@ public class TransactionExecutorUnitTest {
 
     private boolean determineIfFailed(ExecutionResult result) {
         switch (result.getResultCode()) {
-            /* failure */
+                /* failure */
             case FAILURE:
             case OUT_OF_NRG:
             case BAD_INSTRUCTION:

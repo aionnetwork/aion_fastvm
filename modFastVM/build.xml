@@ -36,7 +36,7 @@
         <pathelement location="${dir.mod}/modEvtMgr.jar"/>
         <pathelement location="${dir.mod}/modVM.jar"/>
         <pathelement location="${dir.mod}/modPrecompiled.jar"/>
-        <pathelement location="${dir.dest}" />
+        <pathelement location="${dir.dest}"/>
     </path>
 
     <path id="classpath.dependency">
@@ -61,8 +61,9 @@
 
     <target name="test_build" depends="build">
         <mkdir dir="${dir.test}"/>
-        <javac debug="on" debuglevel="source,lines,vars" includeantruntime="false" release="9" srcdir="./test"
-               destdir="${dir.test}" includes="**/*Test.java">
+        <javac debug="on" debuglevel="source,lines,vars" includeantruntime="false" release="9"
+            srcdir="./test"
+            destdir="${dir.test}" includes="**/*Test.java">
             <classpath>
                 <path refid="classpath.dependency"/>
                 <path refid="classpath.test"/>
@@ -77,7 +78,7 @@
             <fileset dir="${native.src.dir}"/>
         </copy>
         <copy todir="${dir.test}/org/aion/contract">
-            <fileset dir="test/org/aion/contract" />
+            <fileset dir="test/org/aion/contract"/>
         </copy>
 
         <junit printsummary="yes" haltonfailure="no" fork="yes">
@@ -104,8 +105,9 @@
 
     <target name="build">
         <mkdir dir="${dir.dest}"/>
-        <javac debug="${compile.debug}" debuglevel="source,lines,vars" includeantruntime="false" release="10" srcdir="./"
-               destdir="${dir.dest}" includes="src/**/*.java,module-info.java">
+        <javac debug="${compile.debug}" debuglevel="source,lines,vars" includeantruntime="false"
+            release="10" srcdir="./"
+            destdir="${dir.dest}" includes="src/**/*.java,module-info.java">
             <modulepath>
                 <path refid="classpath.dependency"/>
             </modulepath>
