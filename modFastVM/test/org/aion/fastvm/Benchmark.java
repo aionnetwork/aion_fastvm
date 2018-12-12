@@ -45,7 +45,6 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.TransactionExecutor;
-import org.aion.base.vm.IDataWord;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
@@ -58,8 +57,7 @@ public class Benchmark {
 
     private static AionBlock block = TestUtils.createDummyBlock();
     private static AionRepositoryImpl db = AionRepositoryImpl.inst();
-    private static IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo =
-            db.startTracking();
+    private static IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
 
     private static ECKey key;
     private static AionAddress owner;

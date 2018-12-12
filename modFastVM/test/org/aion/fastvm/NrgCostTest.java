@@ -72,10 +72,8 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.aion.base.type.AionAddress;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.fastvm.Instruction.Tier;
@@ -84,6 +82,8 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
@@ -248,7 +248,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -339,7 +340,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -408,7 +410,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -480,7 +483,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -550,7 +554,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -608,7 +613,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             System.out.println(result);
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -678,7 +684,8 @@ public class NrgCostTest {
             repo.addContract(address, code);
 
             // compile
-            FastVmTransactionResult result = new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
@@ -738,16 +745,15 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-                        db.startTracking();
+                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     AionAddress address =
                             AionAddress.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
-                            new DataWord(RandomUtils.nextBytes(16)),
-                            new DataWord(RandomUtils.nextBytes(16)));
+                            new DataWord(RandomUtils.nextBytes(16)).toWrapper(),
+                            new DataWord(RandomUtils.nextBytes(16)).toWrapper());
                 }
                 repo.flush();
                 db.flush();
@@ -756,13 +762,13 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-                        db.startTracking();
+                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     AionAddress address =
                             AionAddress.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
-                    repo.getStorageValue(address, new DataWord(RandomUtils.nextBytes(16)));
+                    repo.getStorageValue(
+                            address, new DataWord(RandomUtils.nextBytes(16)).toWrapper());
                 }
                 repo.flush();
                 db.flush();

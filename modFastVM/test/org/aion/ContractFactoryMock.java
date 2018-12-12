@@ -37,8 +37,7 @@ public class ContractFactoryMock implements IContractFactory {
     /** A mocked up version of getPrecompiledContract that only returns TestPrecompiledContract. */
     @Override
     public IPrecompiledContract getPrecompiledContract(
-            TransactionContext context,
-            KernelInterfaceForFastVM track) {
+            TransactionContext context, KernelInterfaceForFastVM track) {
 
         switch (context.getDestinationAddress().toString()) {
             case CALL_ME:
