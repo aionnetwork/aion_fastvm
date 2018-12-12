@@ -35,8 +35,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
 import org.aion.ContractFactoryMock;
 import org.aion.ContractFactoryMock.CallMePrecompiledContract;
 import org.aion.base.db.IRepositoryCache;
@@ -120,8 +118,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
 
         AionAddress contract = tx.getContractAddress();
@@ -154,8 +152,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
 
         AionAddress contract = tx.getContractAddress();
@@ -195,8 +193,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertEquals(nrg, tx.getNrgConsume());
 
@@ -237,8 +235,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.REVERT, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume()); // all energy is not used up.
 
@@ -274,8 +272,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume()); // all energy is not used up.
 
@@ -311,8 +309,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.INSUFFICIENT_BALANCE, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.INSUFFICIENT_BALANCE, result.getResultCode());
         assertEquals(0, tx.getNrgConsume());
         assertEquals(0, result.getEnergyRemaining());
 
@@ -390,8 +388,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -436,8 +434,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -467,8 +465,8 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         summary = exec.execute();
-        result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -515,8 +513,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.REVERT, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -562,8 +560,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -615,8 +613,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -669,8 +667,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -735,8 +733,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -771,8 +769,8 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -821,8 +819,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -855,8 +853,8 @@ public class ContractIntegTest {
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.REVERT, result.getResultCode());
+        result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -897,8 +895,8 @@ public class ContractIntegTest {
         ((TestVMProvider) provider).setFactory(new ContractFactoryMock());
         exec.setExecutorProvider(provider);
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -941,8 +939,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.FAILURE, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.FAILURE, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertEquals(nrg, tx.getNrgConsume());
     }
@@ -999,9 +997,9 @@ public class ContractIntegTest {
         ((TestVMProvider) provider).setFactory(new ContractFactoryMock());
         exec.setExecutorProvider(provider);
         exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
 
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -1041,8 +1039,8 @@ public class ContractIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 
@@ -1082,12 +1080,12 @@ public class ContractIntegTest {
             IRepositoryCache repo,
             String contractName,
             AionAddress contractAddr,
-            TransactionResult result,
+            FastVmTransactionResult result,
             BigInteger value)
             throws IOException {
 
         byte[] body = getBodyCode(contractName);
-        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
+        if (result.getResultCode().equals(FastVmResultCode.SUCCESS)) {
             assertArrayEquals(body, result.getOutput());
             assertArrayEquals(body, repo.getCode(contractAddr));
         } else {
@@ -1108,12 +1106,12 @@ public class ContractIntegTest {
             String contractName,
             String contractFilename,
             AionAddress contractAddr,
-            TransactionResult result,
+            FastVmTransactionResult result,
             BigInteger value)
             throws IOException {
 
         byte[] body = ContractUtils.getContractBody(contractFilename, contractName);
-        if (result.getResultCode().equals(ResultCode.SUCCESS)) {
+        if (result.getResultCode().equals(FastVmResultCode.SUCCESS)) {
             assertArrayEquals(body, result.getOutput());
             assertArrayEquals(body, repo.getCode(contractAddr));
         } else {

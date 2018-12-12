@@ -23,8 +23,8 @@
 
 package org.aion;
 
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -60,12 +60,12 @@ public class ContractFactoryMock implements IContractFactory {
          * variable 'head' followed by the bytes in input.
          */
         @Override
-        public TransactionResult execute(byte[] input, long nrgLimit) {
+        public FastVmTransactionResult execute(byte[] input, long nrgLimit) {
             youCalledMe = true;
             byte[] msg = new byte[head.getBytes().length + input.length];
             System.arraycopy(head.getBytes(), 0, msg, 0, head.getBytes().length);
             System.arraycopy(input, 0, msg, head.getBytes().length, input.length);
-            return new TransactionResult(ResultCode.SUCCESS, nrgLimit, msg);
+            return new FastVmTransactionResult(FastVmResultCode.SUCCESS, nrgLimit, msg);
         }
     }
 }

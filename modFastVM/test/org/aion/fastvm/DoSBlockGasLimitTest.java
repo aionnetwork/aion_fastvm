@@ -27,8 +27,8 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.math.BigInteger;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -100,9 +100,9 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        TransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -138,9 +138,9 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        TransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
 
     @Test
@@ -176,8 +176,8 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        TransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, repo);
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_ENERGY, result.getResultCode());
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
 }

@@ -30,15 +30,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
@@ -53,7 +48,6 @@ import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
-import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.apache.commons.lang3.RandomUtils;
@@ -118,8 +112,8 @@ public class OpcodeIntegTest {
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // Check that the logs from our internal transactions are as we expect.
@@ -165,8 +159,8 @@ public class OpcodeIntegTest {
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // Check that the logs from our internal transactions are as we expect.
@@ -208,8 +202,8 @@ public class OpcodeIntegTest {
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // Check that the logs from our internal transactions are as we expect.
@@ -260,8 +254,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
         nonce = nonce.add(BigInteger.ONE);
 
@@ -344,8 +338,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that the internal transaction is sent from D to D.
@@ -386,8 +380,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that deployer paid the txCost and sent value. We expect that D received value.
@@ -429,8 +423,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
         nonce = nonce.add(BigInteger.ONE);
 
@@ -508,8 +502,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect there to be one internal transaction and it should look like deployer sent to
@@ -553,8 +547,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that deployer paid the tx cost and sent value. We expect that D received value.
@@ -597,8 +591,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We examine the logs to determine the expected state. We expect to see
@@ -650,8 +644,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that deployer paid the tx cost. We expect that all of the balance in the
@@ -698,8 +692,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - summary.getNrgUsed().longValue(), result.getEnergyRemaining());
 
         // We expect that deployer paid the tx cost. We expect that a new account was created and
@@ -767,8 +761,8 @@ public class OpcodeIntegTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult result = (TransactionResult) exec.getResult();
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(nrg - tx.getNrgConsume(), result.getEnergyRemaining());
         assertNotEquals(nrg, tx.getNrgConsume());
 

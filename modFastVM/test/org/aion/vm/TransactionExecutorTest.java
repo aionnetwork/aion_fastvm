@@ -33,8 +33,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -116,8 +114,8 @@ public class TransactionExecutorTest {
         // fee plus the refund
         byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
 
-        TransactionResult res = (TransactionResult) exec.exeResult;
-        assertEquals(ResultCode.SUCCESS, res.getResultCode());
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
+        assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
         assertArrayEquals(body, res.getOutput());
 
         AionAddress contract = summary.getTransaction().getContractAddress();
@@ -197,8 +195,8 @@ public class TransactionExecutorTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        TransactionResult res = (TransactionResult) exec.exeResult;
-        assertEquals(ResultCode.SUCCESS, res.getResultCode());
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
+        assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
         System.out.println(Hex.toHexString(res.getOutput()));
 
         // We called the function f() which returns nothing.
@@ -229,7 +227,7 @@ public class TransactionExecutorTest {
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
 
-        res = (TransactionResult) exec.exeResult;
+        res = (FastVmTransactionResult) exec.exeResult;
         byte[] output = res.getOutput();
         System.out.println(Hex.toHexString(output));
         System.out.println(res.getOutput().length);
@@ -283,7 +281,7 @@ public class TransactionExecutorTest {
         AionTxExecSummary summary = exec.execute();
         System.out.println(summary.getReceipt());
 
-        TransactionResult res = (TransactionResult) exec.exeResult;
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
         //        System.out.println(Hex.toHexString(res.getOutput()));
         //        System.out.println(res.getOutput().length);
 

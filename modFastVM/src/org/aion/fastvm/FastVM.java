@@ -22,7 +22,7 @@
  */
 package org.aion.fastvm;
 
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.NativeLoader;
 import org.aion.vm.VirtualMachine;
@@ -70,13 +70,13 @@ public class FastVM implements VirtualMachine {
     private static native void destroy(long instance);
 
     @SuppressWarnings("unchecked")
-    public TransactionResult run(byte[] code, TransactionContext ctx, IRepositoryCache repo) {
+    public FastVmTransactionResult run(byte[] code, TransactionContext ctx, IRepositoryCache repo) {
         Callback.push(Pair.of(ctx, repo));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
         destroy(instance);
         Callback.pop();
 
-        return TransactionResult.fromBytes(result);
+        return FastVmTransactionResult.fromBytes(result);
     }
 }
