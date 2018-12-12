@@ -2,12 +2,9 @@ package org.aion;
 
 import org.aion.vm.FastVmResultCode;
 import org.aion.vm.FastVmTransactionResult;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
-import org.aion.base.vm.IDataWord;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.TransactionContext;
 
 public class ContractFactoryMock implements IContractFactory {
@@ -18,7 +15,7 @@ public class ContractFactoryMock implements IContractFactory {
     @Override
     public IPrecompiledContract getPrecompiledContract(
             TransactionContext context,
-            IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track) {
+            KernelInterfaceForFastVM track) {
 
         switch (context.getDestinationAddress().toString()) {
             case CALL_ME:

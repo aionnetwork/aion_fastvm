@@ -13,6 +13,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -116,7 +117,7 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -154,7 +155,7 @@ public class DoSBlockGasLimitTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }

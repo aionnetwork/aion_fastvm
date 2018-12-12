@@ -29,6 +29,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.SideEffects;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.api.interfaces.Address;
@@ -77,7 +78,7 @@ public class CallbackUnitTest {
 
     @Test(expected = NullPointerException.class)
     public void testPeekAtEmptyStack2() {
-        Callback.repo();
+        Callback.kernelRepo();
     }
 
     @Test
@@ -92,12 +93,13 @@ public class CallbackUnitTest {
 
     @Test
     public void testPeekAtRepoInStackSizeOne() {
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo = mockRepo();
+        KernelInterfaceForFastVM repo = mockKernelRepo();
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> stackRepo = Callback.repo();
-        compareRepos(repo, stackRepo);
+        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> stackRepo = Callback.kernelRepo().getRepositoryCache();
+        System.out.println(repo.getRepositoryCache());
+        compareRepos(repo.getRepositoryCache(), stackRepo);
     }
 
     @Test
@@ -123,8 +125,8 @@ public class CallbackUnitTest {
         Pair[] pairs = new Pair[reps];
         for (int i = 0; i < reps; i++) {
             ExecutionContext ctx = mockContext();
-            IRepositoryCache repo = mockRepo();
-            Pair mockedPair = mockEmptyPair();
+            KernelInterfaceForFastVM repo = mockKernelRepo();
+            Pair<TransactionContext, KernelInterfaceForFastVM> mockedPair = mockEmptyPair();
             when(mockedPair.getLeft()).thenReturn(ctx);
             when(mockedPair.getRight()).thenReturn(repo);
             pairs[i] = mockedPair;
@@ -134,7 +136,7 @@ public class CallbackUnitTest {
         }
         for (Pair pair : pairs) {
             compareMockContexts((ExecutionContext) pair.getLeft(), Callback.context());
-            compareRepos((IRepositoryCache) pair.getRight(), Callback.repo());
+            compareRepos(((KernelInterfaceForFastVM) pair.getRight()).getRepositoryCache(), Callback.kernelRepo().getRepositoryCache());
             Callback.pop();
         }
         try {
@@ -250,7 +252,7 @@ public class CallbackUnitTest {
     @Test
     public void testHasAccountStateWhenAccountExists() {
         AionAddress address = getNewAddress();
-        IRepositoryCache repo = mockRepo();
+        KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.hasAccountState(address)).thenReturn(true);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(repo);
@@ -261,7 +263,7 @@ public class CallbackUnitTest {
     @Test
     public void testHasAccountStateWhenAccountDoesNotExist() {
         AionAddress address = getNewAddress();
-        IRepositoryCache repo = mockRepo();
+        KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.hasAccountState(address)).thenReturn(false);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(repo);
@@ -455,7 +457,7 @@ public class CallbackUnitTest {
         when(ctx.getSideEffects()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
-        when(pair.getRight()).thenReturn(dummyRepo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(dummyRepo));
         Callback.push(pair);
 
         Callback.selfDestruct(owner.toBytes(), owner.toBytes());
@@ -475,7 +477,7 @@ public class CallbackUnitTest {
         when(ctx.getSideEffects()).thenReturn(helper);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(ctx);
-        when(pair.getRight()).thenReturn(dummyRepo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(dummyRepo));
         Callback.push(pair);
 
         Callback.selfDestruct(owner.toBytes(), beneficiary.toBytes());
@@ -493,8 +495,8 @@ public class CallbackUnitTest {
             BigInteger ownerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
             BigInteger benBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
             BigInteger benNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            AionAddress owner = getNewAddressInRepo(Callback.repo(), ownerBalance, ownerNonce);
-            AionAddress beneficiary = getNewAddressInRepo(Callback.repo(), benBalance, benNonce);
+            AionAddress owner = getNewAddressInRepo(Callback.kernelRepo().getRepositoryCache(), ownerBalance, ownerNonce);
+            AionAddress beneficiary = getNewAddressInRepo(Callback.kernelRepo().getRepositoryCache(), benBalance, benNonce);
 
             // Test every other with owner as beneficiary
             if (i % 2 == 0) {
@@ -695,7 +697,7 @@ public class CallbackUnitTest {
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
         byte[] message =
                 generateContextMessage(
@@ -729,7 +731,7 @@ public class CallbackUnitTest {
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
         byte[] message =
                 generateContextMessage(
@@ -1738,7 +1740,7 @@ public class CallbackUnitTest {
 
     // <---------------------------------------HELPERS BELOW--------------------------------------->
 
-    private Pair<TransactionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
+    private Pair<TransactionContext, KernelInterfaceForFastVM>
             mockEmptyPair() {
         return mock(Pair.class);
     }
@@ -1747,14 +1749,14 @@ public class CallbackUnitTest {
      * Returns a mocked pair whose left entry is a mocked context that returns a new helper when
      * helper is called and whose right entry is a new DummyRepository.
      */
-    private Pair<TransactionContext, IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>>>
+    private Pair<TransactionContext, KernelInterfaceForFastVM>
             mockPair() {
         ExecutionContext context = mockContext();
         SideEffects helper = new SideEffects();
         when(context.getSideEffects()).thenReturn(helper);
         Pair pair = mock(Pair.class);
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(new DummyRepository());
+        when(pair.getRight()).thenReturn(new KernelInterfaceForFastVM(new DummyRepository(), true, false));
         return pair;
     }
 
@@ -1874,11 +1876,13 @@ public class CallbackUnitTest {
         assertArrayEquals(context.getTransactionData(), other.getTransactionData());
     }
 
-    private IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> mockRepo() {
+    private KernelInterfaceForFastVM mockKernelRepo() {
         IRepositoryCache cache = mock(IRepositoryCache.class);
         when(cache.toString()).thenReturn("mocked repo.");
-        when(cache.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
-        return cache;
+        KernelInterfaceForFastVM kernel = mock(KernelInterfaceForFastVM.class);
+        when(kernel.getRepositoryCache()).thenReturn(cache);
+        when(kernel.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
+        return kernel;
     }
 
     private void compareMockContexts(TransactionContext context, TransactionContext other) {
@@ -1934,7 +1938,7 @@ public class CallbackUnitTest {
             AionAddress beneficiary,
             BigInteger beneficiaryOldBalance) {
 
-        IRepositoryCache repo = Callback.repo();
+        IRepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
         TransactionContext ctx = Callback.context();
         TransactionSideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
@@ -2015,13 +2019,11 @@ public class CallbackUnitTest {
      */
     private void pushNewBlockHash(long blockNum, byte[] hash) {
         ExecutionContext context = mockContext();
-        IRepositoryCache repo = mockRepo();
-        IBlockStoreBase blockstore = mock(IBlockStoreBase.class);
-        when(blockstore.getBlockHashByNumber(blockNum)).thenReturn(hash);
-        when(repo.getBlockStore()).thenReturn(blockstore);
+        KernelInterfaceForFastVM kernel = mockKernelRepo();
+        when(kernel.getBlockHashByNumber(blockNum)).thenReturn(hash);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(kernel);
         Callback.push(pair);
     }
 
@@ -2031,7 +2033,7 @@ public class CallbackUnitTest {
      */
     private void pushNewCode(AionAddress address, byte[] code) {
         ExecutionContext context = mockContext();
-        IRepositoryCache repo = mockRepo();
+        KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.getCode(address)).thenReturn(code);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -2047,7 +2049,7 @@ public class CallbackUnitTest {
         IRepositoryCache repo = new DummyRepository();
         AionAddress address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
         return address;
     }
@@ -2146,7 +2148,7 @@ public class CallbackUnitTest {
      */
     private void pushNewRepo(IRepositoryCache repo) {
         Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
     }
 
@@ -2172,13 +2174,13 @@ public class CallbackUnitTest {
         if (result == null) {
             when(factory.getPrecompiledContract(
                             Mockito.any(ExecutionContext.class),
-                            Mockito.any(IRepositoryCache.class)))
+                            Mockito.any(KernelInterfaceForFastVM.class)))
                     .thenReturn(null);
             return factory;
         } else {
             when(factory.getPrecompiledContract(
                             Mockito.any(ExecutionContext.class),
-                            Mockito.any(IRepositoryCache.class)))
+                            Mockito.any(KernelInterfaceForFastVM.class)))
                     .thenReturn(contract);
         }
         return factory;
@@ -2190,7 +2192,7 @@ public class CallbackUnitTest {
         when(vm.run(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
-                        Mockito.any(IRepositoryCache.class)))
+                        Mockito.any(KernelInterfaceForFastVM.class)))
                 .thenReturn(result);
         return vm;
     }
@@ -2288,7 +2290,7 @@ public class CallbackUnitTest {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
             AionAddress contract = new AionAddress(result.getOutput());
-            assertArrayEquals(code, Callback.repo().getCode(contract));
+            assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
         }
     }
 
@@ -2336,7 +2338,7 @@ public class CallbackUnitTest {
 
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
         return context;
     }
@@ -2362,30 +2364,30 @@ public class CallbackUnitTest {
             int kind) {
 
         if (caller.equals(recipient)) {
-            assertEquals(callerPrevBalance, Callback.repo().getBalance(caller));
+            assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
         } else {
             if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                assertEquals(callerPrevBalance, Callback.repo().getBalance(caller));
+                assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
             } else {
                 assertEquals(
-                        callerPrevBalance.subtract(callValue), Callback.repo().getBalance(caller));
+                        callerPrevBalance.subtract(callValue), Callback.kernelRepo().getBalance(caller));
             }
 
             if (wasNoRecipient) {
                 // if there was no recipient then DummyRepository created that account when Callback
                 // transferred balance to it, so its balance should be callValue.
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                    assertEquals(BigInteger.ZERO, Callback.repo().getBalance(recipient));
+                    assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(recipient));
                 } else {
-                    assertEquals(callValue, Callback.repo().getBalance(recipient));
+                    assertEquals(callValue, Callback.kernelRepo().getBalance(recipient));
                 }
             } else {
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                    assertEquals(recipientPrevBalance, Callback.repo().getBalance(recipient));
+                    assertEquals(recipientPrevBalance, Callback.kernelRepo().getBalance(recipient));
                 } else {
                     assertEquals(
                             recipientPrevBalance.add(callValue),
-                            Callback.repo().getBalance(recipient));
+                            Callback.kernelRepo().getBalance(recipient));
                 }
             }
         }
@@ -2405,7 +2407,7 @@ public class CallbackUnitTest {
                     new AionAddress(
                             HashUtil.calcNewAddr(
                                     context.getSenderAddress().toBytes(),
-                                    Callback.repo()
+                                    Callback.kernelRepo()
                                             .getNonce(context.getSenderAddress())
                                             .subtract(BigInteger.ONE)
                                             .toByteArray()));
@@ -2416,10 +2418,10 @@ public class CallbackUnitTest {
 
         if (isCreateContract) {
             assertEquals(
-                    Callback.repo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE),
+                    Callback.kernelRepo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE),
                     new BigInteger(1, tx.getNonce()));
         } else {
-            assertEquals(Callback.repo().getNonce(context.getSenderAddress()), new BigInteger(1, tx.getNonce()));
+            assertEquals(Callback.kernelRepo().getNonce(context.getSenderAddress()), new BigInteger(1, tx.getNonce()));
         }
 
         assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
@@ -2492,13 +2494,13 @@ public class CallbackUnitTest {
     private void checkSecondInteralTransaction(TransactionContext context, InternalTransactionInterface tx) {
         Address caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
-        assertEquals(Callback.repo().getNonce(caller), new BigInteger(1, tx.getNonce()));
+        assertEquals(Callback.kernelRepo().getNonce(caller), new BigInteger(1, tx.getNonce()));
         assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
         assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(1, tx.getIndexOfInternalTransaction());
         assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
-        assertArrayEquals(new DataWord(Callback.repo().getNonce(caller)).getData(), tx.getNonce());
+        assertArrayEquals(new DataWord(Callback.kernelRepo().getNonce(caller)).getData(), tx.getNonce());
         assertArrayEquals(context.getTransactionData(), tx.getData());
         assertNull(tx.getDestinationAddress());
     }
@@ -2521,19 +2523,23 @@ public class CallbackUnitTest {
                 new AionAddress(
                         HashUtil.calcNewAddr(
                                 caller.toBytes(),
-                                Callback.repo()
+                                Callback.kernelRepo()
                                         .getNonce(caller)
                                         .subtract(BigInteger.ONE)
                                         .toByteArray()));
-        assertEquals(callerBalance.subtract(value), Callback.repo().getBalance(caller));
+        assertEquals(callerBalance.subtract(value), Callback.kernelRepo().getBalance(caller));
         if (contractExisted) {
-            assertEquals(BigInteger.ZERO, Callback.repo().getBalance(contract));
+            assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(contract));
         } else {
             if (postExecuteWasSuccess && !nrgLessThanDeposit) {
-                assertEquals(value, Callback.repo().getBalance(contract));
+                assertEquals(value, Callback.kernelRepo().getBalance(contract));
             } else {
-                assertEquals(BigInteger.ZERO, Callback.repo().getBalance(contract));
+                assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(contract));
             }
         }
+    }
+
+    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+        return new KernelInterfaceForFastVM(cache, true, false);
     }
 }
