@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.ByteUtil;
 import org.aion.crypto.HashUtil;
@@ -213,18 +213,18 @@ public class Callback {
 
         // check call stack depth
         if (ctx.getTransactionStackDepth() >= Constants.MAX_CALL_DEPTH) {
-            return new TransactionResult(ResultCode.FAILURE, 0).toBytes();
+            return new FastVmTransactionResult(FastVmResultCode.FAILURE, 0).toBytes();
         }
 
         // check value
         BigInteger endowment = ctx.getTransferValue();
         BigInteger callersBalance = repo().getBalance(ctx.getSenderAddress());
         if (callersBalance.compareTo(endowment) < 0) {
-            return new TransactionResult(ResultCode.FAILURE, 0).toBytes();
+            return new FastVmTransactionResult(FastVmResultCode.FAILURE, 0).toBytes();
         }
 
         // call sub-routine
-        TransactionResult result;
+        FastVmTransactionResult result;
         if (ctx.getTransactionKind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
@@ -232,7 +232,7 @@ public class Callback {
         }
 
         // merge the effects
-        if (result.getResultCode().toInt() == ResultCode.SUCCESS.toInt()) {
+        if (result.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
             context().getSideEffects().merge(ctx.getSideEffects());
         } else {
             context().getSideEffects().addInternalTransactions(ctx.getSideEffects().getInternalTransactions());
@@ -257,7 +257,7 @@ public class Callback {
      * @param ctx
      * @return
      */
-    private static TransactionResult doCall(
+    private static FastVmTransactionResult doCall(
             TransactionContext ctx, FastVM jit, IContractFactory factory) {
         Address codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
@@ -267,7 +267,7 @@ public class Callback {
 
         IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> track =
                 repo().startTracking();
-        TransactionResult result = new TransactionResult(ResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
+        FastVmTransactionResult result = new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
 
         // add internal transaction
         AionInternalTx internalTx =
@@ -306,7 +306,7 @@ public class Callback {
         }
 
         // post execution
-        if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
+        if (result.getResultCode().toInt() != FastVmResultCode.SUCCESS.toInt()) {
             internalTx.markAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
@@ -324,10 +324,10 @@ public class Callback {
      * @param ctx execution context
      * @return
      */
-    private static TransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
+    private static FastVmTransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
         IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> track =
                 repo().startTracking();
-        TransactionResult result = new TransactionResult(ResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
+        FastVmTransactionResult result = new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
@@ -375,7 +375,7 @@ public class Callback {
 
         // execute transaction
         if (alreadyExsits) {
-            result.setResultCodeAndEnergyRemaining(ResultCode.FAILURE, 0);
+            result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getTransactionData())) {
                 result = jit.run(ctx.getTransactionData(), ctx, track);
@@ -383,7 +383,7 @@ public class Callback {
         }
 
         // post execution
-        if (result.getResultCode().toInt() != ResultCode.SUCCESS.toInt()) {
+        if (result.getResultCode().toInt() != FastVmResultCode.SUCCESS.toInt()) {
             internalTx.markAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
@@ -391,7 +391,7 @@ public class Callback {
         } else {
             // charge the codedeposit
             if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
-                result.setResultCodeAndEnergyRemaining(ResultCode.FAILURE, 0);
+                result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
                 return result;
             }
             byte[] code = result.getOutput();

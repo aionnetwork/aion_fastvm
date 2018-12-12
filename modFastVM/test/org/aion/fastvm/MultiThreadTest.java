@@ -9,8 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -98,8 +98,8 @@ public class MultiThreadTest {
                             DummyRepository repo = new DummyRepository();
 
                             FastVM vm = new FastVM();
-                            TransactionResult result = vm.run(code, ctx, repo);
-                            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+                            FastVmTransactionResult result = vm.run(code, ctx, repo);
+                            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });
         }

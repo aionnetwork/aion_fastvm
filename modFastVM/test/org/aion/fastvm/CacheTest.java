@@ -3,8 +3,8 @@ package org.aion.fastvm;
 import static org.junit.Assert.assertEquals;
 
 import org.aion.base.type.AionAddress;
-import org.aion.vm.api.ResultCode;
-import org.aion.vm.api.TransactionResult;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
@@ -75,8 +75,8 @@ public class CacheTest {
         int repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
-            TransactionResult result = vm.run(code, ctx, new DummyRepository());
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result = vm.run(code, ctx, new DummyRepository());
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {
                 System.out.println(i + "/" + repeat);
