@@ -30,6 +30,7 @@ import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
@@ -1378,8 +1379,8 @@ public class TransactionExecutorUnitTest {
      * @param tx The transaction that the TransactionExecutor was built off.
      */
     private void checkTransactionResult(TransactionExecutor executor, AionTransaction tx) {
-        FastVmTransactionResult result = executor.getResult();
-        assertEquals(result.getResultCode(), FastVmResultCode.SUCCESS);
+        TransactionResult result = executor.getResult();
+        assertEquals(result.getResultCode().toInt(), FastVmResultCode.SUCCESS.toInt());
         assertEquals(result.getEnergyRemaining(), tx.nrgLimit() - tx.transactionCost(0));
         assertArrayEquals(result.getOutput(), ByteUtil.EMPTY_BYTE_ARRAY);
     }
@@ -1393,7 +1394,7 @@ public class TransactionExecutorUnitTest {
      * @param expectedNrgLeft The expected energy left.
      */
     private void checkTransactionResults(
-            FastVmTransactionResult result, int expectedCode, long expectedNrgLeft) {
+            TransactionResult result, int expectedCode, long expectedNrgLeft) {
         assertEquals(expectedCode, result.getResultCode().toInt());
         assertEquals(expectedNrgLeft, result.getEnergyRemaining());
     }

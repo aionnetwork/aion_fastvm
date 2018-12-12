@@ -23,6 +23,7 @@ import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -213,7 +214,7 @@ public class Callback {
         }
 
         // call sub-routine
-        FastVmTransactionResult result;
+        TransactionResult result;
         if (ctx.getTransactionKind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
@@ -248,7 +249,7 @@ public class Callback {
      * @param ctx
      * @return
      */
-    private static FastVmTransactionResult doCall(
+    private static TransactionResult doCall(
             TransactionContext ctx, FastVM jit, IContractFactory factory) {
         Address codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
@@ -257,7 +258,7 @@ public class Callback {
         }
 
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
-        FastVmTransactionResult result =
+        TransactionResult result =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
 
