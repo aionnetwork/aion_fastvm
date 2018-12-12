@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.AionAddress;
 import org.aion.vm.FastVmResultCode;
 import org.aion.vm.FastVmTransactionResult;
@@ -36,6 +37,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.apache.commons.lang3.RandomUtils;
@@ -103,7 +105,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -129,7 +131,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -166,7 +168,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
@@ -192,7 +194,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
@@ -218,7 +220,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
@@ -244,7 +246,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
@@ -270,7 +272,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertTrue(result.getEnergyRemaining() > 0);
@@ -307,7 +309,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
@@ -360,7 +362,7 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
@@ -407,10 +409,14 @@ public class ContractTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
+    }
+
+    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+        return new KernelInterfaceForFastVM(cache, true, false);
     }
 }

@@ -39,6 +39,7 @@ import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.SideEffects;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -120,7 +121,7 @@ public class MultiThreadTest {
                             DummyRepository repo = new DummyRepository();
 
                             FastVM vm = new FastVM();
-                            FastVmTransactionResult result = vm.run(code, ctx, repo);
+                            FastVmTransactionResult result = vm.run(code, ctx, new KernelInterfaceForFastVM(repo, true, false));
                             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });

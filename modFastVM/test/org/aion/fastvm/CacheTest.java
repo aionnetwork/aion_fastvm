@@ -31,6 +31,7 @@ import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.SideEffects;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -97,7 +98,7 @@ public class CacheTest {
         int repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
-            FastVmTransactionResult result = vm.run(code, ctx, new DummyRepository());
+            FastVmTransactionResult result = vm.run(code, ctx, new KernelInterfaceForFastVM(new DummyRepository(), true, false));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {

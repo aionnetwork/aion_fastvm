@@ -1656,7 +1656,7 @@ public class TransactionExecutorUnitTest {
         when(vm.run(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
-                        Mockito.any(IRepositoryCache.class)))
+                        Mockito.any(KernelInterfaceForFastVM.class)))
                 .thenReturn(vmResult);
         ExecutorProvider provider = mock(ExecutorProvider.class);
         when(provider.getVM()).thenReturn(vm);
@@ -1715,13 +1715,13 @@ public class TransactionExecutorUnitTest {
         when(vm.run(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
-                        Mockito.any(IRepositoryCache.class)))
+                        Mockito.any(KernelInterfaceForFastVM.class)))
                 .thenReturn(result);
         IPrecompiledContract pc = mock(IPrecompiledContract.class);
         when(pc.execute(Mockito.any(byte[].class), Mockito.any(Long.class))).thenReturn(result);
         ExecutorProvider provider = mock(ExecutorProvider.class);
         when(provider.getPrecompiledContract(
-                        Mockito.any(ExecutionContext.class), Mockito.any(IRepositoryCache.class)))
+                        Mockito.any(ExecutionContext.class), Mockito.any(KernelInterfaceForFastVM.class)))
                 .thenReturn((isPrecompiled) ? pc : null);
         when(provider.getVM()).thenReturn(vm);
 
