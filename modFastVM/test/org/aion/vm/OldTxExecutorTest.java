@@ -99,8 +99,7 @@ public class OldTxExecutorTest {
 
         AionBlock block = TestUtils.createDummyBlock();
 
-        IRepositoryCache<AccountState, IDataWord, IBlockStoreBase<?, ?>> repo =
-                new DummyRepository();
+        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
