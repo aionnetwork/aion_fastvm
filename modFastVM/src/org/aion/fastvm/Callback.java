@@ -37,10 +37,8 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.IContractFactory;
-import org.aion.vm.IPrecompiledContract;
-import org.aion.vm.KernelInterfaceForFastVM;
+import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -271,7 +269,7 @@ public class Callback {
      * @return
      */
     private static TransactionResult doCall(
-            TransactionContext ctx, FastVM jit, IContractFactory factory) {
+            TransactionContext ctx, FastVM jit, ContractFactory factory) {
         Address codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
                 || ctx.getTransactionKind() == ExecutionContext.DELEGATECALL) {
@@ -303,7 +301,7 @@ public class Callback {
             track.adjustBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
-        IPrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
+        PrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
         if (pc != null) {
             result = pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergyLimit());
         } else {

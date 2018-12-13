@@ -43,14 +43,17 @@ import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.vm.VirtualMachine;
 import org.aion.crypto.ECKeyFac;
+import org.aion.fastvm.ExecutionContext;
 import org.aion.fastvm.FastVmResultCode;
 import org.aion.fastvm.FastVmTransactionResult;
+import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
@@ -1694,7 +1697,7 @@ public class TransactionExecutorUnitTest {
 //                        Mockito.any(ExecutionContext.class),
 //                        Mockito.any(KernelInterfaceForFastVM.class)))
 //                .thenReturn(result);
-//        IPrecompiledContract pc = mock(IPrecompiledContract.class);
+//        PrecompiledContract pc = mock(PrecompiledContract.class);
 //        when(pc.execute(Mockito.any(byte[].class), Mockito.any(Long.class))).thenReturn(result);
 //        ExecutorProvider provider = mock(ExecutorProvider.class);
 //        when(provider.getPrecompiledContract(

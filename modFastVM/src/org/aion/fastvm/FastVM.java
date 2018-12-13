@@ -23,7 +23,7 @@
 package org.aion.fastvm;
 
 import org.aion.base.util.NativeLoader;
-import org.aion.vm.KernelInterfaceForFastVM;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.base.vm.VirtualMachine;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
