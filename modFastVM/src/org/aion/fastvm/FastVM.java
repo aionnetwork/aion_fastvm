@@ -22,10 +22,10 @@
  */
 package org.aion.fastvm;
 
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.NativeLoader;
 import org.aion.vm.KernelInterfaceForFastVM;
-import org.aion.vm.VirtualMachine;
+import org.aion.base.vm.VirtualMachine;
+import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -70,8 +70,14 @@ public class FastVM implements VirtualMachine {
     private static native void destroy(long instance);
 
     @SuppressWarnings("unchecked")
-    public FastVmTransactionResult run(byte[] code, TransactionContext ctx, KernelInterfaceForFastVM repo) {
-        Callback.push(Pair.of(ctx, repo));
+    @Override
+    public FastVmTransactionResult run(byte[] code, TransactionContext ctx, KernelInterface repo) {
+        if (!(repo instanceof KernelInterfaceForFastVM)) {
+            throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
+        }
+
+        KernelInterfaceForFastVM kernelRepo = (KernelInterfaceForFastVM) repo;
+        Callback.push(Pair.of(ctx, kernelRepo));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
         destroy(instance);

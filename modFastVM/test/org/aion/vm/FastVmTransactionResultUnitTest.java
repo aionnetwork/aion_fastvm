@@ -26,6 +26,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import org.aion.fastvm.FastVmResultCode;
+import org.aion.fastvm.FastVmTransactionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;

@@ -51,8 +51,6 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.SideEffects;

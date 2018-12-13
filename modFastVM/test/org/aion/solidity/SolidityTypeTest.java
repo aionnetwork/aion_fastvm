@@ -48,7 +48,7 @@ import org.aion.solidity.SolidityType.IntType;
 import org.aion.solidity.SolidityType.StaticArrayType;
 import org.aion.solidity.SolidityType.StringType;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.TransactionExecutor;
+import org.aion.fastvm.TransactionExecutor;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;

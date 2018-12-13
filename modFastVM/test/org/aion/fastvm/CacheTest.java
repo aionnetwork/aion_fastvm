@@ -25,8 +25,6 @@ package org.aion.fastvm;
 import static org.junit.Assert.assertEquals;
 
 import org.aion.base.type.AionAddress;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;

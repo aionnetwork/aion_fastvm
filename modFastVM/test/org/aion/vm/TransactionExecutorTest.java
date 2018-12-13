@@ -37,7 +37,10 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
+import org.aion.fastvm.FastVmResultCode;
+import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.TestVMProvider;
+import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
@@ -114,7 +117,7 @@ public class TransactionExecutorTest {
         // fee plus the refund
         byte[] body = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
 
-        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
         assertArrayEquals(body, res.getOutput());
 
@@ -195,7 +198,7 @@ public class TransactionExecutorTest {
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
         exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
-        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
         System.out.println(Hex.toHexString(res.getOutput()));
 
@@ -227,7 +230,7 @@ public class TransactionExecutorTest {
         exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
 
-        res = (FastVmTransactionResult) exec.exeResult;
+        res = (FastVmTransactionResult) exec.getResult();
         byte[] output = res.getOutput();
         System.out.println(Hex.toHexString(output));
         System.out.println(res.getOutput().length);
@@ -281,7 +284,7 @@ public class TransactionExecutorTest {
         AionTxExecSummary summary = exec.execute();
         System.out.println(summary.getReceipt());
 
-        FastVmTransactionResult res = (FastVmTransactionResult) exec.exeResult;
+        FastVmTransactionResult res = (FastVmTransactionResult) exec.getResult();
         //        System.out.println(Hex.toHexString(res.getOutput()));
         //        System.out.println(res.getOutput().length);
 

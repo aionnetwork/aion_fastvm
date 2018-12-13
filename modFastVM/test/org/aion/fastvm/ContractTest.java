@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;

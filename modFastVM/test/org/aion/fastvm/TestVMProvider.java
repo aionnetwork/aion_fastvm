@@ -23,13 +23,12 @@
 
 package org.aion.fastvm;
 
-import org.aion.base.db.IRepositoryCache;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.ExecutorProvider;
 import org.aion.vm.IContractFactory;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.KernelInterfaceForFastVM;
-import org.aion.vm.VirtualMachine;
+import org.aion.base.vm.VirtualMachine;
 import org.aion.vm.api.interfaces.TransactionContext;
 
 public class TestVMProvider implements ExecutorProvider {

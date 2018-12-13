@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.aion.base.type.AionAddress;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.vm.Constants;
