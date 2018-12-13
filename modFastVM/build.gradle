@@ -25,7 +25,6 @@ dependencies {
     compile project(':modAionBase')
     compile project(':modCrypto')
     compile project(':modMcf')
-    compile project(':modVM')
     compile project(':modPrecompiled')
     compile project(':aion_vm_api')
     compile files("${rootProject.projectDir}/lib/libJson.jar")
