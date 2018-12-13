@@ -33,8 +33,8 @@ import org.aion.base.vm.VirtualMachine;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.precompiled.ContractFactory;
 import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutorProvider;
 import org.aion.vm.IPrecompiledContract;
 import org.aion.vm.KernelInterfaceForFastVM;
 import org.aion.vm.SideEffects;
@@ -62,7 +62,7 @@ public class TransactionExecutor extends AbstractExecutor {
     private TransactionContext ctx;
     private AionTransaction tx;
     private IAionBlock block;
-    private ExecutorProvider provider;
+//    private ExecutorProvider provider;
 
     /**
      * Create a new transaction executor. <br>
@@ -180,10 +180,6 @@ public class TransactionExecutor extends AbstractExecutor {
         this(tx, block, repo, false, block.getNrgLimit(), logger);
     }
 
-    public void setExecutorProvider(ExecutorProvider provider) {
-        this.provider = provider;
-    }
-
     /** Execute the transaction */
     public AionTxExecSummary execute() {
         return (AionTxExecSummary) execute(tx, ctx.getTransactionEnergyLimit());
@@ -194,14 +190,15 @@ public class TransactionExecutor extends AbstractExecutor {
         KernelInterfaceForFastVM kernel =
                 new KernelInterfaceForFastVM(repoTrack, askNonce, isLocalCall);
 
-        IPrecompiledContract pc = this.provider.getPrecompiledContract(this.ctx, kernel);
+        ContractFactory precompiledFactory = new ContractFactory();
+        IPrecompiledContract pc = precompiledFactory.getPrecompiledContract(this.ctx, kernel);
         if (pc != null) {
             exeResult = pc.execute(tx.getData(), ctx.getTransactionEnergyLimit());
         } else {
             // execute code
             byte[] code = repoTrack.getCode(tx.getDestinationAddress());
             if (!ArrayUtils.isEmpty(code)) {
-                VirtualMachine fvm = this.provider.getVM();
+                VirtualMachine fvm = new FastVM();
                 exeResult = fvm.run(code, ctx, kernel);
             }
         }
@@ -227,7 +224,7 @@ public class TransactionExecutor extends AbstractExecutor {
 
         // execute contract deployer
         if (!ArrayUtils.isEmpty(tx.getData())) {
-            VirtualMachine fvm = this.provider.getVM();
+            VirtualMachine fvm = new FastVM();
             KernelInterfaceForFastVM kernel =
                     new KernelInterfaceForFastVM(repoTrack, askNonce, isLocalCall);
             exeResult = fvm.run(tx.getData(), ctx, kernel);

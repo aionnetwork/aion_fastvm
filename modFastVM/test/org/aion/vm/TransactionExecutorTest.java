@@ -39,7 +39,6 @@ import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
 import org.aion.fastvm.FastVmResultCode;
 import org.aion.fastvm.FastVmTransactionResult;
-import org.aion.fastvm.TestVMProvider;
 import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
@@ -106,7 +105,6 @@ public class TransactionExecutorTest {
 
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
         BigInteger refund = summary.getRefund();
 
@@ -196,7 +194,6 @@ public class TransactionExecutorTest {
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult res = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
@@ -227,7 +224,6 @@ public class TransactionExecutorTest {
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
         exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         exec.execute();
 
         res = (FastVmTransactionResult) exec.getResult();
@@ -280,7 +276,6 @@ public class TransactionExecutorTest {
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
         TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
         System.out.println(summary.getReceipt());
 

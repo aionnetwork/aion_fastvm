@@ -270,7 +270,6 @@ public class InternalTransactionTest {
         TransactionExecutor exec =
                 new TransactionExecutor(
                         tx2, context.block, bc.getRepository().startTracking(), LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         assertEquals(2, summary.getInternalTransactions().size());
@@ -330,7 +329,6 @@ public class InternalTransactionTest {
         TransactionExecutor exec =
                 new TransactionExecutor(
                         tx1, context.block, bc.getRepository().startTracking(), LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());
