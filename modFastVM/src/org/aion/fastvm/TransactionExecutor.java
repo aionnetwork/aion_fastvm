@@ -60,7 +60,6 @@ public class TransactionExecutor extends AbstractExecutor {
     private TransactionContext ctx;
     private AionTransaction tx;
     private IAionBlock block;
-//    private ExecutorProvider provider;
 
     /**
      * Create a new transaction executor. <br>
