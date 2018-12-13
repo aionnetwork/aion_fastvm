@@ -4,7 +4,6 @@ module aion.fastvm {
     requires slf4j.api;
     requires aion.crypto;
     requires aion.zero;
-    requires aion.vm;
     requires aion.vm.api;
     requires aion.precompiled;
     requires commons.lang3;

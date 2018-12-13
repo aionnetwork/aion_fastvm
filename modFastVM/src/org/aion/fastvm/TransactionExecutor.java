@@ -34,10 +34,8 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.precompiled.ContractFactory;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.IPrecompiledContract;
-import org.aion.vm.KernelInterfaceForFastVM;
-import org.aion.vm.SideEffects;
+import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.ResultCode;
@@ -191,7 +189,7 @@ public class TransactionExecutor extends AbstractExecutor {
                 new KernelInterfaceForFastVM(repoTrack, askNonce, isLocalCall);
 
         ContractFactory precompiledFactory = new ContractFactory();
-        IPrecompiledContract pc = precompiledFactory.getPrecompiledContract(this.ctx, kernel);
+        PrecompiledContract pc = precompiledFactory.getPrecompiledContract(this.ctx, kernel);
         if (pc != null) {
             exeResult = pc.execute(tx.getData(), ctx.getTransactionEnergyLimit());
         } else {
