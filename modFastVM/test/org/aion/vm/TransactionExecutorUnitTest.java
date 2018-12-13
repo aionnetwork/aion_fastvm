@@ -19,7 +19,11 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.ITxReceipt;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
+import org.aion.base.vm.VirtualMachine;
 import org.aion.crypto.ECKeyFac;
+import org.aion.fastvm.FastVmResultCode;
+import org.aion.fastvm.FastVmTransactionResult;
+import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.Constants;
@@ -43,6 +47,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+
+//FIXME: These tests need a lot of fixing up. They require AbstractExecutor to be too visible.
+//FIXME: Or else move AbstractExecutor to a non-exported package and only expose TransactionExecutor.
 
 /** Tests the TransactionExecutor class. */
 public class TransactionExecutorUnitTest {
@@ -655,21 +662,24 @@ public class TransactionExecutorUnitTest {
         AionTransaction tx = mockTx();
         AionBlock block = mockBlock(getNewAddress());
 
+        IRepositoryCache repo = mock(IRepositoryCache.class);
+        when(repo.startTracking()).thenReturn(cache);
+
         TransactionExecutor executor =
                 new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
-        executor.repoTrack = cache;
+//        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
 
         // Test second constructor.
         executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
-        executor.repoTrack = cache;
+//        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
 
         // Test third constructor.
         executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        executor.repoTrack = cache;
+//        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
     }
@@ -1651,12 +1661,12 @@ public class TransactionExecutorUnitTest {
         checkTransactionResults(executor.getResult(), vmResult.getResultCode().toInt(), expectedNrg);
         assertEquals(
                 txValue.abs().subtract(new BigInteger(1, val)),
-                executor.repoTrack.getBalance(sender));
-        assertEquals(new BigInteger(1, val), executor.repoTrack.getBalance(contractAddr));
+                executor.getRepoTrack().getBalance(sender));
+        assertEquals(new BigInteger(1, val), executor.getRepoTrack().getBalance(contractAddr));
         if (vmResult.getResultCode().equals(FastVmResultCode.SUCCESS)) {
-            assertArrayEquals(vmResult.getOutput(), executor.repoTrack.getCode(contractAddr));
+            assertArrayEquals(vmResult.getOutput(), executor.getRepoTrack().getCode(contractAddr));
         } else {
-            assertArrayEquals(new byte[0], executor.repoTrack.getCode(contractAddr));
+            assertArrayEquals(new byte[0], executor.getRepoTrack().getCode(contractAddr));
         }
     }
 
@@ -1715,8 +1725,8 @@ public class TransactionExecutorUnitTest {
             assertArrayEquals(result.getOutput(), executor.getResult().getOutput());
         }
 
-        assertEquals(BigInteger.ZERO, executor.repoTrack.getBalance(sender));
-        assertEquals(txValue, executor.repoTrack.getBalance(recipient));
+        assertEquals(BigInteger.ZERO, executor.getRepoTrack().getBalance(sender));
+        assertEquals(txValue, executor.getRepoTrack().getBalance(recipient));
     }
 
     private SideEffects makeHelper() {
@@ -1892,7 +1902,7 @@ public class TransactionExecutorUnitTest {
 
         // This essentially makes executor's helper the same as helper
         executor.getContext().getSideEffects().merge(helper);
-        executor.exeResult = result;
+        executor.setResult(result);
         AionTxReceipt receipt = executor.getReceipt(helper.getExecutionLogs());
 
         AionTxExecSummary summary = executor.finish();
@@ -1903,7 +1913,7 @@ public class TransactionExecutorUnitTest {
         // Try second constructor.
         executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
         executor.getContext().getSideEffects().merge(helper);
-        executor.exeResult = result;
+        executor.setResult(result);
         receipt = executor.getReceipt(helper.getExecutionLogs());
         summary = executor.finish();
         checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
@@ -1913,7 +1923,7 @@ public class TransactionExecutorUnitTest {
         // Try third constructor.
         executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
         executor.getContext().getSideEffects().merge(helper);
-        executor.exeResult = result;
+        executor.setResult(result);
         receipt = executor.getReceipt(helper.getExecutionLogs());
         summary = executor.finish();
         checkSummary(summary, helper, receipt, tx, result, isFailed, isRejected);
