@@ -51,11 +51,25 @@ import org.slf4j.Logger;
  * @author yulong
  */
 public class TransactionExecutor extends AbstractExecutor {
-    // provider is essential to execute, but it is only set manually with a setter, not good
-    // practice
     private TransactionContext ctx;
     private AionTransaction tx;
     private IAionBlock block;
+
+    public TransactionExecutor(AionTransaction transaction, TransactionContext context, IAionBlock block, KernelInterfaceForFastVM kernel, Logger logger, long blockNrgLeft) {
+        super(kernel, logger, blockNrgLeft);
+
+        this.tx = transaction;
+        this.ctx = context;
+        this.block = block;
+        this.exeResult = new FastVmTransactionResult(FastVmResultCode.SUCCESS, this.tx.nrgLimit() - this.tx.transactionCost(block.getNumber()), null);
+    }
+
+    public TransactionResult executeAndFetchResultOnly() {
+        return executeNoFinish(tx, ctx.getTransactionEnergyLimit());
+    }
+
+
+    ///-----------------------------------------OLD BELOW-------------------------------------------
 
     /**
      * Create a new transaction executor. <br>

@@ -1510,10 +1510,7 @@ public class TransactionExecutorUnitTest {
         repo.addBalance(
                 sender, (balanceIsEqual) ? executionCost : executionCost.add(BigInteger.ONE));
 
-        TransactionExecutor executor = getNewExecutor(tx, block, repo);
-        if (skipNonceCheck) {
-            executor.setBypassNonce();
-        }
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, false, false);
 
         long expectedNrg = tx.nrgLimit() - tx.transactionCost(0);
         assertTrue(executor.prepare(tx, 0));
@@ -1929,8 +1926,12 @@ public class TransactionExecutorUnitTest {
         }
     }
 
+    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo, boolean allowNonceIncrement, boolean isLocalCall) {
+        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, allowNonceIncrement, isLocalCall), isLocalCall, LOGGER_VM);
+    }
+
     private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo, boolean isLocalCall) {
-        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, isLocalCall), isLocalCall, LOGGER_VM);
+        return getNewExecutor(tx, block, repo, true, isLocalCall);
     }
 
     private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo) {
