@@ -45,6 +45,7 @@ import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
@@ -52,6 +53,7 @@ import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
+import org.aion.zero.types.IAionBlock;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -110,7 +112,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
 
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
@@ -156,7 +158,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
 
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
@@ -198,7 +200,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
 
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
@@ -250,7 +252,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -274,7 +276,7 @@ public class OpcodeIntegTest {
         context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec = getNewExecutor(tx, context.block, repo);
         BigInteger inStore = new BigInteger(exec.execute().getResult());
         System.err.println("Found in D's storage for n: " + inStore);
         assertEquals(n, inStore);
@@ -296,7 +298,7 @@ public class OpcodeIntegTest {
         context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec = getNewExecutor(tx, context.block, repo);
         inStore = new BigInteger(exec.execute().getResult());
         assertEquals(BigInteger.ZERO, inStore);
     }
@@ -331,7 +333,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -372,7 +374,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -414,7 +416,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -438,7 +440,7 @@ public class OpcodeIntegTest {
         context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec = getNewExecutor(tx, context.block, repo);
         BigInteger inStore = new BigInteger(exec.execute().getResult());
         assertEquals(n, inStore);
         nonce = nonce.add(BigInteger.ONE);
@@ -459,7 +461,7 @@ public class OpcodeIntegTest {
         context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec = getNewExecutor(tx, context.block, repo);
         inStore = new BigInteger(exec.execute().getResult());
         assertEquals(BigInteger.ZERO, inStore);
     }
@@ -490,7 +492,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -534,7 +536,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -577,7 +579,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -629,7 +631,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -676,7 +678,7 @@ public class OpcodeIntegTest {
         BlockContext context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -744,7 +746,7 @@ public class OpcodeIntegTest {
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, context.block, repo);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult result = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -816,5 +818,9 @@ public class OpcodeIntegTest {
         assertArrayEquals(
                 Arrays.copyOfRange(data, data.length - DataWord.BYTES, data.length),
                 DataWord.ZERO.getData());
+    }
+
+    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo) {
+        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
     }
 }

@@ -36,6 +36,7 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
@@ -269,12 +270,18 @@ public class InternalTransactionTest {
         context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx2), false);
         TransactionExecutor exec =
                 new TransactionExecutor(
-                        tx2, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+                        tx2,
+                        context.block,
+                        new KernelInterfaceForFastVM(
+                                bc.getRepository().startTracking(), true, false),
+                        LOGGER_VM);
         AionTxExecSummary summary = exec.execute();
 
         assertEquals(2, summary.getInternalTransactions().size());
 
-        assertArrayEquals(tx2.getTransactionHash(), summary.getInternalTransactions().get(0).getParentTransactionHash());
+        assertArrayEquals(
+                tx2.getTransactionHash(),
+                summary.getInternalTransactions().get(0).getParentTransactionHash());
         assertEquals(0, summary.getInternalTransactions().get(0).getStackDepth());
         assertEquals(0, summary.getInternalTransactions().get(0).getIndexOfInternalTransaction());
 
@@ -328,7 +335,11 @@ public class InternalTransactionTest {
         BlockContext context = bc.createNewBlockContext(bc.getBestBlock(), List.of(tx1), false);
         TransactionExecutor exec =
                 new TransactionExecutor(
-                        tx1, context.block, bc.getRepository().startTracking(), LOGGER_VM);
+                        tx1,
+                        context.block,
+                        new KernelInterfaceForFastVM(
+                                bc.getRepository().startTracking(), true, false),
+                        LOGGER_VM);
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());

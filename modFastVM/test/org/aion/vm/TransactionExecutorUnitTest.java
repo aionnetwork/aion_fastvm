@@ -332,7 +332,7 @@ public class TransactionExecutorUnitTest {
     public void testUpdateRepoNrgConsumptionContractCreationTx() {
         AionTransaction tx = mockTx();
         AionBlock block = mockBlock(getNewAddress());
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         executor.updateRepo(
                 produceSummary(executor, tx), tx, block.getCoinbase(), new ArrayList<>());
         assertEquals(tx.getNrgConsume(), computeEnergyConsumption(tx));
@@ -345,8 +345,7 @@ public class TransactionExecutorUnitTest {
             AionTransaction tx =
                     mockTx(sender, BigInteger.TEN.toByteArray(), RandomUtils.nextLong(0, 10_000));
             AionBlock block = mockBlock(getNewAddress());
-            TransactionExecutor executor =
-                    new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+            TransactionExecutor executor = getNewExecutor(tx, block, repo);
             executor.setTransactionResult(new FastVmTransactionResult(code, 0));
 
             AionTxExecSummary summary = produceSummary(executor, tx);
@@ -369,8 +368,7 @@ public class TransactionExecutorUnitTest {
             AionTransaction tx =
                     mockTx(sender, BigInteger.TEN.toByteArray(), RandomUtils.nextLong(0, 10_000));
             AionBlock block = mockBlock(getNewAddress());
-            TransactionExecutor executor =
-                    new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+            TransactionExecutor executor = getNewExecutor(tx, block, repo);
             executor.setTransactionResult(new FastVmTransactionResult(code, 0));
 
             AionTxExecSummary summary = produceSummary(executor, tx);
@@ -395,7 +393,7 @@ public class TransactionExecutorUnitTest {
     public void testGetNrgLeft() {
         AionTransaction tx = mockTx();
         AionBlock block = mockBlock(getNewAddress());
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         assertEquals(tx.nrgLimit() - tx.transactionCost(0), executor.getNrgLeft());
     }
 
@@ -404,8 +402,7 @@ public class TransactionExecutorUnitTest {
         boolean isContractCreation = true, valueIsNull = false, dataIsNull = false;
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -414,8 +411,7 @@ public class TransactionExecutorUnitTest {
         boolean isContractCreation = false, valueIsNull = false, dataIsNull = false;
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -425,14 +421,13 @@ public class TransactionExecutorUnitTest {
         // isContractCreationTransaction == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
 
         // isContractCreationTransaction == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -442,14 +437,13 @@ public class TransactionExecutorUnitTest {
         // isContractCreationTransaction == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
 
         // isContractCreationTransaction == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -459,14 +453,13 @@ public class TransactionExecutorUnitTest {
         // isContractCreationTransaction == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES * 5);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
 
         // isContractCreationTransaction == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -479,13 +472,13 @@ public class TransactionExecutorUnitTest {
         // isContractCreationTransaction == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
 
         // isContractCreationTransaction == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -498,13 +491,13 @@ public class TransactionExecutorUnitTest {
         // isContractCreationTransaction == true
         AionTransaction tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         checkExecutionContext(executor, tx, block);
 
         // isContractCreationTransaction == false
         isContractCreation = false;
         tx = mockTx(isContractCreation, valueIsNull, dataIsNull);
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         checkExecutionContext(executor, tx, block);
     }
 
@@ -512,16 +505,15 @@ public class TransactionExecutorUnitTest {
     public void testConstructorTransactionResult() {
         AionTransaction tx = mockTx();
         AionBlock block = mockBlock(DataWord.BYTES);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
         checkTransactionResult(executor, tx);
 
         // test second constructor.
-        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         checkTransactionResult(executor, tx);
 
         // test third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         checkTransactionResult(executor, tx);
     }
 
@@ -531,14 +523,13 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(getNewAddress());
         long nrgLimit = block.getNrgLimit();
         long expectedNrg = tx.nrgLimit() - tx.transactionCost(0);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, true, nrgLimit, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, true);
 
         assertTrue(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.SUCCESS.toInt(), expectedNrg);
 
         // Test other constructor. (Can't test third one since it sets localCall false.
-        executor = new TransactionExecutor(tx, block, repo, true, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, true);
         assertTrue(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.SUCCESS.toInt(), expectedNrg);
     }
@@ -595,16 +586,15 @@ public class TransactionExecutorUnitTest {
         when(tx.getEnergyLimit()).thenReturn(nrgLimit);
         when(block.getNrgLimit()).thenReturn(nrgLimit);
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NONCE.toInt(), 0);
 
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NONCE.toInt(), 0);
 
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NONCE.toInt(), 0);
     }
@@ -694,20 +684,19 @@ public class TransactionExecutorUnitTest {
         IRepositoryCache repo = mock(IRepositoryCache.class);
         when(repo.startTracking()).thenReturn(cache);
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
 //        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
 
         // Test second constructor.
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
 //        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
 
         // Test third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
 //        executor.repoTrack = cache;
         executor.create();
         checkTransactionResults(executor.getResult(), FastVmResultCode.FAILURE.toInt(), 0);
@@ -862,7 +851,7 @@ public class TransactionExecutorUnitTest {
 
         IAionBlock block = getNewAionBlock(blockNrg, tx.getData(), coinbase);
         long nrgLeft = tx.transactionCost(block.getNumber());
-        return new TransactionExecutor(tx, block, repo, isLocalCall, nrgLeft, LOGGER_VM);
+        return getNewExecutor(tx, block, repo, isLocalCall);
     }
 
     /**
@@ -1436,21 +1425,20 @@ public class TransactionExecutorUnitTest {
         long invalidLimit = produceInvalidNrgLimit(isContractCreation, isLowerBoundTest);
 
         when(tx.getEnergyLimit()).thenReturn(invalidLimit);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, nrgLimit, LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
 
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(
                 executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), invalidLimit);
 
         // Test second constructor.
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(
                 executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), invalidLimit);
 
         // Test third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(
                 executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), invalidLimit);
@@ -1480,18 +1468,17 @@ public class TransactionExecutorUnitTest {
         long nrgLimit = block.getNrgLimit() + 1;
         when(tx.getEnergyLimit()).thenReturn(nrgLimit);
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
 
         // Test second constructor.
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
 
         // Test third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
     }
@@ -1506,16 +1493,15 @@ public class TransactionExecutorUnitTest {
         AionBlock block = mockBlock(getNewAddress());
         when(tx.getEnergyLimit()).thenReturn(produceValidNrgLimit(isContractCreation));
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, -1));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
 
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, -1));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
 
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, -1));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INVALID_NRG_LIMIT.toInt(), 0);
     }
@@ -1546,8 +1532,7 @@ public class TransactionExecutorUnitTest {
         repo.addBalance(
                 sender, (balanceIsEqual) ? executionCost : executionCost.add(BigInteger.ONE));
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         if (skipNonceCheck) {
             executor.setBypassNonce();
         }
@@ -1579,18 +1564,17 @@ public class TransactionExecutorUnitTest {
         repo.addBalance(sender, executionCost.subtract(BigInteger.ONE));
         repo.setNonce(sender, nonce);
 
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INSUFFICIENT_BALANCE.toInt(), 0);
 
         // Test second constructor.
-        executor = new TransactionExecutor(tx, block, repo, false, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INSUFFICIENT_BALANCE.toInt(), 0);
 
         // Test third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         assertFalse(executor.prepare(tx, 0));
         checkTransactionResults(executor.getResult(), FastVmResultCode.INSUFFICIENT_BALANCE.toInt(), 0);
     }
@@ -1645,8 +1629,7 @@ public class TransactionExecutorUnitTest {
 
         long expectedNrg = tx.nrgLimit() - tx.transactionCost(0);
         vmResult.setEnergyRemaining(expectedNrg);
-        TransactionExecutor executor =
-                new TransactionExecutor(tx, block, repo, false, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo);
         executor.create();
 
         checkTransactionResults(executor.getResult(), vmResult.getResultCode().toInt(), expectedNrg);
@@ -1886,9 +1869,7 @@ public class TransactionExecutorUnitTest {
         boolean isFailed = determineIfFailed(result);
         boolean isRejected = determineIfRejected(result);
 
-        TransactionExecutor executor =
-                new TransactionExecutor(
-                        tx, block, repo, isLocalCall, block.getNrgLimit(), LOGGER_VM);
+        TransactionExecutor executor = getNewExecutor(tx, block, repo, isLocalCall);
 
         // This essentially makes executor's helper the same as helper
         executor.getContext().getSideEffects().merge(helper);
@@ -1901,7 +1882,7 @@ public class TransactionExecutorUnitTest {
                 coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
 
         // Try second constructor.
-        executor = new TransactionExecutor(tx, block, repo, isLocalCall, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo, isLocalCall);
         executor.getContext().getSideEffects().merge(helper);
         executor.setResult(result);
         receipt = executor.getReceipt(helper.getExecutionLogs());
@@ -1911,7 +1892,7 @@ public class TransactionExecutorUnitTest {
                 coinbase, result, helper, tx, summary, isLocalCall, summary.isRejected());
 
         // Try third constructor.
-        executor = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        executor = getNewExecutor(tx, block, repo);
         executor.getContext().getSideEffects().merge(helper);
         executor.setResult(result);
         receipt = executor.getReceipt(helper.getExecutionLogs());
@@ -1968,5 +1949,13 @@ public class TransactionExecutorUnitTest {
                 assertFalse(repo.accounts.containsKey(address));
             }
         }
+    }
+
+    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo, boolean isLocalCall) {
+        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, isLocalCall), isLocalCall, LOGGER_VM);
+    }
+
+    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo) {
+        return getNewExecutor(tx, block, repo, false);
     }
 }

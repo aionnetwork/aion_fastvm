@@ -44,6 +44,7 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
@@ -97,7 +98,7 @@ public class Benchmark {
         contract = tx.getContractAddress();
 
         // deploy contract
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER);
         AionTxExecSummary summary = exec.execute();
         assertFalse(summary.isFailed());
 
@@ -173,7 +174,7 @@ public class Benchmark {
         List<AionTxReceipt> list = new ArrayList<>();
 
         for (AionTransaction tx : txs) {
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER);
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
@@ -211,7 +212,7 @@ public class Benchmark {
             long nrgPrice = 1L;
             AionTransaction tx = new AionTransaction(nonce, from, to, value, data, nrg, nrgPrice);
 
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER);
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 

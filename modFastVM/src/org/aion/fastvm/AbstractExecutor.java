@@ -28,11 +28,11 @@ import static org.aion.mcf.valid.TxNrgRule.isValidNrgTx;
 
 import java.math.BigInteger;
 import java.util.List;
-import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.ITransaction;
 import org.aion.base.type.ITxExecSummary;
 import org.aion.base.type.ITxReceipt;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
@@ -41,17 +41,18 @@ import org.slf4j.Logger;
 public abstract class AbstractExecutor {
     protected static Logger LOGGER;
     protected static Object lock = new Object();
-    protected IRepository repo;
-    protected IRepositoryCache repoTrack;
     protected boolean isLocalCall;
     protected TransactionResult exeResult;
     private long blockRemainingNrg;
     protected boolean askNonce = true;
 
+    protected KernelInterfaceForFastVM kernelParent;
+    protected KernelInterfaceForFastVM kernelChild;
+
     public AbstractExecutor(
-            IRepository _repo, boolean _localCall, long _blkRemainingNrg, Logger _logger) {
-        this.repo = _repo;
-        this.repoTrack = repo.startTracking();
+            KernelInterfaceForFastVM kernel, boolean _localCall, long _blkRemainingNrg, Logger _logger) {
+        this.kernelParent = kernel;
+        this.kernelChild = this.kernelParent.startTracking();
         this.isLocalCall = _localCall;
         this.blockRemainingNrg = _blkRemainingNrg;
         LOGGER = _logger;
@@ -63,7 +64,7 @@ public abstract class AbstractExecutor {
             if (prepare(tx, contextNrgLmit)) {
 
                 if (!isLocalCall) {
-                    IRepositoryCache track = repo.startTracking();
+                    KernelInterfaceForFastVM track = this.kernelParent.startTracking();
                     // increase nonce
                     if (askNonce) {
                         track.incrementNonce(tx.getSenderAddress());
@@ -76,7 +77,7 @@ public abstract class AbstractExecutor {
                     BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
                     BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
                     BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
-                    track.addBalance(tx.getSenderAddress(), txNrgCost.negate());
+                    track.adjustBalance(tx.getSenderAddress(), txNrgCost.negate());
                     track.flush();
                 }
 
@@ -139,7 +140,7 @@ public abstract class AbstractExecutor {
         // check nonce
         if (askNonce) {
             BigInteger txNonce = new BigInteger(1, tx.getNonce());
-            BigInteger nonce = repo.getNonce(tx.getSenderAddress());
+            BigInteger nonce = this.kernelParent.getNonce(tx.getSenderAddress());
 
             if (!txNonce.equals(nonce)) {
                 exeResult.setResultCode(FastVmResultCode.INVALID_NONCE);
@@ -151,7 +152,7 @@ public abstract class AbstractExecutor {
         // check balance
         BigInteger txValue = new BigInteger(1, tx.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        BigInteger balance = repo.getBalance(tx.getSenderAddress());
+        BigInteger balance = this.kernelParent.getBalance(tx.getSenderAddress());
         if (txTotal.compareTo(balance) > 0) {
             exeResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             exeResult.setEnergyRemaining(0);
@@ -243,17 +244,17 @@ public abstract class AbstractExecutor {
             List<Address> deleteAccounts) {
 
         if (!isLocalCall && !summary.isRejected()) {
-            IRepositoryCache track = repo.startTracking();
+            KernelInterfaceForFastVM track = this.kernelParent.startTracking();
             // refund nrg left
             if (exeResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()
                     || exeResult.getResultCode().toInt() == FastVmResultCode.REVERT.toInt()) {
-                track.addBalance(tx.getSenderAddress(), summary.getRefund());
+                track.adjustBalance(tx.getSenderAddress(), summary.getRefund());
             }
 
             tx.setNrgConsume(getNrgUsed(tx.getEnergyLimit()));
 
             // Transfer fees to miner
-            track.addBalance(coinbase, summary.getFee());
+            track.adjustBalance(coinbase, summary.getFee());
 
             if (exeResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
                 // Delete accounts
@@ -277,7 +278,7 @@ public abstract class AbstractExecutor {
     // These methods below should be removed..
 
     public IRepositoryCache getRepoTrack() {
-        return this.repoTrack;
+        return this.kernelChild.getRepositoryCache();
     }
 
     public void setResult(TransactionResult result) {

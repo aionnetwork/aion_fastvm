@@ -25,13 +25,9 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-import org.aion.base.db.IRepository;
-import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.vm.VirtualMachine;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
@@ -72,12 +68,12 @@ public class TransactionExecutor extends AbstractExecutor {
     public TransactionExecutor(
             AionTransaction tx,
             IAionBlock block,
-            IRepository repo,
+            KernelInterfaceForFastVM kernel,
             boolean isLocalCall,
             long blockRemainingNrg,
             Logger logger) {
 
-        super(repo, isLocalCall, blockRemainingNrg, logger);
+        super(kernel, isLocalCall, blockRemainingNrg, logger);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Executing transaction: {}", tx);
@@ -162,19 +158,19 @@ public class TransactionExecutor extends AbstractExecutor {
     public TransactionExecutor(
             AionTransaction tx,
             IAionBlock block,
-            IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo,
+            KernelInterfaceForFastVM kernel,
             boolean isLocalCall,
             Logger logger) {
-        this(tx, block, repo, isLocalCall, block.getNrgLimit(), logger);
+        this(tx, block, kernel, isLocalCall, block.getNrgLimit(), logger);
     }
 
     /** Create a transaction executor (non constant call, use block nrg limit). */
     public TransactionExecutor(
             AionTransaction tx,
             IAionBlock block,
-            IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo,
+            KernelInterfaceForFastVM kernel,
             Logger logger) {
-        this(tx, block, repo, false, block.getNrgLimit(), logger);
+        this(tx, block, kernel, false, block.getNrgLimit(), logger);
     }
 
     /** Execute the transaction */
@@ -184,57 +180,52 @@ public class TransactionExecutor extends AbstractExecutor {
 
     /** Prepares contract call. */
     public void call() {
-        KernelInterfaceForFastVM kernel =
-                new KernelInterfaceForFastVM(repoTrack, askNonce, isLocalCall);
-
         ContractFactory precompiledFactory = new ContractFactory();
-        PrecompiledContract pc = precompiledFactory.getPrecompiledContract(this.ctx, kernel);
+        PrecompiledContract pc = precompiledFactory.getPrecompiledContract(this.ctx, this.kernelChild);
         if (pc != null) {
             exeResult = pc.execute(tx.getData(), ctx.getTransactionEnergyLimit());
         } else {
             // execute code
-            byte[] code = repoTrack.getCode(tx.getDestinationAddress());
+            byte[] code = this.kernelChild.getCode(tx.getDestinationAddress());
             if (!ArrayUtils.isEmpty(code)) {
                 VirtualMachine fvm = new FastVM();
-                exeResult = fvm.run(code, ctx, kernel);
+                exeResult = fvm.run(code, ctx, this.kernelChild);
             }
         }
 
         // transfer value
         BigInteger txValue = new BigInteger(1, tx.getValue());
-        repoTrack.addBalance(tx.getSenderAddress(), txValue.negate());
-        repoTrack.addBalance(tx.getDestinationAddress(), txValue);
+        this.kernelChild.adjustBalance(tx.getSenderAddress(), txValue.negate());
+        this.kernelChild.adjustBalance(tx.getDestinationAddress(), txValue);
     }
 
     /** Prepares contract create. */
     public void create() {
         AionAddress contractAddress = tx.getContractAddress();
 
-        if (repoTrack.hasAccountState(contractAddress)) {
+        if (this.kernelChild.hasAccountState(contractAddress)) {
             exeResult.setResultCode(FastVmResultCode.FAILURE);
             exeResult.setEnergyRemaining(0);
             return;
         }
 
         // create account
-        repoTrack.createAccount(contractAddress);
+        this.kernelChild.createAccount(contractAddress);
 
         // execute contract deployer
         if (!ArrayUtils.isEmpty(tx.getData())) {
             VirtualMachine fvm = new FastVM();
-            KernelInterfaceForFastVM kernel =
-                    new KernelInterfaceForFastVM(repoTrack, askNonce, isLocalCall);
-            exeResult = fvm.run(tx.getData(), ctx, kernel);
+            exeResult = fvm.run(tx.getData(), ctx, this.kernelChild);
 
             if (exeResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
-                repoTrack.saveCode(contractAddress, exeResult.getOutput());
+                this.kernelChild.putCode(contractAddress, exeResult.getOutput());
             }
         }
 
         // transfer value
         BigInteger txValue = new BigInteger(1, tx.getValue());
-        repoTrack.addBalance(tx.getSenderAddress(), txValue.negate());
-        repoTrack.addBalance(contractAddress, txValue);
+        this.kernelChild.adjustBalance(tx.getSenderAddress(), txValue.negate());
+        this.kernelChild.adjustBalance(contractAddress, txValue);
     }
 
     /** Finalize state changes and returns summary. */
@@ -257,7 +248,7 @@ public class TransactionExecutor extends AbstractExecutor {
         ResultCode resultCode = exeResult.getResultCode();
 
         if (resultCode.isSuccess()) {
-            repoTrack.flush();
+            this.kernelChild.flush();
         } else if (resultCode.isRejected()) {
             builder.markAsRejected();
         } else if (resultCode.isFailed()) {

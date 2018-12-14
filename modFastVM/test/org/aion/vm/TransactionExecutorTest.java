@@ -44,6 +44,7 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.StandaloneBlockchain.Builder;
@@ -104,7 +105,7 @@ public class TransactionExecutorTest {
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
 
         IRepositoryCache repo = blockchain.getRepository().startTracking();
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxExecSummary summary = exec.execute();
         BigInteger refund = summary.getRefund();
 
@@ -193,7 +194,7 @@ public class TransactionExecutorTest {
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxExecSummary summary = exec.execute();
         FastVmTransactionResult res = (FastVmTransactionResult) exec.getResult();
         assertEquals(FastVmResultCode.SUCCESS, res.getResultCode());
@@ -223,7 +224,7 @@ public class TransactionExecutorTest {
         context =
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
-        exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        exec = new TransactionExecutor(tx, context.block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         exec.execute();
 
         res = (FastVmTransactionResult) exec.getResult();
@@ -275,7 +276,7 @@ public class TransactionExecutorTest {
                 blockchain.createNewBlockContext(
                         blockchain.getBestBlock(), Collections.singletonList(tx), false);
         IRepositoryCache repo = blockchain.getRepository().startTracking();
-        TransactionExecutor exec = new TransactionExecutor(tx, context.block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, context.block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxExecSummary summary = exec.execute();
         System.out.println(summary.getReceipt());
 

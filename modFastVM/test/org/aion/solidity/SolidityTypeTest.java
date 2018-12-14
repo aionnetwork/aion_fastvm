@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
@@ -37,6 +38,7 @@ import org.aion.fastvm.TestUtils;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.solidity.Compiler.Options;
 import org.aion.solidity.SolidityType.AddressType;
 import org.aion.solidity.SolidityType.BoolType;
@@ -51,6 +53,7 @@ import org.aion.fastvm.TransactionExecutor;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
+import org.aion.zero.types.IAionBlock;
 import org.junit.Test;
 import org.slf4j.Logger;
 
@@ -98,7 +101,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -116,7 +119,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -135,7 +138,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -154,7 +157,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -173,7 +176,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -193,7 +196,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -213,7 +216,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -233,7 +236,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -255,7 +258,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -278,7 +281,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -305,7 +308,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -333,7 +336,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -361,7 +364,7 @@ public class SolidityTypeTest {
         AionBlock block = TestUtils.createDummyBlock();
         DummyRepository repo = createRepository(tx);
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = getNewExecutor(tx, block, repo);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -371,5 +374,9 @@ public class SolidityTypeTest {
         for (Object d : decoded) {
             System.out.println(d);
         }
+    }
+
+    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block, IRepositoryCache repo) {
+        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
     }
 }
