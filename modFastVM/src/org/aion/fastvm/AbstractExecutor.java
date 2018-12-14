@@ -23,9 +23,6 @@
 
 package org.aion.fastvm;
 
-import static org.aion.mcf.valid.TxNrgRule.isValidNrgContractCreate;
-import static org.aion.mcf.valid.TxNrgRule.isValidNrgTx;
-
 import java.math.BigInteger;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
@@ -41,21 +38,63 @@ import org.slf4j.Logger;
 public abstract class AbstractExecutor {
     protected static Logger LOGGER;
     protected static Object lock = new Object();
-    protected boolean isLocalCall;
     protected TransactionResult exeResult;
     private long blockRemainingNrg;
-    protected boolean askNonce = true;
+    protected boolean isLocalCall;
 
     protected KernelInterfaceForFastVM kernelParent;
     protected KernelInterfaceForFastVM kernelChild;
 
-    public AbstractExecutor(
-            KernelInterfaceForFastVM kernel, boolean _localCall, long _blkRemainingNrg, Logger _logger) {
+    public AbstractExecutor(KernelInterfaceForFastVM kernel, Logger logger, long energyRemaining) {
         this.kernelParent = kernel;
         this.kernelChild = this.kernelParent.startTracking();
-        this.isLocalCall = _localCall;
+        this.blockRemainingNrg = energyRemaining;
+        LOGGER = logger;
+    }
+
+
+
+
+    public AbstractExecutor(
+            KernelInterfaceForFastVM kernel, boolean isLocalCall, long _blkRemainingNrg, Logger _logger) {
+        this.kernelParent = kernel;
+        this.kernelChild = this.kernelParent.startTracking();
         this.blockRemainingNrg = _blkRemainingNrg;
+        this.isLocalCall = isLocalCall;
         LOGGER = _logger;
+    }
+
+    protected TransactionResult executeNoFinish(TransactionInterface tx, long contextNrgLmit) {
+        synchronized (lock) {
+            // prepare, preliminary check
+            if (prepare(tx, contextNrgLmit)) {
+
+                KernelInterfaceForFastVM track = this.kernelParent.startTracking();
+
+                // increase nonce
+                track.incrementNonce(tx.getSenderAddress());
+
+                // charge nrg cost
+                // Note: if the tx is a inpool tx, it will temp charge more balance for the
+                // account
+                // once the block info been updated. the balance in pendingPool will correct.
+                BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
+                BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
+                BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
+                track.deductEnergyCost(tx.getSenderAddress(), txNrgCost);
+                track.flush();
+
+                // run the logic
+                if (tx.isContractCreationTransaction()) {
+                    create();
+                } else {
+                    call();
+                }
+            }
+
+            exeResult.setKernelInterface(this.kernelChild);
+            return exeResult;
+        }
     }
 
     protected ITxExecSummary execute(TransactionInterface tx, long contextNrgLmit) {
@@ -63,23 +102,20 @@ public abstract class AbstractExecutor {
             // prepare, preliminary check
             if (prepare(tx, contextNrgLmit)) {
 
-                if (!isLocalCall) {
-                    KernelInterfaceForFastVM track = this.kernelParent.startTracking();
-                    // increase nonce
-                    if (askNonce) {
-                        track.incrementNonce(tx.getSenderAddress());
-                    }
+                KernelInterfaceForFastVM track = this.kernelParent.startTracking();
 
-                    // charge nrg cost
-                    // Note: if the tx is a inpool tx, it will temp charge more balance for the
-                    // account
-                    // once the block info been updated. the balance in pendingPool will correct.
-                    BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
-                    BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
-                    BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
-                    track.adjustBalance(tx.getSenderAddress(), txNrgCost.negate());
-                    track.flush();
-                }
+                // increase nonce
+                track.incrementNonce(tx.getSenderAddress());
+
+                // charge nrg cost
+                // Note: if the tx is a inpool tx, it will temp charge more balance for the
+                // account
+                // once the block info been updated. the balance in pendingPool will correct.
+                BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
+                BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
+                BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
+                track.deductEnergyCost(tx.getSenderAddress(), txNrgCost);
+                track.flush();
 
                 // run the logic
                 if (tx.isContractCreationTransaction()) {
@@ -110,50 +146,45 @@ public abstract class AbstractExecutor {
      * @return true if call is local or if all criteria listed above are met.
      */
     public final boolean prepare(TransactionInterface tx, long contextNrgLmit) {
-        if (isLocalCall) {
-            return true;
-        }
-
         BigInteger txNrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
         long txNrgLimit = tx.getEnergyLimit();
 
         if (tx.isContractCreationTransaction()) {
-            if (!isValidNrgContractCreate(txNrgLimit)) {
+            if (!this.kernelParent.isValidEnergyLimitForCreate(txNrgLimit)) {
                 exeResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 exeResult.setEnergyRemaining(txNrgLimit);
                 return false;
             }
         } else {
-            if (!isValidNrgTx(txNrgLimit)) {
+            if (!this.kernelParent.isValidEnergyLimitForNonCreate(txNrgLimit)) {
                 exeResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 exeResult.setEnergyRemaining(txNrgLimit);
                 return false;
             }
         }
 
-        if (txNrgLimit > blockRemainingNrg || contextNrgLmit < 0) {
-            exeResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
-            exeResult.setEnergyRemaining(0);
-            return false;
-        }
-
-        // check nonce
-        if (askNonce) {
-            BigInteger txNonce = new BigInteger(1, tx.getNonce());
-            BigInteger nonce = this.kernelParent.getNonce(tx.getSenderAddress());
-
-            if (!txNonce.equals(nonce)) {
-                exeResult.setResultCode(FastVmResultCode.INVALID_NONCE);
+        // TODO: blockRemainingNrg needs to be brought out into BulkExecutor
+        // TODO: this contextNrgLimit check should also be brought out too.
+        if (!isLocalCall) {
+            if (txNrgLimit > blockRemainingNrg || contextNrgLmit < 0) {
+                exeResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 exeResult.setEnergyRemaining(0);
                 return false;
             }
         }
 
+        // check nonce
+        BigInteger txNonce = new BigInteger(1, tx.getNonce());
+        if (!this.kernelParent.accountNonceEquals(tx.getSenderAddress(), txNonce)) {
+            exeResult.setResultCode(FastVmResultCode.INVALID_NONCE);
+            exeResult.setEnergyRemaining(0);
+            return false;
+        }
+
         // check balance
         BigInteger txValue = new BigInteger(1, tx.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        BigInteger balance = this.kernelParent.getBalance(tx.getSenderAddress());
-        if (txTotal.compareTo(balance) > 0) {
+        if (!this.kernelParent.accountBalanceIsAtLeast(tx.getSenderAddress(), txTotal)) {
             exeResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             exeResult.setEnergyRemaining(0);
             return false;
@@ -169,13 +200,6 @@ public abstract class AbstractExecutor {
     protected abstract void call();
 
     protected abstract void create();
-
-    /**
-     * Tells the ContractExecutor to bypass incrementing the account's nonce when execute is called.
-     */
-    public void setBypassNonce() {
-        this.askNonce = false;
-    }
 
     /**
      * Returns the energy remaining after the transaction was executed. Prior to execution this
