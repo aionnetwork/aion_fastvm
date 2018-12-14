@@ -17,6 +17,7 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
@@ -65,7 +66,7 @@ public class OldTxExecutorTest {
         repo.addBalance(from, BigInteger.valueOf(100_000).multiply(tx.nrgPrice().value()));
         repo.addContract(to, Hex.decode(contract));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -100,7 +101,7 @@ public class OldTxExecutorTest {
         IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -144,7 +145,7 @@ public class OldTxExecutorTest {
         long t1 = System.nanoTime();
         long repeat = 1000;
         for (int i = 0; i < repeat; i++) {
-            TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+            TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
             exec.execute();
         }
         long t2 = System.nanoTime();
@@ -173,7 +174,7 @@ public class OldTxExecutorTest {
         DummyRepository repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(1_000_000_000L));
 
-        TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
+        TransactionExecutor exec = new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo, true, false), LOGGER_VM);
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
