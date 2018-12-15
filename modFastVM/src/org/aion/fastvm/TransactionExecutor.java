@@ -187,11 +187,6 @@ public class TransactionExecutor extends AbstractExecutor {
         this(tx, block, kernel, false, block.getNrgLimit(), logger);
     }
 
-    /** Execute the transaction */
-    public AionTxExecSummary execute() {
-        return (AionTxExecSummary) execute(tx, ctx.getTransactionEnergyLimit());
-    }
-
     /** Prepares contract call. */
     public void call() {
         ContractFactory precompiledFactory = new ContractFactory();
