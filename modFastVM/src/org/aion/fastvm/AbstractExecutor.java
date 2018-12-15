@@ -97,39 +97,6 @@ public abstract class AbstractExecutor {
         }
     }
 
-    protected ITxExecSummary execute(TransactionInterface tx, long contextNrgLmit) {
-        synchronized (lock) {
-            // prepare, preliminary check
-            if (prepare(tx, contextNrgLmit)) {
-
-                KernelInterfaceForFastVM track = this.kernelParent.startTracking();
-
-                // increase nonce
-                track.incrementNonce(tx.getSenderAddress());
-
-                // charge nrg cost
-                // Note: if the tx is a inpool tx, it will temp charge more balance for the
-                // account
-                // once the block info been updated. the balance in pendingPool will correct.
-                BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
-                BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
-                BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
-                track.deductEnergyCost(tx.getSenderAddress(), txNrgCost);
-                track.flush();
-
-                // run the logic
-                if (tx.isContractCreationTransaction()) {
-                    create();
-                } else {
-                    call();
-                }
-            }
-
-            // finalize
-            return finish();
-        }
-    }
-
     /**
      * Checks that the transaction passes the basic validation criteria. These criteria are: 1. the
      * transaction energy limit is within the acceptable limit range and is larger than the
