@@ -41,7 +41,6 @@ import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.ITxReceipt;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
-import org.aion.base.vm.VirtualMachine;
 import org.aion.crypto.ECKeyFac;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.fastvm.FastVmResultCode;
@@ -77,7 +76,7 @@ import org.slf4j.Logger;
 //FIXME: Large portions of this test file are commented out - the tests need to be re-written fully.
 //FIXME: These tests depended on intimate details of the TransactionExecutor that are now no longer
 //FIXME: in that class or no longer exposed.
-//FIXME: I (Nick) will re-write these, but it is not my priority in this commit yet.
+//FIXME: CONFIRM WHETHER OR NOT THESE TESTS ARE EVEN WORTH WRITING... they are not very useful.
 
 /** Tests the TransactionExecutor class. */
 public class TransactionExecutorUnitTest {

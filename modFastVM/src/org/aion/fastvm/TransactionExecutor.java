@@ -24,12 +24,10 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import org.aion.base.type.AionAddress;
-import org.aion.base.vm.VirtualMachine;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.IAionBlock;
@@ -58,6 +56,7 @@ public class TransactionExecutor {
             IAionBlock block,
             KernelInterfaceForFastVM kernel,
             Logger logger) {
+
         LOGGER = logger;
         this.kernelParent = kernel;
         this.kernelChild = this.kernelParent.startTracking();
@@ -67,36 +66,35 @@ public class TransactionExecutor {
         long energyLeft =
                 this.transaction.nrgLimit() - this.transaction.transactionCost(block.getNumber());
         this.transactionResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, null);
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
     }
 
     public TransactionResult execute() {
-        return performChecksAndExecute(transaction, context.getTransactionEnergyLimit());
+        return performChecksAndExecute();
     }
 
-    private TransactionResult performChecksAndExecute(
-            TransactionInterface tx, long contextNrgLmit) {
+    private TransactionResult performChecksAndExecute() {
         synchronized (LOCK) {
             // prepare, preliminary check
-            if (performChecks(tx, contextNrgLmit)) {
+            if (performChecks()) {
 
                 KernelInterfaceForFastVM track = this.kernelParent.startTracking();
 
                 // increase nonce
-                track.incrementNonce(tx.getSenderAddress());
+                track.incrementNonce(this.transaction.getSenderAddress());
 
                 // charge nrg cost
                 // Note: if the tx is a inpool tx, it will temp charge more balance for the
                 // account
                 // once the block info been updated. the balance in pendingPool will correct.
-                BigInteger nrgLimit = BigInteger.valueOf(tx.getEnergyLimit());
-                BigInteger nrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
+                BigInteger nrgLimit = BigInteger.valueOf(this.transaction.getEnergyLimit());
+                BigInteger nrgPrice = BigInteger.valueOf(this.transaction.getEnergyPrice());
                 BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
-                track.deductEnergyCost(tx.getSenderAddress(), txNrgCost);
+                track.deductEnergyCost(this.transaction.getSenderAddress(), txNrgCost);
                 track.flush();
 
                 // run the logic
-                if (tx.isContractCreationTransaction()) {
+                if (this.transaction.isContractCreationTransaction()) {
                     executeContractCreationTransaction();
                 } else {
                     executeNonContractCreationTransaction();
@@ -119,15 +117,13 @@ public class TransactionExecutor {
      * not local and at least one criterion is not met. In this case, the execution result has its
      * result code and energy left set appropriately.
      *
-     * @param tx The transaction to check.
-     * @param contextNrgLmit The execution context's energy limit.
      * @return true if call is local or if all criteria listed above are met.
      */
-    private boolean performChecks(TransactionInterface tx, long contextNrgLmit) {
-        BigInteger txNrgPrice = BigInteger.valueOf(tx.getEnergyPrice());
-        long txNrgLimit = tx.getEnergyLimit();
+    private boolean performChecks() {
+        BigInteger txNrgPrice = BigInteger.valueOf(this.transaction.getEnergyPrice());
+        long txNrgLimit = this.transaction.getEnergyLimit();
 
-        if (tx.isContractCreationTransaction()) {
+        if (this.transaction.isContractCreationTransaction()) {
             if (!this.kernelParent.isValidEnergyLimitForCreate(txNrgLimit)) {
                 transactionResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 transactionResult.setEnergyRemaining(txNrgLimit);
@@ -141,24 +137,18 @@ public class TransactionExecutor {
             }
         }
 
-        if (contextNrgLmit < 0) {
-            transactionResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
-            transactionResult.setEnergyRemaining(0);
-            return false;
-        }
-
         // check nonce
-        BigInteger txNonce = new BigInteger(1, tx.getNonce());
-        if (!this.kernelParent.accountNonceEquals(tx.getSenderAddress(), txNonce)) {
+        BigInteger txNonce = new BigInteger(1, this.transaction.getNonce());
+        if (!this.kernelParent.accountNonceEquals(this.transaction.getSenderAddress(), txNonce)) {
             transactionResult.setResultCode(FastVmResultCode.INVALID_NONCE);
             transactionResult.setEnergyRemaining(0);
             return false;
         }
 
         // check balance
-        BigInteger txValue = new BigInteger(1, tx.getValue());
+        BigInteger txValue = new BigInteger(1, this.transaction.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        if (!this.kernelParent.accountBalanceIsAtLeast(tx.getSenderAddress(), txTotal)) {
+        if (!this.kernelParent.accountBalanceIsAtLeast(this.transaction.getSenderAddress(), txTotal)) {
             transactionResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             transactionResult.setEnergyRemaining(0);
             return false;
@@ -181,7 +171,7 @@ public class TransactionExecutor {
             // execute code
             byte[] code = this.kernelChild.getCode(transaction.getDestinationAddress());
             if (!ArrayUtils.isEmpty(code)) {
-                VirtualMachine fvm = new FastVM();
+                FastVM fvm = new FastVM();
                 transactionResult = fvm.run(code, context, this.kernelChild);
             }
         }
@@ -207,7 +197,7 @@ public class TransactionExecutor {
 
         // execute contract deployer
         if (!ArrayUtils.isEmpty(transaction.getData())) {
-            VirtualMachine fvm = new FastVM();
+            FastVM fvm = new FastVM();
             transactionResult = fvm.run(transaction.getData(), context, this.kernelChild);
 
             if (transactionResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {

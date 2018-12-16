@@ -24,7 +24,6 @@ package org.aion.fastvm;
 
 import org.aion.base.util.NativeLoader;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.base.vm.VirtualMachine;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,7 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * @author yulong
  */
-public class FastVM implements VirtualMachine {
+public class FastVM {
 
     public static int REVISION_FRONTIER = 0;
     public static int REVISION_HOMESTEAD = 1;
@@ -70,7 +69,6 @@ public class FastVM implements VirtualMachine {
     private static native void destroy(long instance);
 
     @SuppressWarnings("unchecked")
-    @Override
     public FastVmTransactionResult run(byte[] code, TransactionContext ctx, KernelInterface repo) {
         if (!(repo instanceof KernelInterfaceForFastVM)) {
             throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
