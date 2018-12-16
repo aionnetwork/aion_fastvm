@@ -210,6 +210,7 @@ public class ExecutionContextUnitTest {
      */
     private ExecutionContext newExecutionContext() {
         return new ExecutionContext(
+            null,
                 txHash,
                 recipient,
                 origin,
@@ -254,7 +255,7 @@ public class ExecutionContextUnitTest {
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
         longBuf.flip();
-        assertEquals(context.getTransactionEnergyLimit(), longBuf.getLong());
+        assertEquals(context.getTransactionEnergy(), longBuf.getLong());
         longBuf.clear();
         start = end;
         end += DataWord.BYTES;

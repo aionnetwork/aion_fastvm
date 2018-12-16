@@ -98,6 +98,7 @@ public class MultiThreadTest {
 
                             ExecutionContext ctx =
                                     new ExecutionContext(
+                                        null,
                                             txHash,
                                             address,
                                             origin,

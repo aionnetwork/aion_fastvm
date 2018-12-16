@@ -72,6 +72,7 @@ public class CacheTest {
         callData = Hex.decode("8256cff3");
         ExecutionContext ctx =
                 new ExecutionContext(
+                    null,
                         txHash,
                         address,
                         origin,

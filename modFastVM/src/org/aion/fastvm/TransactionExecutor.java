@@ -26,13 +26,12 @@ import java.math.BigInteger;
 import org.aion.base.type.AionAddress;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
+import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionTransaction;
-import org.aion.zero.types.IAionBlock;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
 
 /**
  * Transaction executor is the middle man between kernel and VM. It executes transactions and yields
@@ -42,29 +41,25 @@ import org.slf4j.Logger;
  */
 public class TransactionExecutor {
     private static Object LOCK = new Object();
-    private static Logger LOGGER;
 
-    private KernelInterfaceForFastVM kernelParent;
-    private KernelInterfaceForFastVM kernelChild;
+    private KernelInterface kernelParent;
+    private KernelInterface kernelChild;
     private TransactionResult transactionResult;
     private TransactionContext context;
-    private AionTransaction transaction;
+    private TransactionInterface transaction;
 
     public TransactionExecutor(
-            AionTransaction transaction,
+            TransactionInterface transaction,
             TransactionContext context,
-            IAionBlock block,
-            KernelInterfaceForFastVM kernel,
-            Logger logger) {
+            KernelInterface kernel) {
 
-        LOGGER = logger;
         this.kernelParent = kernel;
         this.kernelChild = this.kernelParent.startTracking();
         this.transaction = transaction;
         this.context = context;
 
         long energyLeft =
-                this.transaction.nrgLimit() - this.transaction.transactionCost(block.getNumber());
+                this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
         this.transactionResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
     }
@@ -78,7 +73,7 @@ public class TransactionExecutor {
             // prepare, preliminary check
             if (performChecks()) {
 
-                KernelInterfaceForFastVM track = this.kernelParent.startTracking();
+                KernelInterface track = this.kernelParent.startTracking();
 
                 // increase nonce
                 track.incrementNonce(this.transaction.getSenderAddress());
@@ -166,7 +161,7 @@ public class TransactionExecutor {
                 precompiledFactory.getPrecompiledContract(this.context, this.kernelChild);
         if (pc != null) {
             transactionResult =
-                    pc.execute(transaction.getData(), context.getTransactionEnergyLimit());
+                    pc.execute(transaction.getData(), context.getTransactionEnergy());
         } else {
             // execute code
             byte[] code = this.kernelChild.getCode(transaction.getDestinationAddress());
@@ -184,7 +179,8 @@ public class TransactionExecutor {
 
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
-        AionAddress contractAddress = transaction.getContractAddress();
+        //TODO: computing contract address needs to be done correctly. This is a hack.
+        AionAddress contractAddress = ((AionTransaction) transaction).getContractAddress();
 
         if (this.kernelChild.hasAccountState(contractAddress)) {
             transactionResult.setResultCode(FastVmResultCode.FAILURE);

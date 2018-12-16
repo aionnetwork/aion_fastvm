@@ -90,24 +90,7 @@ public class FastVMTest {
 
     @Test
     public void testRun() {
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         byte[] code = Hex.decode("6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60020160E052601060E0F3");
@@ -121,24 +104,7 @@ public class FastVMTest {
 
     @Test
     public void testGetCodeByAddress1() {
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         byte[] code =
@@ -157,24 +123,7 @@ public class FastVMTest {
 
     @Test
     public void testGetCodeByAddress2() {
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         byte[] code =
@@ -198,24 +147,7 @@ public class FastVMTest {
 
     @Test
     public void testGetCodeSize() {
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         byte[] code =
@@ -237,24 +169,7 @@ public class FastVMTest {
 
     @Test
     public void testBalance() {
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         byte[] code =
@@ -293,24 +208,7 @@ public class FastVMTest {
                 Hex.decode(
                         "fc68521a1111111111111111111111111111111111111111111111111111111111111111");
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         DummyRepository repo = new DummyRepository();
@@ -347,24 +245,7 @@ public class FastVMTest {
         callData = Hex.decode("26121ff0");
         nrgLimit = 600_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
         DummyRepository repo = new DummyRepository();
@@ -383,24 +264,7 @@ public class FastVMTest {
         callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWord(512L).getData());
         nrgLimit = 100_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
@@ -417,24 +281,7 @@ public class FastVMTest {
         callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWord(1_000_000_000L).getData());
         nrgLimit = 100_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
@@ -451,24 +298,7 @@ public class FastVMTest {
         callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWord(512L).getData());
         nrgLimit = 100_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
@@ -485,24 +315,7 @@ public class FastVMTest {
         callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWord(1_000_000_000L).getData());
         nrgLimit = 100_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
@@ -522,24 +335,7 @@ public class FastVMTest {
                         + "60339055" /* SSTORE(counter, 0x33) */
                         + "600256" /* JUMP */;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
@@ -552,24 +348,7 @@ public class FastVMTest {
     public void testLOG0Loop() {
         String code = "5b" + "632fffffff6000a0" + "600056";
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
@@ -582,24 +361,7 @@ public class FastVMTest {
     public void testSHA3Loop() {
         String code = "5b" + "632fffffff60002050" + "600056";
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
@@ -615,24 +377,7 @@ public class FastVMTest {
                         + "6f00000000000000000000000000000000" // push
                         + "20"; // SHA3
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
@@ -648,24 +393,7 @@ public class FastVMTest {
         callData = ByteUtil.EMPTY_BYTE_ARRAY;
         nrgLimit = 100000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
@@ -683,24 +411,7 @@ public class FastVMTest {
         callData = ByteUtil.EMPTY_BYTE_ARRAY;
         nrgLimit = 100000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
@@ -717,24 +428,7 @@ public class FastVMTest {
         callData = ByteUtil.EMPTY_BYTE_ARRAY;
         nrgLimit = 500_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
@@ -1012,24 +706,7 @@ public class FastVMTest {
         callData = Hex.decode("26121ff0");
         nrgLimit = 100000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
@@ -1051,24 +728,7 @@ public class FastVMTest {
                 + "66778899001122334455667788990011");
         nrgLimit = 100000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
@@ -1085,4 +745,26 @@ public class FastVMTest {
     private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
+
+    private ExecutionContext newExecutionContext() {
+        return new ExecutionContext(
+            null,
+            txHash,
+            address,
+            origin,
+            caller,
+            nrgPrice,
+            nrgLimit,
+            callValue,
+            callData,
+            depth,
+            kind,
+            flags,
+            blockCoinbase,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit,
+            blockDifficulty);
+    }
+
 }

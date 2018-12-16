@@ -130,24 +130,7 @@ public class NrgCostTest {
 
         // JVM warm up
         byte[] code = {0x00};
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
@@ -223,24 +206,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -315,24 +281,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -385,24 +334,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -458,24 +390,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -529,24 +444,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -588,24 +486,7 @@ public class NrgCostTest {
             byte[] code =
                     repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -659,24 +540,7 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
@@ -786,4 +650,26 @@ public class NrgCostTest {
     private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
+
+    private ExecutionContext newExecutionContext() {
+        return new ExecutionContext(
+            null,
+            txHash,
+            address,
+            origin,
+            caller,
+            nrgPrice,
+            nrgLimit,
+            callValue,
+            callData,
+            depth,
+            kind,
+            flags,
+            blockCoinbase,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit,
+            blockDifficulty);
+    }
+
 }
