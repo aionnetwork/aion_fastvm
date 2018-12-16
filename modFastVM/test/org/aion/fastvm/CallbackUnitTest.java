@@ -595,7 +595,7 @@ public class CallbackUnitTest {
                 generateContextMessage(
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
-                        ctx.getTransactionEnergyLimit(),
+                        ctx.getTransactionEnergy(),
                         new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
@@ -640,7 +640,7 @@ public class CallbackUnitTest {
                     generateContextMessage(
                             ctx.getDestinationAddress(),
                             ctx.getSenderAddress(),
-                            ctx.getTransactionEnergyLimit(),
+                            ctx.getTransactionEnergy(),
                             new DataWord(ctx.getTransferValue()),
                             ctx.getTransactionData(),
                             ctx.getTransactionStackDepth(),
@@ -681,7 +681,7 @@ public class CallbackUnitTest {
                 generateContextMessage(
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
-                        ctx.getTransactionEnergyLimit(),
+                        ctx.getTransactionEnergy(),
                         new DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
@@ -713,7 +713,7 @@ public class CallbackUnitTest {
                 generateContextMessage(
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
-                        context.getTransactionEnergyLimit(),
+                        context.getTransactionEnergy(),
                         new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
@@ -747,7 +747,7 @@ public class CallbackUnitTest {
                 generateContextMessage(
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
-                        context.getTransactionEnergyLimit(),
+                        context.getTransactionEnergy(),
                         new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
@@ -1787,7 +1787,7 @@ public class CallbackUnitTest {
                 .thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
         when(context.getTransferValue())
                 .thenReturn(new BigInteger(1, RandomUtils.nextBytes(DataWord.BYTES)));
-        when(context.getTransactionEnergyLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getTransactionEnergy()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(context.getTransactionStackDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
         return context;
@@ -1824,6 +1824,7 @@ public class CallbackUnitTest {
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
         DataWord blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         return new ExecutionContext(
+            null,
                 txHash,
                 recipient,
                 origin,
@@ -1886,7 +1887,7 @@ public class CallbackUnitTest {
         assertEquals(context.getTransactionEnergyPrice(), other.getTransactionEnergyPrice());
         assertEquals(context.getTransferValue(), other.getTransferValue());
         assertEquals(context.getBlockDifficulty(), other.getBlockDifficulty());
-        assertEquals(context.getTransactionEnergyLimit(), other.getTransactionEnergyLimit());
+        assertEquals(context.getTransactionEnergy(), other.getTransactionEnergy());
         assertEquals(context.getBlockNumber(), other.getBlockNumber());
         assertEquals(context.getBlockTimestamp(), other.getBlockTimestamp());
         assertEquals(context.getBlockEnergyLimit(), other.getBlockEnergyLimit());
@@ -1911,7 +1912,7 @@ public class CallbackUnitTest {
         assertEquals(context.getSenderAddress(), other.getSenderAddress());
         assertArrayEquals(context.getTransactionData(), other.getTransactionData());
         assertEquals(context.getTransferValue(), other.getTransferValue());
-        assertEquals(context.getTransactionEnergyLimit(), other.getTransactionEnergyLimit());
+        assertEquals(context.getTransactionEnergy(), other.getTransactionEnergy());
         assertArrayEquals(context.getTransactionHash(), other.getTransactionHash());
         assertEquals(context.getTransactionStackDepth(), other.getTransactionStackDepth());
     }
@@ -2016,12 +2017,13 @@ public class CallbackUnitTest {
     private TransactionContext makeExpectedContext(
             TransactionContext previous, TransactionContext context) {
         return new ExecutionContext(
+            null,
                 previous.getTransactionHash(),
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
                 context.getSenderAddress(),
                 new DataWord(previous.getTransactionEnergyPrice()),
-                context.getTransactionEnergyLimit(),
+                context.getTransactionEnergy(),
                 new DataWord(context.getTransferValue()),
                 context.getTransactionData(),
                 context.getTransactionStackDepth(),
@@ -2279,7 +2281,7 @@ public class CallbackUnitTest {
                 generateContextMessage(
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
-                        context.getTransactionEnergyLimit(),
+                        context.getTransactionEnergy(),
                         new DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
@@ -2289,7 +2291,7 @@ public class CallbackUnitTest {
                 FastVmTransactionResult.fromBytes(Callback.performCall(message, mockVM, mockFac));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
-            assertEquals(context.getTransactionEnergyLimit(), result.getEnergyRemaining());
+            assertEquals(context.getTransactionEnergy(), result.getEnergyRemaining());
         } else {
             assertEquals(expectedResult.getEnergyRemaining(), result.getEnergyRemaining());
         }

@@ -57,24 +57,7 @@ public class DoSBlockGasLimitTest {
 
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
@@ -95,24 +78,7 @@ public class DoSBlockGasLimitTest {
 
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
@@ -133,27 +99,32 @@ public class DoSBlockGasLimitTest {
 
         callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
+
+    private ExecutionContext newExecutionContext() {
+        return new ExecutionContext(
+            null,
+            txHash,
+            address,
+            origin,
+            caller,
+            nrgPrice,
+            nrgLimit,
+            callValue,
+            callData,
+            depth,
+            kind,
+            flags,
+            blockCoinbase,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit,
+            blockDifficulty);
+    }
+
 }
