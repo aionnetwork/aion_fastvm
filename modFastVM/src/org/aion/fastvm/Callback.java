@@ -276,6 +276,11 @@ public class Callback {
             ctx.setDestinationAddress(context().getDestinationAddress());
         }
 
+        // Check that the destination address is safe to call from this VM.
+        if (!kernelRepo().destinationAddressIsSafeForThisVM(codeAddress)) {
+            return new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergyLimit());
+        }
+
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
         TransactionResult result =
                 new FastVmTransactionResult(
