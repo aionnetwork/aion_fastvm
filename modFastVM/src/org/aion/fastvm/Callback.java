@@ -32,15 +32,15 @@ import java.util.LinkedList;
 import java.util.List;
 import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
+import org.aion.base.vm.IDataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
-import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionInternalTx;
@@ -162,7 +162,21 @@ public class Callback {
         // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " +
         // Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
-        kernelRepo().putStorage(AionAddress.wrap(address), key, value);
+        if (value == null || value.length == 0 || isZero(value)) {
+            kernelRepo().removeStorage(AionAddress.wrap(address), key);
+        } else {
+            kernelRepo().putStorage(AionAddress.wrap(address), key, value);
+        }
+    }
+
+    private static boolean isZero(byte[] value) {
+        int length = value.length;
+        for (int i = 0; i < length; i++) {
+            if (value[length - 1 - i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -278,13 +292,13 @@ public class Callback {
 
         // Check that the destination address is safe to call from this VM.
         if (!kernelRepo().destinationAddressIsSafeForThisVM(codeAddress)) {
-            return new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
+            return new FastVmTransactionResult(
+                    FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
         }
 
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
         TransactionResult result =
-                new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // add internal transaction
         AionInternalTx internalTx =
@@ -344,8 +358,7 @@ public class Callback {
     private static FastVmTransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
         FastVmTransactionResult result =
-                new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
@@ -462,9 +475,9 @@ public class Callback {
         long blockNrgLimit = prev.getBlockEnergyLimit();
         IDataWord blockDifficulty = new DataWord(prev.getBlockDifficulty());
 
-        //TODO: properly construct a transaction first
+        // TODO: properly construct a transaction first
         return new ExecutionContext(
-            null,
+                null,
                 txHash,
                 AionAddress.wrap(address),
                 origin,
