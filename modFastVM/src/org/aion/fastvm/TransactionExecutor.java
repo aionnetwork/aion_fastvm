@@ -48,7 +48,10 @@ public class TransactionExecutor {
     private TransactionContext context;
     private TransactionInterface transaction;
 
-    public TransactionExecutor(
+    //TODO: once contract address is computed in the right place we can remove transaction from the
+    //TODO: constructor altogether and derive all info it supplies from the context.
+
+    TransactionExecutor(
             TransactionInterface transaction,
             TransactionContext context,
             KernelInterface kernel) {
