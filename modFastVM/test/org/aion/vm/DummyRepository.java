@@ -190,6 +190,14 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     }
 
     @Override
+    public void flushTo(IRepository repo, boolean clearStorageAfterFlush) {
+        DummyRepository repoAsDummy = (DummyRepository) repo;
+        repoAsDummy.accounts = accounts;
+        repoAsDummy.contracts = contracts;
+        repoAsDummy.storage = storage;
+    }
+
+    @Override
     public void rollback() {}
 
     @Override

@@ -24,6 +24,8 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import org.aion.base.type.AionAddress;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.vm.api.interfaces.KernelInterface;
@@ -42,8 +44,10 @@ import org.apache.commons.lang3.ArrayUtils;
 public class TransactionExecutor {
     private static Object LOCK = new Object();
 
-    private KernelInterface kernelParent;
+    private KernelInterface kernel;
     private KernelInterface kernelChild;
+    private KernelInterface kernelGrandChild;
+
     private TransactionResult transactionResult;
     private TransactionContext context;
     private TransactionInterface transaction;
@@ -56,8 +60,10 @@ public class TransactionExecutor {
             TransactionContext context,
             KernelInterface kernel) {
 
-        this.kernelParent = kernel;
-        this.kernelChild = this.kernelParent.startTracking();
+        this.kernel = kernel;
+        this.kernelChild = this.kernel.startTracking();
+        this.kernelGrandChild = this.kernelChild.startTracking();
+
         this.transaction = transaction;
         this.context = context;
 
@@ -67,6 +73,14 @@ public class TransactionExecutor {
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
     }
 
+    /**
+     * Executes the transaction and returns a {@link TransactionResult}.
+     *
+     * Guarantee: the {@link TransactionResult} that this method returns contains a
+     * {@link KernelInterface} that consists of ALL valid state changes pertaining to this
+     * transaction. Therefore, the recipient of this result can flush directly from this returned
+     * {@link KernelInterface} without any checks or conditional logic to satisfy.
+     */
     public TransactionResult execute() {
         return performChecksAndExecute();
     }
@@ -76,7 +90,7 @@ public class TransactionExecutor {
             // prepare, preliminary check
             if (performChecks()) {
 
-                KernelInterface track = this.kernelParent.startTracking();
+                KernelInterface track = this.kernelChild.startTracking();
 
                 // increase nonce
                 track.incrementNonce(this.transaction.getSenderAddress());
@@ -99,7 +113,17 @@ public class TransactionExecutor {
                 }
             }
 
-            transactionResult.setKernelInterface(this.kernelChild);
+            // kernelGrandchild holds all state changes that must be flushed upon SUCCESS.
+            if (transactionResult.getResultCode().isSuccess()) {
+                this.kernelGrandChild.flush();
+            }
+
+            // kernelChild holds state changes that must be flushed on anything that is not REJECTED.
+            if (!transactionResult.getResultCode().isRejected()) {
+                this.kernelChild.flush();
+            }
+
+            transactionResult.setKernelInterface(this.kernel);
             return transactionResult;
         }
     }
@@ -122,13 +146,13 @@ public class TransactionExecutor {
         long txNrgLimit = this.transaction.getEnergyLimit();
 
         if (this.transaction.isContractCreationTransaction()) {
-            if (!this.kernelParent.isValidEnergyLimitForCreate(txNrgLimit)) {
+            if (!this.kernelChild.isValidEnergyLimitForCreate(txNrgLimit)) {
                 transactionResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 transactionResult.setEnergyRemaining(txNrgLimit);
                 return false;
             }
         } else {
-            if (!this.kernelParent.isValidEnergyLimitForNonCreate(txNrgLimit)) {
+            if (!this.kernelChild.isValidEnergyLimitForNonCreate(txNrgLimit)) {
                 transactionResult.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 transactionResult.setEnergyRemaining(txNrgLimit);
                 return false;
@@ -137,7 +161,7 @@ public class TransactionExecutor {
 
         // check nonce
         BigInteger txNonce = new BigInteger(1, this.transaction.getNonce());
-        if (!this.kernelParent.accountNonceEquals(this.transaction.getSenderAddress(), txNonce)) {
+        if (!this.kernelChild.accountNonceEquals(this.transaction.getSenderAddress(), txNonce)) {
             transactionResult.setResultCode(FastVmResultCode.INVALID_NONCE);
             transactionResult.setEnergyRemaining(0);
             return false;
@@ -146,7 +170,7 @@ public class TransactionExecutor {
         // check balance
         BigInteger txValue = new BigInteger(1, this.transaction.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        if (!this.kernelParent.accountBalanceIsAtLeast(this.transaction.getSenderAddress(), txTotal)) {
+        if (!this.kernelChild.accountBalanceIsAtLeast(this.transaction.getSenderAddress(), txTotal)) {
             transactionResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             transactionResult.setEnergyRemaining(0);
             return false;
@@ -161,23 +185,23 @@ public class TransactionExecutor {
     private void executeNonContractCreationTransaction() {
         ContractFactory precompiledFactory = new ContractFactory();
         PrecompiledContract pc =
-                precompiledFactory.getPrecompiledContract(this.context, this.kernelChild);
+                precompiledFactory.getPrecompiledContract(this.context, this.kernelGrandChild);
         if (pc != null) {
             transactionResult =
                     pc.execute(transaction.getData(), context.getTransactionEnergy());
         } else {
             // execute code
-            byte[] code = this.kernelChild.getCode(transaction.getDestinationAddress());
+            byte[] code = this.kernelGrandChild.getCode(transaction.getDestinationAddress());
             if (!ArrayUtils.isEmpty(code)) {
                 FastVM fvm = new FastVM();
-                transactionResult = fvm.run(code, context, this.kernelChild);
+                transactionResult = fvm.run(code, context, this.kernelGrandChild);
             }
         }
 
         // transfer value
         BigInteger txValue = new BigInteger(1, transaction.getValue());
-        this.kernelChild.adjustBalance(transaction.getSenderAddress(), txValue.negate());
-        this.kernelChild.adjustBalance(transaction.getDestinationAddress(), txValue);
+        this.kernelGrandChild.adjustBalance(transaction.getSenderAddress(), txValue.negate());
+        this.kernelGrandChild.adjustBalance(transaction.getDestinationAddress(), txValue);
     }
 
     /** Prepares contract create. */
@@ -185,28 +209,28 @@ public class TransactionExecutor {
         //TODO: computing contract address needs to be done correctly. This is a hack.
         AionAddress contractAddress = ((AionTransaction) transaction).getContractAddress();
 
-        if (this.kernelChild.hasAccountState(contractAddress)) {
+        if (this.kernelGrandChild.hasAccountState(contractAddress)) {
             transactionResult.setResultCode(FastVmResultCode.FAILURE);
             transactionResult.setEnergyRemaining(0);
             return;
         }
 
         // create account
-        this.kernelChild.createAccount(contractAddress);
+        this.kernelGrandChild.createAccount(contractAddress);
 
         // execute contract deployer
         if (!ArrayUtils.isEmpty(transaction.getData())) {
             FastVM fvm = new FastVM();
-            transactionResult = fvm.run(transaction.getData(), context, this.kernelChild);
+            transactionResult = fvm.run(transaction.getData(), context, this.kernelGrandChild);
 
             if (transactionResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
-                this.kernelChild.putCode(contractAddress, transactionResult.getOutput());
+                this.kernelGrandChild.putCode(contractAddress, transactionResult.getOutput());
             }
         }
 
         // transfer value
         BigInteger txValue = new BigInteger(1, transaction.getValue());
-        this.kernelChild.adjustBalance(transaction.getSenderAddress(), txValue.negate());
-        this.kernelChild.adjustBalance(contractAddress, txValue);
+        this.kernelGrandChild.adjustBalance(transaction.getSenderAddress(), txValue.negate());
+        this.kernelGrandChild.adjustBalance(contractAddress, txValue);
     }
 }
