@@ -23,9 +23,9 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import org.aion.base.type.AionAddress;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
@@ -49,17 +49,14 @@ public class TransactionExecutor {
     private TransactionInterface transaction;
 
     public TransactionExecutor(
-            TransactionInterface transaction,
-            TransactionContext context,
-            KernelInterface kernel) {
+            TransactionInterface transaction, TransactionContext context, KernelInterface kernel) {
 
         this.kernelParent = kernel;
         this.kernelChild = this.kernelParent.startTracking();
         this.transaction = transaction;
         this.context = context;
 
-        long energyLeft =
-                this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
+        long energyLeft = this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
         this.transactionResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
     }
@@ -143,7 +140,8 @@ public class TransactionExecutor {
         // check balance
         BigInteger txValue = new BigInteger(1, this.transaction.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        if (!this.kernelParent.accountBalanceIsAtLeast(this.transaction.getSenderAddress(), txTotal)) {
+        if (!this.kernelParent.accountBalanceIsAtLeast(
+                this.transaction.getSenderAddress(), txTotal)) {
             transactionResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             transactionResult.setEnergyRemaining(0);
             return false;
@@ -160,8 +158,7 @@ public class TransactionExecutor {
         PrecompiledContract pc =
                 precompiledFactory.getPrecompiledContract(this.context, this.kernelChild);
         if (pc != null) {
-            transactionResult =
-                    pc.execute(transaction.getData(), context.getTransactionEnergy());
+            transactionResult = pc.execute(transaction.getData(), context.getTransactionEnergy());
         } else {
             // execute code
             byte[] code = this.kernelChild.getCode(transaction.getDestinationAddress());
@@ -179,8 +176,8 @@ public class TransactionExecutor {
 
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
-        //TODO: computing contract address needs to be done correctly. This is a hack.
-        AionAddress contractAddress = ((AionTransaction) transaction).getContractAddress();
+        // TODO: computing contract address needs to be done correctly. This is a hack.
+        Address contractAddress = ((AionTransaction) transaction).getContractAddress();
 
         if (this.kernelChild.hasAccountState(contractAddress)) {
             transactionResult.setResultCode(FastVmResultCode.FAILURE);
