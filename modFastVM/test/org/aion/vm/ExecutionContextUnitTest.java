@@ -31,6 +31,7 @@ import java.util.Arrays;
 import org.aion.base.type.AionAddress;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
+import org.aion.vm.api.interfaces.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +39,7 @@ import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
 
 public class ExecutionContextUnitTest {
-    private AionAddress recipient, origin, caller, coinbase;
+    private Address recipient, origin, caller, coinbase;
     private DataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;
     private long nrgLimit, blockNumber, blockTimestamp, blockNrgLimit;
@@ -46,10 +47,14 @@ public class ExecutionContextUnitTest {
 
     @Before
     public void setup() {
-        recipient = new AionAddress("1111111111111111111111111111111111111111111111111111111111111111");
-        origin = new AionAddress("2222222222222222222222222222222222222222222222222222222222222222");
-        caller = new AionAddress("3333333333333333333333333333333333333333333333333333333333333333");
-        coinbase = new AionAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        recipient =
+                new AionAddress("1111111111111111111111111111111111111111111111111111111111111111");
+        origin =
+                new AionAddress("2222222222222222222222222222222222222222222222222222222222222222");
+        caller =
+                new AionAddress("3333333333333333333333333333333333333333333333333333333333333333");
+        coinbase =
+                new AionAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
         nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
         callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
@@ -197,7 +202,7 @@ public class ExecutionContextUnitTest {
     @Test
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
-        AionAddress newRecipient = new AionAddress(RandomUtils.nextBytes(AionAddress.SIZE));
+        Address newRecipient = new AionAddress(RandomUtils.nextBytes(Address.SIZE));
         context.setDestinationAddress(newRecipient);
         assertEquals(newRecipient, context.getDestinationAddress());
     }
@@ -210,7 +215,7 @@ public class ExecutionContextUnitTest {
      */
     private ExecutionContext newExecutionContext() {
         return new ExecutionContext(
-            null,
+                null,
                 txHash,
                 recipient,
                 origin,
@@ -238,19 +243,27 @@ public class ExecutionContextUnitTest {
      */
     private void checkEncoding(ExecutionContext context, byte[] encoding) {
         int start = 0;
-        int end = AionAddress.SIZE;
+        int end = Address.SIZE;
         ByteBuffer longBuf = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
         ByteBuffer intBuf = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
-        assertEquals(context.getDestinationAddress(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(
+                context.getDestinationAddress(),
+                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += AionAddress.SIZE;
-        assertEquals(context.getOriginAddress(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+        end += Address.SIZE;
+        assertEquals(
+                context.getOriginAddress(),
+                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += AionAddress.SIZE;
-        assertEquals(context.getSenderAddress(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+        end += Address.SIZE;
+        assertEquals(
+                context.getSenderAddress(),
+                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
-        assertEquals(context.getTransactionEnergyPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
+        assertEquals(
+                context.getTransactionEnergyPrice(),
+                new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -259,7 +272,9 @@ public class ExecutionContextUnitTest {
         longBuf.clear();
         start = end;
         end += DataWord.BYTES;
-        assertEquals(new DataWord(context.getTransferValue()), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+        assertEquals(
+                new DataWord(context.getTransferValue()),
+                new DataWord(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -287,9 +302,10 @@ public class ExecutionContextUnitTest {
         intBuf.flip();
         assertEquals(context.getFlags(), intBuf.getInt());
         start = end;
-        end += AionAddress.SIZE;
+        end += Address.SIZE;
         assertEquals(
-                context.getMinerAddress(), new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+                context.getMinerAddress(),
+                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -310,6 +326,7 @@ public class ExecutionContextUnitTest {
         start = end;
         end += DataWord.BYTES;
         assertEquals(
-                context.getBlockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
+                context.getBlockDifficulty(),
+                new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
     }
 }

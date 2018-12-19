@@ -362,7 +362,7 @@ public class Callback {
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
-        AionAddress newAddress =
+        Address newAddress =
                 AionAddress.wrap(HashUtil.calcNewAddr(ctx.getSenderAddress().toBytes(), nonce));
         ctx.setDestinationAddress(newAddress);
 
@@ -451,10 +451,10 @@ public class Callback {
 
         byte[] txHash = prev.getTransactionHash();
 
-        byte[] address = new byte[AionAddress.SIZE];
+        byte[] address = new byte[Address.SIZE];
         buffer.get(address);
         Address origin = prev.getOriginAddress();
-        byte[] caller = new byte[AionAddress.SIZE];
+        byte[] caller = new byte[Address.SIZE];
         buffer.get(caller);
 
         IDataWord nrgPrice = new DataWord(prev.getTransactionEnergyPrice());

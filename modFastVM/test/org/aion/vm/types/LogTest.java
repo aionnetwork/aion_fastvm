@@ -31,13 +31,14 @@ import java.util.List;
 import org.aion.base.type.AionAddress;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
+import org.aion.vm.api.interfaces.Address;
 import org.junit.Test;
 
 public class LogTest {
 
     @Test
     public void testEncode() {
-        AionAddress address = AionAddress.ZERO_ADDRESS();
+        Address address = AionAddress.ZERO_ADDRESS();
         List<byte[]> topics = new ArrayList<byte[]>();
         topics.add(DataWord.ZERO.getData());
         byte[] data = new byte[200];

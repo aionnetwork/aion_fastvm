@@ -23,11 +23,9 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import org.aion.base.type.AionAddress;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
@@ -52,13 +50,11 @@ public class TransactionExecutor {
     private TransactionContext context;
     private TransactionInterface transaction;
 
-    //TODO: once contract address is computed in the right place we can remove transaction from the
-    //TODO: constructor altogether and derive all info it supplies from the context.
+    // TODO: once contract address is computed in the right place we can remove transaction from the
+    // TODO: constructor altogether and derive all info it supplies from the context.
 
     TransactionExecutor(
-            TransactionInterface transaction,
-            TransactionContext context,
-            KernelInterface kernel) {
+            TransactionInterface transaction, TransactionContext context, KernelInterface kernel) {
 
         this.kernel = kernel;
         this.kernelChild = this.kernel.startTracking();
@@ -67,8 +63,7 @@ public class TransactionExecutor {
         this.transaction = transaction;
         this.context = context;
 
-        long energyLeft =
-                this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
+        long energyLeft = this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
         this.transactionResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
     }
@@ -76,10 +71,10 @@ public class TransactionExecutor {
     /**
      * Executes the transaction and returns a {@link TransactionResult}.
      *
-     * Guarantee: the {@link TransactionResult} that this method returns contains a
-     * {@link KernelInterface} that consists of ALL valid state changes pertaining to this
-     * transaction. Therefore, the recipient of this result can flush directly from this returned
-     * {@link KernelInterface} without any checks or conditional logic to satisfy.
+     * <p>Guarantee: the {@link TransactionResult} that this method returns contains a {@link
+     * KernelInterface} that consists of ALL valid state changes pertaining to this transaction.
+     * Therefore, the recipient of this result can flush directly from this returned {@link
+     * KernelInterface} without any checks or conditional logic to satisfy.
      */
     public TransactionResult execute() {
         return performChecksAndExecute();
@@ -118,7 +113,8 @@ public class TransactionExecutor {
                 this.kernelGrandChild.flush();
             }
 
-            // kernelChild holds state changes that must be flushed on anything that is not REJECTED.
+            // kernelChild holds state changes that must be flushed on anything that is not
+            // REJECTED.
             if (!transactionResult.getResultCode().isRejected()) {
                 this.kernelChild.flush();
             }
@@ -170,7 +166,8 @@ public class TransactionExecutor {
         // check balance
         BigInteger txValue = new BigInteger(1, this.transaction.getValue());
         BigInteger txTotal = txNrgPrice.multiply(BigInteger.valueOf(txNrgLimit)).add(txValue);
-        if (!this.kernelChild.accountBalanceIsAtLeast(this.transaction.getSenderAddress(), txTotal)) {
+        if (!this.kernelChild.accountBalanceIsAtLeast(
+                this.transaction.getSenderAddress(), txTotal)) {
             transactionResult.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             transactionResult.setEnergyRemaining(0);
             return false;
@@ -187,8 +184,7 @@ public class TransactionExecutor {
         PrecompiledContract pc =
                 precompiledFactory.getPrecompiledContract(this.context, this.kernelGrandChild);
         if (pc != null) {
-            transactionResult =
-                    pc.execute(transaction.getData(), context.getTransactionEnergy());
+            transactionResult = pc.execute(transaction.getData(), context.getTransactionEnergy());
         } else {
             // execute code
             byte[] code = this.kernelGrandChild.getCode(transaction.getDestinationAddress());
@@ -206,8 +202,8 @@ public class TransactionExecutor {
 
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
-        //TODO: computing contract address needs to be done correctly. This is a hack.
-        AionAddress contractAddress = ((AionTransaction) transaction).getContractAddress();
+        // TODO: computing contract address needs to be done correctly. This is a hack.
+        Address contractAddress = ((AionTransaction) transaction).getContractAddress();
 
         if (this.kernelGrandChild.hasAccountState(contractAddress)) {
             transactionResult.setResultCode(FastVmResultCode.FAILURE);

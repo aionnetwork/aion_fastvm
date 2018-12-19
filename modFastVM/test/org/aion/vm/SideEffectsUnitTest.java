@@ -35,8 +35,8 @@ import java.util.Iterator;
 import java.util.List;
 import org.aion.base.type.AionAddress;
 import org.aion.fastvm.SideEffects;
-import org.aion.mcf.vm.types.Log;
 import org.aion.fastvm.SideEffects.Call;
+import org.aion.mcf.vm.types.Log;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
@@ -72,7 +72,7 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddDeleteAccount() {
-        AionAddress addr = getNewAddress();
+        Address addr = getNewAddress();
         sideEffects.addToDeletedAddresses(addr);
         assertEquals(1, sideEffects.getAddressesToBeDeleted().size());
         assertEquals(addr, sideEffects.getAddressesToBeDeleted().get(0));
@@ -80,8 +80,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddDeleteAccountDuplicate() {
-        AionAddress addr1 = getNewAddress();
-        AionAddress addr2 = getNewAddress();
+        Address addr1 = getNewAddress();
+        Address addr2 = getNewAddress();
         sideEffects.addToDeletedAddresses(addr1);
         sideEffects.addToDeletedAddresses(addr2);
         sideEffects.addToDeletedAddresses(addr2);
@@ -323,8 +323,8 @@ public class SideEffectsUnitTest {
      *
      * @return a newly created address consisting of random bytes.
      */
-    private AionAddress getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(AionAddress.SIZE));
+    private Address getNewAddress() {
+        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
     }
 
     /**
@@ -392,8 +392,8 @@ public class SideEffectsUnitTest {
      * @return a new internal transaction.
      */
     private AionInternalTx getNewInternalTx() {
-        AionAddress sender = getNewAddress();
-        AionAddress recipient = getNewAddress();
+        Address sender = getNewAddress();
+        Address recipient = getNewAddress();
         String note = "";
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] parentHash = RandomUtils.nextBytes(arraySizes);

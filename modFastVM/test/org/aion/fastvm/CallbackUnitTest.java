@@ -48,10 +48,10 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.precompiled.ContractFactory;
-import org.aion.vm.DummyRepository;
-import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
+import org.aion.precompiled.ContractFactory;
+import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.vm.DummyRepository;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
@@ -202,7 +202,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetCodeIsValidCode() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         byte[] code = RandomUtils.nextBytes(30);
         pushNewCode(address, code);
         assertArrayEquals(code, Callback.getCode(address.toBytes()));
@@ -210,7 +210,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetCodeIsNoCode() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         pushNewCode(address, null);
         assertArrayEquals(new byte[0], Callback.getCode(address.toBytes()));
     }
@@ -218,7 +218,7 @@ public class CallbackUnitTest {
     @Test
     public void testGetCodeAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        AionAddress[] addresses = new AionAddress[depths];
+        Address[] addresses = new Address[depths];
         byte[][] codes = new byte[depths][];
         for (int i = 0; i < depths; i++) {
             addresses[depths - 1 - i] = getNewAddress();
@@ -243,7 +243,7 @@ public class CallbackUnitTest {
     @Test
     public void testGetBalanceAccountExists() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
-        AionAddress address = pushNewBalance(balance);
+        Address address = pushNewBalance(balance);
         assertArrayEquals(new DataWord(balance).getData(), Callback.getBalance(address.toBytes()));
     }
 
@@ -258,7 +258,7 @@ public class CallbackUnitTest {
     public void testGetBalanceAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
         BigInteger[] balances = new BigInteger[depths];
-        AionAddress[] addresses = new AionAddress[depths];
+        Address[] addresses = new Address[depths];
         for (int i = 0; i < depths; i++) {
             balances[depths - 1 - i] = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
             addresses[depths - 1 - i] = pushNewBalance(balances[depths - 1 - i]);
@@ -273,7 +273,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testHasAccountStateWhenAccountExists() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.hasAccountState(address)).thenReturn(true);
         Pair pair = mockEmptyPair();
@@ -284,7 +284,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testHasAccountStateWhenAccountDoesNotExist() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.hasAccountState(address)).thenReturn(false);
         Pair pair = mockEmptyPair();
@@ -299,7 +299,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
-        AionAddress address = pushNewStorageEntry(repo, key, value, true);
+        Address address = pushNewStorageEntry(repo, key, value, true);
         assertArrayEquals(value, Callback.getStorage(address.toBytes(), key));
     }
 
@@ -309,7 +309,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
-        AionAddress address = pushNewStorageEntry(repo, key, value, true);
+        Address address = pushNewStorageEntry(repo, key, value, true);
         byte[] badKey = Arrays.copyOf(key, DataWord.BYTES);
         badKey[0] = (byte) ~key[0];
         assertArrayEquals(DataWord.ZERO.getData(), Callback.getStorage(address.toBytes(), badKey));
@@ -321,7 +321,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
-        AionAddress[] addresses = unpackAddresses(packs);
+        Address[] addresses = unpackAddresses(packs);
         byte[][] keys = unpackKeys(packs);
         byte[][] values = unpackValues(packs);
         for (int i = 0; i < numAddrs; i++) {
@@ -341,7 +341,7 @@ public class CallbackUnitTest {
             packsPerDepth.add(0, packs);
         }
         for (int i = 0; i < depths; i++) {
-            AionAddress[] addresses = unpackAddresses(packsPerDepth.get(i));
+            Address[] addresses = unpackAddresses(packsPerDepth.get(i));
             byte[][] keys = unpackKeys(packsPerDepth.get(i));
             byte[][] values = unpackValues(packsPerDepth.get(i));
             for (int j = 0; j < addresses.length; j++) {
@@ -357,7 +357,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
-        AionAddress address = putInStorage(key, value);
+        Address address = putInStorage(key, value);
         assertArrayEquals(
                 value, repo.getStorageValue(address, new DataWord(key).toWrapper()).getData());
     }
@@ -367,7 +367,7 @@ public class CallbackUnitTest {
         int num = RandomUtils.nextInt(3, 10);
         IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
-        AionAddress[] addresses = new AionAddress[num];
+        Address[] addresses = new Address[num];
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
@@ -389,7 +389,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
-        AionAddress[] addresses = unpackAddresses(packs);
+        Address[] addresses = unpackAddresses(packs);
         byte[][] keys = unpackKeys(packs);
         byte[][] values = unpackValues(packs);
         for (int i = 0; i < numAddrs; i++) {
@@ -415,7 +415,7 @@ public class CallbackUnitTest {
             packsPerDepth.add(0, packs);
         }
         for (int i = 0; i < depths; i++) {
-            AionAddress[] addresses = unpackAddresses(packsPerDepth.get(i));
+            Address[] addresses = unpackAddresses(packsPerDepth.get(i));
             byte[][] keys = unpackKeys(packsPerDepth.get(i));
             byte[][] values = unpackValues(packsPerDepth.get(i));
             for (int j = 0; j < addresses.length; j++) {
@@ -432,7 +432,7 @@ public class CallbackUnitTest {
     public void testPutThenGetStorage() {
         IRepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
         Callback.putStorage(address.toBytes(), key, value);
@@ -445,7 +445,7 @@ public class CallbackUnitTest {
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
-        AionAddress[] addresses = unpackAddresses(packs);
+        Address[] addresses = unpackAddresses(packs);
         byte[][] keys = unpackKeys(packs);
         byte[][] values = unpackValues(packs);
         for (int i = 0; i < numAddrs; i++) {
@@ -465,7 +465,7 @@ public class CallbackUnitTest {
             packsPerDepth.add(0, packs);
         }
         for (int i = 0; i < depths; i++) {
-            AionAddress[] addresses = unpackAddresses(packsPerDepth.get(i));
+            Address[] addresses = unpackAddresses(packsPerDepth.get(i));
             byte[][] keys = unpackKeys(packsPerDepth.get(i));
             byte[][] values = unpackValues(packsPerDepth.get(i));
             for (int j = 0; j < addresses.length; j++) {
@@ -479,8 +479,8 @@ public class CallbackUnitTest {
     public void testSelfDestructOwnerIsBeneficiary() {
         BigInteger ownerBalance = new BigInteger("2385234");
         BigInteger ownerNonce = new BigInteger("353245");
-        AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        AionAddress beneficiary = new AionAddress(Arrays.copyOf(owner.toBytes(), AionAddress.SIZE));
+        Address owner = getNewAddressInRepo(ownerBalance, ownerNonce);
+        Address beneficiary = new AionAddress(Arrays.copyOf(owner.toBytes(), Address.SIZE));
         SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
         when(ctx.getSideEffects()).thenReturn(helper);
@@ -499,8 +499,8 @@ public class CallbackUnitTest {
         BigInteger ownerNonce = new BigInteger("32565378");
         BigInteger benBalance = new BigInteger("3252323");
         BigInteger benNonce = new BigInteger("4334342355");
-        AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        AionAddress beneficiary = getNewAddressInRepo(benBalance, benNonce);
+        Address owner = getNewAddressInRepo(ownerBalance, ownerNonce);
+        Address beneficiary = getNewAddressInRepo(benBalance, benNonce);
         SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
         when(ctx.getSideEffects()).thenReturn(helper);
@@ -524,10 +524,10 @@ public class CallbackUnitTest {
             BigInteger ownerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
             BigInteger benBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
             BigInteger benNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            AionAddress owner =
+            Address owner =
                     getNewAddressInRepo(
                             Callback.kernelRepo().getRepositoryCache(), ownerBalance, ownerNonce);
-            AionAddress beneficiary =
+            Address beneficiary =
                     getNewAddressInRepo(
                             Callback.kernelRepo().getRepositoryCache(), benBalance, benNonce);
 
@@ -545,7 +545,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testLogWithZeroTopics() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         byte[] data = RandomUtils.nextBytes(RandomUtils.nextInt(0, 50));
         byte[] topics = makeTopics(0);
         Callback.push(mockPair());
@@ -555,7 +555,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testLogWithOneTopic() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         byte[] data = RandomUtils.nextBytes(RandomUtils.nextInt(0, 50));
         byte[] topics = makeTopics(1);
         Callback.push(mockPair());
@@ -565,7 +565,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testLogWithMultipleTopics() {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         byte[] data = RandomUtils.nextBytes(RandomUtils.nextInt(0, 50));
         byte[] topics = makeTopics(RandomUtils.nextInt(3, 10));
         Callback.push(mockPair());
@@ -580,7 +580,7 @@ public class CallbackUnitTest {
             Callback.push(mockPair());
         }
         for (int i = 0; i < depths; i++) {
-            AionAddress address = getNewAddress();
+            Address address = getNewAddress();
             byte[] data = RandomUtils.nextBytes(RandomUtils.nextInt(0, 50));
             byte[] topics = makeTopics(1);
             Callback.log(address.toBytes(), topics, data);
@@ -751,7 +751,7 @@ public class CallbackUnitTest {
     public void testCallCallersBalanceLessThanCallValue() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         IRepositoryCache repo = new DummyRepository();
-        AionAddress caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
+        Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
                 newExecutionContext(
@@ -1817,8 +1817,8 @@ public class CallbackUnitTest {
     }
 
     private ExecutionContext newExecutionContext(
-            AionAddress caller,
-            AionAddress recipient,
+            Address caller,
+            Address recipient,
             DataWord callValue,
             boolean isEmptyData,
             boolean septForkEnabled,
@@ -1826,7 +1826,7 @@ public class CallbackUnitTest {
             long nrgLimit) {
 
         byte[] txHash = RandomUtils.nextBytes(32);
-        AionAddress origin = getNewAddress();
+        Address origin = getNewAddress();
         DataWord nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         byte[] callData;
         if (isEmptyData) {
@@ -1836,7 +1836,7 @@ public class CallbackUnitTest {
         }
         int depth = RandomUtils.nextInt(0, Constants.MAX_CALL_DEPTH - 1);
         int flags = RandomUtils.nextInt(100, 100_000);
-        AionAddress blockCoinbase = getNewAddress();
+        Address blockCoinbase = getNewAddress();
         long blockNumber;
         if (!septForkEnabled) {
             blockNumber = RandomUtils.nextLong(0, 999_999);
@@ -1847,7 +1847,7 @@ public class CallbackUnitTest {
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
         DataWord blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
         return new ExecutionContext(
-            null,
+                null,
                 txHash,
                 recipient,
                 origin,
@@ -1884,7 +1884,7 @@ public class CallbackUnitTest {
             int flags) {
 
         int len =
-                (AionAddress.SIZE * 2)
+                (Address.SIZE * 2)
                         + DataWord.BYTES
                         + (Integer.BYTES * 4)
                         + Long.BYTES
@@ -1926,7 +1926,7 @@ public class CallbackUnitTest {
         when(cache.toString()).thenReturn("mocked repo.");
         KernelInterfaceForFastVM kernel = mock(KernelInterfaceForFastVM.class);
         when(kernel.getRepositoryCache()).thenReturn(cache);
-        when(kernel.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
+        when(kernel.getCode(Mockito.any(Address.class))).thenReturn(RandomUtils.nextBytes(30));
         return kernel;
     }
 
@@ -1941,30 +1941,30 @@ public class CallbackUnitTest {
     }
 
     private void compareRepos(IRepositoryCache cache, IRepositoryCache other) {
-        AionAddress addr = getNewAddress();
+        Address addr = getNewAddress();
         assertEquals(cache.toString(), other.toString());
         assertEquals(cache.getCode(addr), other.getCode(addr));
     }
 
-    private AionAddress getNewAddressInRepo(
+    private Address getNewAddressInRepo(
             IRepositoryCache repo, BigInteger balance, BigInteger nonce) {
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         repo.createAccount(address);
         repo.addBalance(address, balance);
         repo.setNonce(address, nonce);
         return address;
     }
 
-    private AionAddress getNewAddressInRepo(BigInteger balance, BigInteger nonce) {
-        AionAddress address = getNewAddress();
+    private Address getNewAddressInRepo(BigInteger balance, BigInteger nonce) {
+        Address address = getNewAddress();
         dummyRepo.createAccount(address);
         dummyRepo.addBalance(address, balance);
         dummyRepo.setNonce(address, nonce);
         return address;
     }
 
-    private AionAddress getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(AionAddress.SIZE));
+    private Address getNewAddress() {
+        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
     }
 
     /**
@@ -1977,10 +1977,10 @@ public class CallbackUnitTest {
      * @param beneficiaryOldBalance The beneficiary's balance prior to selfDestruct.
      */
     private void checkSelfDestruct(
-            AionAddress owner,
+            Address owner,
             BigInteger ownerBalance,
             BigInteger ownerNonce,
-            AionAddress beneficiary,
+            Address beneficiary,
             BigInteger beneficiaryOldBalance) {
 
         IRepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
@@ -2015,7 +2015,7 @@ public class CallbackUnitTest {
      * @param topics The topics passed into log.
      * @param data The data passed into log.
      */
-    private void checkLog(AionAddress address, byte[] topics, byte[] data) {
+    private void checkLog(Address address, byte[] topics, byte[] data) {
         TransactionSideEffects helper = Callback.context().getSideEffects();
         assertEquals(1, helper.getExecutionLogs().size());
         IExecutionLog log = helper.getExecutionLogs().get(0);
@@ -2040,7 +2040,7 @@ public class CallbackUnitTest {
     private TransactionContext makeExpectedContext(
             TransactionContext previous, TransactionContext context) {
         return new ExecutionContext(
-            null,
+                null,
                 previous.getTransactionHash(),
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
@@ -2077,7 +2077,7 @@ public class CallbackUnitTest {
      * Pushes a new pair onto the stack which holds a repo whose getCode method returns code when
      * called using address.
      */
-    private void pushNewCode(AionAddress address, byte[] code) {
+    private void pushNewCode(Address address, byte[] code) {
         ExecutionContext context = mockContext();
         KernelInterfaceForFastVM repo = mockKernelRepo();
         when(repo.getCode(address)).thenReturn(code);
@@ -2091,21 +2091,21 @@ public class CallbackUnitTest {
      * Pushes a new pair onto the stack which holds a repo with an account that has balance balance.
      * The newly created account with this balance is returned.
      */
-    private AionAddress pushNewBalance(BigInteger balance) {
+    private Address pushNewBalance(BigInteger balance) {
         IRepositoryCache repo = new DummyRepository();
-        AionAddress address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
+        Address address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
         return address;
     }
 
-    private AionAddress[] unpackAddresses(List<ByteArrayWrapper> packs) {
+    private Address[] unpackAddresses(List<ByteArrayWrapper> packs) {
         int len = packs.size();
-        AionAddress[] addresses = new AionAddress[len];
+        Address[] addresses = new Address[len];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            addresses[i] = new AionAddress(Arrays.copyOfRange(pack, 0, AionAddress.SIZE));
+            addresses[i] = new AionAddress(Arrays.copyOfRange(pack, 0, Address.SIZE));
         }
         return addresses;
     }
@@ -2115,7 +2115,7 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            keys[i] = Arrays.copyOfRange(pack, AionAddress.SIZE, AionAddress.SIZE + DataWord.BYTES);
+            keys[i] = Arrays.copyOfRange(pack, Address.SIZE, Address.SIZE + DataWord.BYTES);
         }
         return keys;
     }
@@ -2130,15 +2130,15 @@ public class CallbackUnitTest {
         return values;
     }
 
-    private byte[] packIntoBytes(AionAddress address, byte[] key, byte[] value) {
-        byte[] pack = new byte[AionAddress.SIZE + (DataWord.BYTES * 2)];
-        System.arraycopy(address.toBytes(), 0, pack, 0, AionAddress.SIZE);
-        System.arraycopy(key, 0, pack, AionAddress.SIZE, DataWord.BYTES);
-        System.arraycopy(value, 0, pack, AionAddress.SIZE + DataWord.BYTES, DataWord.BYTES);
+    private byte[] packIntoBytes(Address address, byte[] key, byte[] value) {
+        byte[] pack = new byte[Address.SIZE + (DataWord.BYTES * 2)];
+        System.arraycopy(address.toBytes(), 0, pack, 0, Address.SIZE);
+        System.arraycopy(key, 0, pack, Address.SIZE, DataWord.BYTES);
+        System.arraycopy(value, 0, pack, Address.SIZE + DataWord.BYTES, DataWord.BYTES);
         return pack;
     }
 
-    private List<ByteArrayWrapper> packup(AionAddress[] addresses, byte[][] keys, byte[][] values) {
+    private List<ByteArrayWrapper> packup(Address[] addresses, byte[][] keys, byte[][] values) {
         assertEquals(addresses.length, keys.length);
         assertEquals(keys.length, values.length);
         int len = addresses.length;
@@ -2158,7 +2158,7 @@ public class CallbackUnitTest {
     private List<ByteArrayWrapper> pushNewStorageEntries(
             IRepositoryCache repo, int num, boolean pushToRepo) {
 
-        AionAddress[] addresses = new AionAddress[num];
+        Address[] addresses = new Address[num];
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
@@ -2174,10 +2174,10 @@ public class CallbackUnitTest {
      * Pushes a new entry into repo if pushToRepo is true, otherwise pushes it onto Callback stack,
      * with key and value as the key-value pair for some random address, which is then returned.
      */
-    private AionAddress pushNewStorageEntry(
+    private Address pushNewStorageEntry(
             IRepositoryCache repo, byte[] key, byte[] value, boolean pushToRepo) {
 
-        AionAddress address = getNewAddress();
+        Address address = getNewAddress();
         if (pushToRepo) {
             repo.addStorageRow(
                     address, new DataWord(key).toWrapper(), new DataWord(value).toWrapper());
@@ -2201,8 +2201,8 @@ public class CallbackUnitTest {
      * Puts the key-value pair key and value into the Callback storage under a random address and
      * returns that address.
      */
-    private AionAddress putInStorage(byte[] key, byte[] value) {
-        AionAddress address = getNewAddress();
+    private Address putInStorage(byte[] key, byte[] value) {
+        Address address = getNewAddress();
         Callback.putStorage(address.toBytes(), key, value);
         return address;
     }
@@ -2334,7 +2334,7 @@ public class CallbackUnitTest {
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
-            AionAddress contract = new AionAddress(result.getOutput());
+            Address contract = new AionAddress(result.getOutput());
             assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
         }
     }
@@ -2356,16 +2356,16 @@ public class CallbackUnitTest {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         IRepositoryCache repo = new DummyRepository();
-        AionAddress caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
+        Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
-            AionAddress contract =
+            Address contract =
                     new AionAddress(
                             HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }
 
-        AionAddress recipient;
+        Address recipient;
         if (code == null) {
             recipient = getNewAddress();
         } else {
@@ -2450,7 +2450,7 @@ public class CallbackUnitTest {
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
-            AionAddress contract =
+            Address contract =
                     new AionAddress(
                             HashUtil.calcNewAddr(
                                     context.getSenderAddress().toBytes(),
@@ -2572,7 +2572,7 @@ public class CallbackUnitTest {
 
         BigInteger value = context.getTransferValue();
         Address caller = Callback.context().getSenderAddress();
-        AionAddress contract;
+        Address contract;
         contract =
                 new AionAddress(
                         HashUtil.calcNewAddr(

@@ -31,7 +31,6 @@ import java.util.Set;
 import org.aion.base.db.IContractDetails;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
 import org.aion.mcf.core.AccountState;
@@ -132,11 +131,11 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
         throw new RuntimeException("Not supported");
     }
 
-    public int getStorageSize(AionAddress address) {
+    public int getStorageSize(Address address) {
         throw new RuntimeException("Not supported");
     }
 
-    public Set<ByteArrayWrapper> getStorageKeys(AionAddress address) {
+    public Set<ByteArrayWrapper> getStorageKeys(Address address) {
         throw new RuntimeException("Not supported");
     }
 
