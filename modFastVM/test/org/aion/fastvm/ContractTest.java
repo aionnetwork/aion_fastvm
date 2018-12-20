@@ -101,7 +101,7 @@ public class ContractTest {
 
         assertEquals(
                 "000000000000000000000000000000100000000000000000000000000000040061000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -118,7 +118,7 @@ public class ContractTest {
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
 
         callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
@@ -127,7 +127,7 @@ public class ContractTest {
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
 
         callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
@@ -136,7 +136,7 @@ public class ContractTest {
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
 
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(6L).getData());
         nrgLimit = 100_000L;
@@ -145,7 +145,7 @@ public class ContractTest {
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
 
         callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(1024L).getData());
         nrgLimit = 100_000L;
@@ -176,7 +176,7 @@ public class ContractTest {
 
         // verify result
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
         List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
@@ -212,7 +212,7 @@ public class ContractTest {
 
         // verify result
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
         List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();

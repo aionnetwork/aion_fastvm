@@ -101,7 +101,7 @@ public class FastVMTest {
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(19985, result.getEnergyRemaining());
-        assertEquals(16, result.getOutput().length);
+        assertEquals(16, result.getReturnData().length);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "0000000000000000000000000000000000000000000000000000000000000000",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "1122334400000000000000000000000000000000000000000000000000000000",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -166,7 +166,7 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000004", Hex.toHexString(result.getOutput()));
+        assertEquals("00000000000000000000000000000004", Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -188,7 +188,7 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000034", Hex.toHexString(result.getOutput()));
+        assertEquals("00000000000000000000000000000034", Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -237,7 +237,7 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000003", Hex.toHexString(result.getOutput()));
+        assertEquals("00000000000000000000000000000003", Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -256,7 +256,7 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(32, result.getOutput().length);
+        assertEquals(32, result.getReturnData().length);
     }
 
     @Test
@@ -403,7 +403,7 @@ public class FastVMTest {
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertTrue(result.getOutput().length > 0);
+        assertTrue(result.getReturnData().length > 0);
     }
 
     @Test
@@ -727,7 +727,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "0011223344556677889900112233445566778899001122334455667788990011",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -753,7 +753,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "00000000000000000000000000000010000000000000000000000000000000010011223344556677889900112233445566778899001122334455667788990011",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @After

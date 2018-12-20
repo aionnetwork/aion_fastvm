@@ -46,8 +46,8 @@ public class LogTest {
         Log info = new Log(address, topics, data);
         Log info2 = new Log(info.getEncoded());
 
-        assertTrue(address.equals(info2.getLogSourceAddress()));
-        assertFalse(info2.getLogTopics().isEmpty());
-        assertTrue(Arrays.equals(data, info2.getLogData()));
+        assertTrue(address.equals(info2.getSourceAddress()));
+        assertFalse(info2.getTopics().isEmpty());
+        assertTrue(Arrays.equals(data, info2.getData()));
     }
 }

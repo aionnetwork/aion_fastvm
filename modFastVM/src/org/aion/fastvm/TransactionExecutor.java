@@ -57,8 +57,8 @@ public class TransactionExecutor {
             TransactionInterface transaction, TransactionContext context, KernelInterface kernel) {
 
         this.kernel = kernel;
-        this.kernelChild = this.kernel.startTracking();
-        this.kernelGrandChild = this.kernelChild.startTracking();
+        this.kernelChild = this.kernel.makeChildKernelInterface();
+        this.kernelGrandChild = this.kernelChild.makeChildKernelInterface();
 
         this.transaction = transaction;
         this.context = context;
@@ -85,7 +85,7 @@ public class TransactionExecutor {
             // prepare, preliminary check
             if (performChecks()) {
 
-                KernelInterface track = this.kernelChild.startTracking();
+                KernelInterface track = this.kernelChild.makeChildKernelInterface();
 
                 // increase nonce
                 track.incrementNonce(this.transaction.getSenderAddress());
@@ -98,7 +98,7 @@ public class TransactionExecutor {
                 BigInteger nrgPrice = BigInteger.valueOf(this.transaction.getEnergyPrice());
                 BigInteger txNrgCost = nrgLimit.multiply(nrgPrice);
                 track.deductEnergyCost(this.transaction.getSenderAddress(), txNrgCost);
-                track.flush();
+                track.commit();
 
                 // run the logic
                 if (this.transaction.isContractCreationTransaction()) {
@@ -110,13 +110,13 @@ public class TransactionExecutor {
 
             // kernelGrandchild holds all state changes that must be flushed upon SUCCESS.
             if (transactionResult.getResultCode().isSuccess()) {
-                this.kernelGrandChild.flush();
+                this.kernelGrandChild.commit();
             }
 
             // kernelChild holds state changes that must be flushed on anything that is not
             // REJECTED.
             if (!transactionResult.getResultCode().isRejected()) {
-                this.kernelChild.flush();
+                this.kernelChild.commit();
             }
 
             transactionResult.setKernelInterface(this.kernel);
@@ -220,7 +220,7 @@ public class TransactionExecutor {
             transactionResult = fvm.run(transaction.getData(), context, this.kernelGrandChild);
 
             if (transactionResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
-                this.kernelGrandChild.putCode(contractAddress, transactionResult.getOutput());
+                this.kernelGrandChild.putCode(contractAddress, transactionResult.getReturnData());
             }
         }
 

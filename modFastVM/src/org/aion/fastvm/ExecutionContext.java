@@ -172,6 +172,11 @@ public class ExecutionContext implements TransactionContext {
     }
 
     @Override
+    public Address getContractAddress() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
     public void setDestinationAddress(Address address) {
         this.address = address;
     }

@@ -1827,14 +1827,14 @@ public class TransactionExecutorUnitTest {
         List<ByteArrayWrapper> helperTopics = new ArrayList<>();
 
         for (IExecutionLog log : summaryLogs) {
-            summaryAddrs.add(log.getLogSourceAddress());
-            summaryData.add(new ByteArrayWrapper(log.getLogData()));
-            summaryTopics.addAll(wrapTopics(log.getLogTopics()));
+            summaryAddrs.add(log.getSourceAddress());
+            summaryData.add(new ByteArrayWrapper(log.getData()));
+            summaryTopics.addAll(wrapTopics(log.getTopics()));
         }
         for (IExecutionLog log : helperLogs) {
-            helperAddrs.add(log.getLogSourceAddress());
-            helperData.add(new ByteArrayWrapper(log.getLogData()));
-            helperTopics.addAll(wrapTopics(log.getLogTopics()));
+            helperAddrs.add(log.getSourceAddress());
+            helperData.add(new ByteArrayWrapper(log.getData()));
+            helperTopics.addAll(wrapTopics(log.getTopics()));
         }
 
         assertEquals(helperAddrs, summaryAddrs);
@@ -1893,7 +1893,7 @@ public class TransactionExecutorUnitTest {
             assertTrue(summary.getLogs().isEmpty());
         }
         assertEquals(helper.getInternalTransactions(), summary.getInternalTransactions());
-        assertArrayEquals(result.getOutput(), summary.getResult());
+        assertArrayEquals(result.getReturnData(), summary.getResult());
         assertArrayEquals(tx.getTransactionHash(), summary.getTransactionHash());
         assertEquals(computeRefund(tx, summary), summary.getRefund());
         assertTrue(summary.getTouchedStorage().isEmpty());

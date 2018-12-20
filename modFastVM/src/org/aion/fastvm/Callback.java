@@ -296,7 +296,7 @@ public class Callback {
                     FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
         }
 
-        KernelInterfaceForFastVM track = kernelRepo().startTracking();
+        KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
         TransactionResult result =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
@@ -343,7 +343,7 @@ public class Callback {
 
             track.rollback();
         } else {
-            track.flush();
+            track.commit();
         }
 
         return result;
@@ -356,7 +356,7 @@ public class Callback {
      * @return
      */
     private static FastVmTransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
-        KernelInterfaceForFastVM track = kernelRepo().startTracking();
+        KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
         FastVmTransactionResult result =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
@@ -426,12 +426,12 @@ public class Callback {
                 result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
                 return result;
             }
-            byte[] code = result.getOutput();
+            byte[] code = result.getReturnData();
             track.putCode(newAddress, code == null ? new byte[0] : code);
 
-            result.setOutput(newAddress.toBytes());
+            result.setReturnData(newAddress.toBytes());
 
-            track.flush();
+            track.commit();
         }
 
         return result;

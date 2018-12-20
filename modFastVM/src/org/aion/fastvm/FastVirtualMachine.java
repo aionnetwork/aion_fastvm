@@ -2,13 +2,9 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.KernelInterface;
-import org.aion.vm.api.interfaces.ResultCode;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
@@ -27,7 +23,7 @@ public class FastVirtualMachine implements VirtualMachine {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
-        this.kernelSnapshot = kernel.startTracking();
+        this.kernelSnapshot = kernel.makeChildKernelInterface();
     }
 
     @Override
@@ -51,7 +47,7 @@ public class FastVirtualMachine implements VirtualMachine {
         FastVmSimpleFuture<TransactionResult>[] transactionResults = new FastVmSimpleFuture[contexts.length];
 
         for (int i = 0; i < contexts.length; i++) {
-            TransactionExecutor executor = new TransactionExecutor(contexts[i].getTransaction(), contexts[i], this.kernelSnapshot.startTracking());
+            TransactionExecutor executor = new TransactionExecutor(contexts[i].getTransaction(), contexts[i], this.kernelSnapshot.makeChildKernelInterface());
             transactionResults[i] = new FastVmSimpleFuture();
             transactionResults[i].result = executor.execute();
 
@@ -74,7 +70,7 @@ public class FastVirtualMachine implements VirtualMachine {
 
     private void updateSnapshot(TransactionResult txResult, AionTransaction tx, Address coinbase, List<Address> deleteAccounts) {
         if (!txResult.getResultCode().isRejected()) {
-            KernelInterface snapshotTracker = this.kernelSnapshot.startTracking();
+            KernelInterface snapshotTracker = this.kernelSnapshot.makeChildKernelInterface();
 
             long energyUsed = computeEnergyUsed(tx.getEnergyLimit(), txResult);
 
@@ -92,7 +88,7 @@ public class FastVirtualMachine implements VirtualMachine {
                     snapshotTracker.deleteAccount(addr);
                 }
             }
-            snapshotTracker.flush();
+            snapshotTracker.commit();
         }
     }
 

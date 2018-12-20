@@ -2019,9 +2019,9 @@ public class CallbackUnitTest {
         TransactionSideEffects helper = Callback.context().getSideEffects();
         assertEquals(1, helper.getExecutionLogs().size());
         IExecutionLog log = helper.getExecutionLogs().get(0);
-        assertEquals(address, log.getLogSourceAddress());
-        assertArrayEquals(data, log.getLogData());
-        List<byte[]> logTopics = log.getLogTopics();
+        assertEquals(address, log.getSourceAddress());
+        assertArrayEquals(data, log.getData());
+        List<byte[]> logTopics = log.getTopics();
         int index = 0;
         for (byte[] topic : logTopics) {
             assertArrayEquals(topic, Arrays.copyOfRange(topics, index, index + 32));
@@ -2334,7 +2334,7 @@ public class CallbackUnitTest {
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
-            Address contract = new AionAddress(result.getOutput());
+            Address contract = new AionAddress(result.getReturnData());
             assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
         }
     }
