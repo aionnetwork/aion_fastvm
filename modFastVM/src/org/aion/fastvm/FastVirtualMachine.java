@@ -23,7 +23,7 @@ public class FastVirtualMachine implements VirtualMachine {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
-        this.kernelSnapshot = kernel.makeChildKernelInterface();
+        this.kernelSnapshot = kernel;
     }
 
     @Override
