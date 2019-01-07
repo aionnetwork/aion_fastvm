@@ -51,6 +51,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.util.conversions.Hex;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
@@ -395,8 +396,7 @@ public class CallbackUnitTest {
         for (int i = 0; i < numAddrs; i++) {
             assertArrayEquals(
                     values[i],
-                    repo.getStorageValue(addresses[i], new ByteArrayWrapper(new DataWord(keys[i]).getNoLeadZeroesData()))
-                            .getData());
+                    repo.getStorageValue(addresses[i], new ByteArrayWrapper(keys[i])).getData());
         }
     }
 
@@ -421,8 +421,8 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        repos[i].getStorageValue(addresses[j], new DataWord(keys[j]).toWrapper())
-                                .getData());
+                        new DataWord(repos[i].getStorageValue(addresses[j], new DataWord(keys[j]).toWrapper())
+                                .getData()).getData());
             }
             Callback.pop();
         }
