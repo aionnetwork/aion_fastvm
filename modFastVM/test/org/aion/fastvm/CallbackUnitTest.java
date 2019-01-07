@@ -1964,7 +1964,9 @@ public class CallbackUnitTest {
     }
 
     private Address getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        byte[] address = RandomUtils.nextBytes(Address.SIZE);
+        address[0] = (byte) 0xa0;
+        return AionAddress.wrap(address);
     }
 
     /**
@@ -2358,9 +2360,9 @@ public class CallbackUnitTest {
         IRepositoryCache repo = new DummyRepository();
         Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
-            Address contract =
-                    new AionAddress(
-                            HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
+            byte[] address = HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray());
+            address[0] = (byte) 0xa0;
+            Address contract = AionAddress.wrap(address);
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }

@@ -37,6 +37,8 @@ public enum FastVmResultCode implements ResultCode {
 
     ABORT(11, ResultCategory.FAILED),
 
+    FOREIGN_VM_CALL(12, ResultCategory.FAILED),
+
     VM_REJECTED(-1, ResultCategory.FATAL),
 
     VM_INTERNAL_ERROR(-2, ResultCategory.FATAL);

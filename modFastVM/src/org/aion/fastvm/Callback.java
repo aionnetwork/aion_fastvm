@@ -239,6 +239,11 @@ public class Callback {
             return new FastVmTransactionResult(FastVmResultCode.FAILURE, 0).toBytes();
         }
 
+        // check that we are not attempting to invoke a foreign vm.
+        if (!kernelRepo().destinationAddressIsSafeForThisVM(ctx.getDestinationAddress())) {
+            return new FastVmTransactionResult(FastVmResultCode.FOREIGN_VM_CALL, 0).toBytes();
+        }
+
         // check value
         BigInteger endowment = ctx.getTransferValue();
         BigInteger callersBalance = kernelRepo().getBalance(ctx.getSenderAddress());
