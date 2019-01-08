@@ -379,7 +379,10 @@ public class CallbackUnitTest {
         for (int i = 0; i < num; i++) {
             assertArrayEquals(
                     values[i],
-                    repo.getStorageValue(addresses[i], new DataWord(keys[i]).toWrapper())
+                    new DataWord(
+                                    repo.getStorageValue(
+                                                    addresses[i], new DataWord(keys[i]).toWrapper())
+                                            .getData())
                             .getData());
         }
     }
