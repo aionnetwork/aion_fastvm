@@ -421,8 +421,12 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        new DataWord(repos[i].getStorageValue(addresses[j], new DataWord(keys[j]).toWrapper())
-                                .getData()).getData());
+                        new DataWord(
+                                        repos[i].getStorageValue(
+                                                        addresses[j],
+                                                        new DataWord(keys[j]).toWrapper())
+                                                .getData())
+                                .getData());
             }
             Callback.pop();
         }
@@ -2204,6 +2208,12 @@ public class CallbackUnitTest {
      * returns that address.
      */
     private Address putInStorage(byte[] key, byte[] value) {
+        System.out.println(
+                "putInStorage [key: "
+                        + Hex.toHexString(key)
+                        + ", value: "
+                        + Hex.toHexString(value)
+                        + "]");
         Address address = getNewAddress();
         Callback.putStorage(address.toBytes(), key, value);
         return address;
