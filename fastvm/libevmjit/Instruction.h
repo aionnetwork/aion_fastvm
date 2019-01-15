@@ -127,8 +127,24 @@ enum class Instruction: uint8_t
 	DUP14,				///< copies the 14th highest item in the stack to the top of the stack
 	DUP15,				///< copies the 15th highest item in the stack to the top of the stack
 	DUP16,				///< copies the 16th highest item in the stack to the top of the stack
+	DUP17,				///< copies the 17th highest item in the stack to the top of the stack
+	DUP18,				///< copies the 18th highest item in the stack to the top of the stack
+	DUP19,				///< copies the 19th highest item in the stack to the top of the stack
+	DUP20,				///< copies the 20th highest item in the stack to the top of the stack
+	DUP21,				///< copies the 21th highest item in the stack to the top of the stack
+	DUP22,				///< copies the 22th highest item in the stack to the top of the stack
+	DUP23,				///< copies the 23th highest item in the stack to the top of the stack
+	DUP24,				///< copies the 24th highest item in the stack to the top of the stack
+	DUP25,				///< copies the 25th highest item in the stack to the top of the stack
+	DUP26,				///< copies the 26th highest item in the stack to the top of the stack
+	DUP27,				///< copies the 27th highest item in the stack to the top of the stack
+	DUP28,				///< copies the 28th highest item in the stack to the top of the stack
+	DUP29,				///< copies the 29th highest item in the stack to the top of the stack
+	DUP30,				///< copies the 30th highest item in the stack to the top of the stack
+	DUP31,				///< copies the 31th highest item in the stack to the top of the stack
+	DUP32,				///< copies the 32th highest item in the stack to the top of the stack
 
-	SWAP1 = 0x90,		///< swaps the highest and second highest value on the stack
+	SWAP1 = 0xa0,		///< swaps the highest and second highest value on the stack
 	SWAP2,				///< swaps the highest and third highest value on the stack
 	SWAP3,				///< swaps the highest and 4th highest value on the stack
 	SWAP4,				///< swaps the highest and 5th highest value on the stack
@@ -144,8 +160,24 @@ enum class Instruction: uint8_t
 	SWAP14,				///< swaps the highest and 15th highest value on the stack
 	SWAP15,				///< swaps the highest and 16th highest value on the stack
 	SWAP16,				///< swaps the highest and 17th highest value on the stack
+	SWAP17,				///< swaps the highest and 18th highest value on the stack
+	SWAP18,				///< swaps the highest and 19th highest value on the stack
+	SWAP19,				///< swaps the highest and 20th highest value on the stack
+	SWAP20,				///< swaps the highest and 21th highest value on the stack
+	SWAP21,				///< swaps the highest and 22th highest value on the stack
+	SWAP22,				///< swaps the highest and 23th highest value on the stack
+	SWAP23,				///< swaps the highest and 24th highest value on the stack
+	SWAP24,				///< swaps the highest and 25th highest value on the stack
+	SWAP25,				///< swaps the highest and 26th highest value on the stack
+	SWAP26,				///< swaps the highest and 27th highest value on the stack
+	SWAP27,				///< swaps the highest and 28th highest value on the stack
+	SWAP28,				///< swaps the highest and 29th highest value on the stack
+	SWAP29,				///< swaps the highest and 30th highest value on the stack
+	SWAP30,				///< swaps the highest and 31th highest value on the stack
+	SWAP31,				///< swaps the highest and 32th highest value on the stack
+	SWAP32,				///< swaps the highest and 33th highest value on the stack
 
-	LOG0 = 0xa0,		///< Makes a log entry; no topics.
+	LOG0 = 0xc0,		///< Makes a log entry; no topics.
 	LOG1,				///< Makes a log entry; 1 topic.
 	LOG2,				///< Makes a log entry; 2 topics.
 	LOG3,				///< Makes a log entry; 3 topics.
@@ -220,7 +252,23 @@ void skipPushData(code_iterator& _curr, code_iterator _end);
 	case Instruction::DUP13: \
 	case Instruction::DUP14: \
 	case Instruction::DUP15: \
-	case Instruction::DUP16
+	case Instruction::DUP16: \
+	case Instruction::DUP17: \
+	case Instruction::DUP18: \
+	case Instruction::DUP19: \
+	case Instruction::DUP20: \
+	case Instruction::DUP21: \
+	case Instruction::DUP22: \
+	case Instruction::DUP23: \
+	case Instruction::DUP24: \
+	case Instruction::DUP25: \
+	case Instruction::DUP26: \
+	case Instruction::DUP27: \
+	case Instruction::DUP28: \
+	case Instruction::DUP29: \
+	case Instruction::DUP30: \
+	case Instruction::DUP31: \
+	case Instruction::DUP32
 
 #define ANY_SWAP	  SWAP1:  \
 	case Instruction::SWAP2:  \
@@ -237,7 +285,23 @@ void skipPushData(code_iterator& _curr, code_iterator _end);
 	case Instruction::SWAP13: \
 	case Instruction::SWAP14: \
 	case Instruction::SWAP15: \
-	case Instruction::SWAP16
+	case Instruction::SWAP16: \
+	case Instruction::SWAP17: \
+	case Instruction::SWAP18: \
+	case Instruction::SWAP19: \
+	case Instruction::SWAP20: \
+	case Instruction::SWAP21: \
+	case Instruction::SWAP22: \
+	case Instruction::SWAP23: \
+	case Instruction::SWAP24: \
+	case Instruction::SWAP25: \
+	case Instruction::SWAP26: \
+	case Instruction::SWAP27: \
+	case Instruction::SWAP28: \
+	case Instruction::SWAP29: \
+	case Instruction::SWAP30: \
+	case Instruction::SWAP31: \
+	case Instruction::SWAP32
 
 }
 }

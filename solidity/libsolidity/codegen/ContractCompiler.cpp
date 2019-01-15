@@ -296,7 +296,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 		eth::AssemblyItem returnTag = m_context.pushNewTag();
 		if (!functionType->parameterTypes().empty())
 		{
-			// Parameter for calldataUnpacker
+			// Parameter for calldataUnpacker, startOffset = FuncSignature size
 			m_context << CompilerUtils::dataStartOffset;
 			appendCalldataUnpacker(functionType->parameterTypes());
 		}
@@ -395,6 +395,7 @@ void ContractCompiler::appendCalldataUnpacker(TypePointers const& _typeParameter
 		{
 			solAssert(!type->isDynamicallySized(), "Unknown dynamically sized type: " + type->toString());
 			CompilerUtils(m_context).loadFromMemoryDynamic(*type, !_fromMemory, true);
+			// update current offset
 			CompilerUtils(m_context).moveToStackTop(1 + type->sizeOnStack());
 			m_context << Instruction::SWAP1;
 		}
@@ -505,11 +506,11 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 		stackLayout.push_back(i);
 	stackLayout += vector<int>(c_localVariablesSize, -1);
 
-	if (stackLayout.size() > 17)
+	if (stackLayout.size() > 33)
 		BOOST_THROW_EXCEPTION(
 			CompilerError() <<
 			errinfo_sourceLocation(_function.location()) <<
-			errinfo_comment("Stack too deep, try removing local variables.")
+			errinfo_comment("5-Stack too deep, try removing local variables.")
 		);
 	while (stackLayout.back() != int(stackLayout.size() - 1))
 		if (stackLayout.back() < 0)
@@ -620,7 +621,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 						BOOST_THROW_EXCEPTION(
 							CompilerError() <<
 							errinfo_sourceLocation(_inlineAssembly.location()) <<
-							errinfo_comment("Stack too deep, try removing local variables.")
+							errinfo_comment("6-Stack too deep, try removing local variables.")
 						);
 					solAssert(variable->type()->sizeOnStack() == 1, "");
 					_assembly.appendInstruction(dupInstruction(stackDiff));
@@ -653,7 +654,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 				BOOST_THROW_EXCEPTION(
 					CompilerError() <<
 					errinfo_sourceLocation(_inlineAssembly.location()) <<
-					errinfo_comment("Stack too deep(" + to_string(stackDiff) + "), try removing local variables.")
+					errinfo_comment("7-Stack too deep(" + to_string(stackDiff) + "), try removing local variables.")
 				);
 			_assembly.appendInstruction(swapInstruction(stackDiff));
 			_assembly.appendInstruction(Instruction::POP);

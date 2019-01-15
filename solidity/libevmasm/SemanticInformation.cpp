@@ -97,7 +97,7 @@ bool SemanticInformation::isSwapInstruction(AssemblyItem const& _item)
 {
 	if (_item.type() != Operation)
 		return false;
-	return Instruction::SWAP1 <= _item.instruction() && _item.instruction() <= Instruction::SWAP16;
+	return Instruction::SWAP1 <= _item.instruction() && _item.instruction() <= Instruction::SWAP32;
 }
 
 bool SemanticInformation::isJumpInstruction(AssemblyItem const& _item)

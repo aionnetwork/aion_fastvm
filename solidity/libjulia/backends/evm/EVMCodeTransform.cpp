@@ -322,7 +322,7 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 		for (size_t i = 0; i < _function.returns.size(); ++i)
 			stackLayout.push_back(i); // Move return values down, but keep order.
 
-		solAssert(stackLayout.size() <= 17, "Stack too deep");
+		solAssert(stackLayout.size() <= 33, "Stack too deep");
 		while (!stackLayout.empty() && stackLayout.back() != int(stackLayout.size() - 1))
 			if (stackLayout.back() < 0)
 			{
