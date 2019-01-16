@@ -1110,8 +1110,8 @@ public class TransactionExecutorUnitTest {
      * @return the transaction cost.
      */
     private long computeTxCost(boolean isContractCreation, long numZeroes, long numNonZeroes) {
-        return (isContractCreation ? Constants.NRG_TX_CREATE : 0)
-                + Constants.NRG_TRANSACTION
+        return (isContractCreation ? Constants.NRG_CREATE_CONTRACT_MIN : 0)
+                + Constants.NRG_TRANSACTION_MIN
                 + (numZeroes * Constants.NRG_TX_DATA_ZERO)
                 + (numNonZeroes * Constants.NRG_TX_DATA_NONZERO);
     }
@@ -1412,9 +1412,9 @@ public class TransactionExecutorUnitTest {
      */
     private long produceInvalidNrgLimit(boolean isContractCreation, boolean isTooLow) {
         if (isContractCreation) {
-            return (isTooLow) ? Constants.NRG_TX_CREATE - 1 : Constants.NRG_TX_CREATE_MAX + 1;
+            return (isTooLow) ? Constants.NRG_CREATE_CONTRACT_MIN - 1 : Constants.NRG_CREATE_CONTRACT_MAX + 1;
         } else {
-            return (isTooLow) ? Constants.NRG_TRANSACTION - 1 : Constants.NRG_TRANSACTION_MAX + 1;
+            return (isTooLow) ? Constants.NRG_TRANSACTION_MIN - 1 : Constants.NRG_TRANSACTION_MAX + 1;
         }
     }
 
@@ -1461,7 +1461,7 @@ public class TransactionExecutorUnitTest {
      * @return a valid energy limit.
      */
     private long produceValidNrgLimit(boolean isContractCreation) {
-        return (isContractCreation) ? Constants.NRG_TX_CREATE : Constants.NRG_TRANSACTION;
+        return (isContractCreation) ? Constants.NRG_CREATE_CONTRACT_MIN : Constants.NRG_TRANSACTION_MIN;
     }
 
     /**
