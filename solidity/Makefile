@@ -5,6 +5,12 @@ DIST=../dist
 SOLC_NAME=solc
 SOLC_TARGET=$(DIST)/$(SOLC_NAME)
 
+CC := g++
+STRIP := strip
+OPTIMISE := -O3
+#DEBUG := -g
+CPPFLAGS := -std=c++0x -I. -I$(JSONCPP_INC) $(OPTIMISE) -Wall -fPIC $(DEBUG)
+
 SRC := ./libjulia/backends/evm/EVMAssembly.cpp \
 	./libjulia/backends/evm/EVMCodeTransform.cpp \
 	./libevmasm/BlockDeduplicator.cpp \
@@ -87,11 +93,12 @@ all: $(SOLC_TARGET)
 
 $(SOLC_TARGET): $(OBJS)
 	@echo "Generating $@"
-	@g++ $(OBJS) -lboost_filesystem -lboost_program_options -lboost_regex -lboost_system -ljsoncpp -Wl,--no-undefined -o $@
+	@$(CC) $(OBJS) -lboost_filesystem -lboost_program_options -lboost_regex -lboost_system -ljsoncpp -Wl,--no-undefined -o $@
+	@$(STRIP) $(SOLC_TARGET)
 
 %.o:%.cpp
 	@echo "Compiling $^"
-	@g++ -std=c++0x -I. -I$(JSONCPP_INC) -O0 -Wall -fPIC -c -g $^ -o $@
+	@$(CC) $(CPPFLAGS) -c $^ -o $@
 
 clean:
-	rm -rf $(SOLC_TARGET) $(OBJS)
+	@rm -rf $(SOLC_TARGET) $(OBJS)
