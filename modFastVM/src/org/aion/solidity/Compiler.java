@@ -2,7 +2,9 @@ package org.aion.solidity;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Compiler {
 
@@ -79,6 +83,38 @@ public class Compiler {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Result compileZip(byte[] source, Options... options) throws IOException {
+        return compileZip(source, false, true, options);
+    }
+
+    public Result compileZip(
+            byte[] source, boolean optimize, boolean combinedJson, Options... options)
+            throws IOException {
+        extractZip(source, "temp");
+        //tmp
+        return new Result("a", "b", true);
+    }
+
+    void extractZip(byte[] source, String tempDirName) throws IOException {
+        File tempDir = new File(tempDirName);
+        tempDir.mkdir();
+        ZipInputStream zipStream = new ZipInputStream(new ByteArrayInputStream(source));
+        ZipEntry zipEntry = zipStream.getNextEntry();
+        while(zipEntry != null) {
+            File f = new File(tempDir, zipEntry.getName());
+            FileOutputStream fileOutputStream = new FileOutputStream(f);
+            int len;
+            byte [] buffer = new byte[1024];
+            while ((len = zipStream.read(buffer)) > 0) {
+                fileOutputStream.write(buffer, 0, len);
+            }
+            fileOutputStream.close();
+            zipEntry = zipStream.getNextEntry();
+        }
+        zipStream.closeEntry();
+        zipStream.close();
     }
 
     public Result compileHelloAion() throws IOException {
