@@ -1,5 +1,6 @@
 package org.aion.solidity;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
+import org.aion.solidity.Compiler.Result;
 import org.junit.Test;
 
 public class CompilerTest {
@@ -84,10 +86,22 @@ public class CompilerTest {
     }
 
     @Test
-    public void testExtractZip() throws IOException {
+    public void testCompileZip() throws IOException {
+
+        Compiler comp = Compiler.getInstance();
+
         InputStream in = ContractUtils.class.getResourceAsStream("contracts.zip");
-        Compiler.getInstance().extractZip(in.readAllBytes(), "temp");
-        File f = new File("temp/Suicide.sol");
+
+        Result r =
+                comp.compileZip(
+                        in.readAllBytes(),
+                        "Import.sol",
+                        Compiler.Options.ABI,
+                        Compiler.Options.BIN);
+
+        assertFalse(r.isFailed());
+
+        File f = new File("temp/Import.sol");
         assertTrue(f.exists());
         f.delete();
         f = new File("temp/Wallet.sol");
