@@ -27,8 +27,6 @@ public class FastVirtualMachine implements VirtualMachine {
         throw new UnsupportedOperationException("The FastVirtualMachine is not long-lived.");
     }
 
-    //TODO: this is currently a blocking implementation.
-
     @Override
     public SimpleFuture<TransactionResult>[] run(TransactionContext[] contexts) {
         FastVmSimpleFuture<TransactionResult>[] transactionResults = new FastVmSimpleFuture[contexts.length];
@@ -39,7 +37,7 @@ public class FastVirtualMachine implements VirtualMachine {
             transactionResults[i].setResult(executor.execute());
         }
 
-        return new FastVmSimpleFuture[]{ new FastVmSimpleFuture() };
+        return transactionResults;
     }
 
     private class FastVmSimpleFuture<R> implements SimpleFuture {
