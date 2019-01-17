@@ -43,6 +43,37 @@ public class Compiler {
 
     public Result compile(byte[] source, boolean optimize, boolean combinedJson, Options... options)
             throws IOException {
+
+        List<String> commandParts = prepareCommands(optimize, combinedJson, options);
+
+        ProcessBuilder processBuilder =
+                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+        return runCompileProcess(source, processBuilder);
+    }
+
+    public Result compileZip(byte[] source, String entryPoint, Options... options)
+            throws IOException {
+        return compileZip(source, entryPoint, false, true, options);
+    }
+
+    public Result compileZip(
+            byte[] source,
+            String entryPoint,
+            boolean optimize,
+            boolean combinedJson,
+            Options... options)
+            throws IOException {
+        File unzipped = extractZip(source, "temp");
+
+        List<String> commandParts = prepareCommands(optimize, combinedJson, options);
+        commandParts.add(entryPoint);
+
+        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(unzipped);
+        return runCompileProcess(source, processBuilder);
+    }
+
+    private List<String> prepareCommands(boolean optimize, boolean combinedJson, Options[] options)
+            throws IOException {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(solc.getCanonicalPath());
 
@@ -58,9 +89,11 @@ public class Compiler {
                 commandParts.add("--" + option.getName());
             }
         }
+        return commandParts;
+    }
 
-        ProcessBuilder processBuilder =
-                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+    private Result runCompileProcess(byte[] source, ProcessBuilder processBuilder)
+            throws IOException {
         processBuilder
                 .environment()
                 .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
@@ -85,69 +118,16 @@ public class Compiler {
         }
     }
 
-    public Result compileZip(byte[] source, String entryPoint, Options... options) throws IOException {
-        return compileZip(source, entryPoint, false, true, options);
-    }
-
-    public Result compileZip(
-            byte[] source, String entryPoint, boolean optimize, boolean combinedJson, Options... options)
-            throws IOException {
-        File unzipped = extractZip(source, "temp");
-
-        List<String> commandParts = new ArrayList<>();
-        commandParts.add(solc.getCanonicalPath());
-
-        if (optimize) {
-            commandParts.add("--optimize");
-        }
-        if (combinedJson) {
-            commandParts.add("--combined-json");
-            commandParts.add(
-                Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")));
-        } else {
-            for (Options option : options) {
-                commandParts.add("--" + option.getName());
-            }
-        }
-
-        commandParts.add(entryPoint);
-
-        ProcessBuilder processBuilder =
-            new ProcessBuilder(commandParts).directory(unzipped);
-        processBuilder
-            .environment()
-            .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
-
-        Process process = processBuilder.start();
-
-        try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
-            stream.write(source);
-        }
-
-        ParallelReader error = new ParallelReader(process.getErrorStream());
-        ParallelReader output = new ParallelReader(process.getInputStream());
-        error.start();
-        output.start();
-
-        try {
-            boolean isFailed = process.waitFor() != 0;
-
-            return new Result(error.getContent(), output.getContent(), isFailed);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    File extractZip(byte[] source, String tempDirName) throws IOException {
+    private File extractZip(byte[] source, String tempDirName) throws IOException {
         File tempDir = new File(tempDirName);
         tempDir.mkdir();
         ZipInputStream zipStream = new ZipInputStream(new ByteArrayInputStream(source));
         ZipEntry zipEntry = zipStream.getNextEntry();
-        while(zipEntry != null) {
+        while (zipEntry != null) {
             File f = new File(tempDir, zipEntry.getName());
             FileOutputStream fileOutputStream = new FileOutputStream(f);
             int len;
-            byte [] buffer = new byte[1024];
+            byte[] buffer = new byte[1024];
             while ((len = zipStream.read(buffer)) > 0) {
                 fileOutputStream.write(buffer, 0, len);
             }
