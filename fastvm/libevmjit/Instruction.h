@@ -144,7 +144,7 @@ enum class Instruction: uint8_t
 	DUP31,				///< copies the 31th highest item in the stack to the top of the stack
 	DUP32,				///< copies the 32th highest item in the stack to the top of the stack
 
-	SWAP1 = 0xa0,		///< swaps the highest and second highest value on the stack
+	SWAP1 = 0x90,		///< swaps the highest and second highest value on the stack
 	SWAP2,				///< swaps the highest and third highest value on the stack
 	SWAP3,				///< swaps the highest and 4th highest value on the stack
 	SWAP4,				///< swaps the highest and 5th highest value on the stack
