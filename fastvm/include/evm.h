@@ -449,6 +449,7 @@ enum evm_revision {
     EVM_BYZANTIUM = 4,
     EVM_AION = 5,
     EVM_CONSTANTINOPLE = 6,
+    EVM_AION_V1 = 7,
 };
 
 

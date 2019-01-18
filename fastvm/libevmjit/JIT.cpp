@@ -65,6 +65,7 @@ char toChar(evm_revision rev)
 	case EVM_BYZANTIUM: return 'B';
 	case EVM_AION: return 'A';
 	case EVM_CONSTANTINOPLE: return 'C';
+	case EVM_AION_V1: return 'D';
 	}
 	LLVM_BUILTIN_UNREACHABLE;
 }
