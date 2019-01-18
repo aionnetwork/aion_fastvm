@@ -3,14 +3,10 @@ package org.aion.fastvm;
 import static org.junit.Assert.assertEquals;
 
 import org.aion.base.type.AionAddress;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.KernelInterfaceForFastVM;
-import org.aion.vm.SideEffects;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;

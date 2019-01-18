@@ -13,12 +13,10 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.TransactionExecutor;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionTxInfo;
-import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.junit.After;
@@ -249,7 +247,6 @@ public class InternalTransactionTest {
         TransactionExecutor exec =
                 new TransactionExecutor(
                         tx2, context.block, bc.getRepository().startTracking(), LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         assertEquals(2, summary.getInternalTransactions().size());
@@ -309,7 +306,6 @@ public class InternalTransactionTest {
         TransactionExecutor exec =
                 new TransactionExecutor(
                         tx1, context.block, bc.getRepository().startTracking(), LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());

@@ -11,7 +11,7 @@ import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKeyFac;
 import org.aion.fastvm.TestUtils;
-import org.aion.fastvm.TestVMProvider;
+import org.aion.fastvm.TransactionExecutor;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.core.AccountState;
@@ -20,7 +20,6 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
-import org.aion.base.vm.IDataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
@@ -67,7 +66,6 @@ public class OldTxExecutorTest {
         repo.addContract(to, Hex.decode(contract));
 
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -103,7 +101,6 @@ public class OldTxExecutorTest {
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
@@ -148,7 +145,6 @@ public class OldTxExecutorTest {
         long repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-            exec.setExecutorProvider(new TestVMProvider());
             exec.execute();
         }
         long t2 = System.nanoTime();
@@ -178,7 +174,6 @@ public class OldTxExecutorTest {
         repo.addBalance(from, BigInteger.valueOf(1_000_000_000L));
 
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
-        exec.setExecutorProvider(new TestVMProvider());
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 

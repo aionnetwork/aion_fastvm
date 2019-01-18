@@ -27,12 +27,8 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.precompiled.ContractFactory;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.FastVmResultCode;
-import org.aion.vm.FastVmTransactionResult;
-import org.aion.vm.IPrecompiledContract;
-import org.aion.vm.KernelInterfaceForFastVM;
-import org.aion.vm.SideEffects;
+import org.aion.precompiled.type.PrecompiledContract;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
@@ -2192,7 +2188,7 @@ public class CallbackUnitTest {
      * that the transaction is not a precompiled contract.
      */
     private ContractFactory mockFactory(FastVmTransactionResult result) {
-        IPrecompiledContract contract = mock(IPrecompiledContract.class);
+        PrecompiledContract contract = mock(PrecompiledContract.class);
         when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
         ContractFactory factory = mock(ContractFactory.class);
         if (result == null) {
