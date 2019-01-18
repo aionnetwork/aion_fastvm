@@ -566,6 +566,9 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 		case Instruction::ANY_DUP:
 		{
 			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::DUP1);
+			if ((m_rev < EVM_AION_V1) && (index > 16)) {
+				goto invalidInstruction;
+			}
 			stack.dup(index);
 			break;
 		}
@@ -573,6 +576,9 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 		case Instruction::ANY_SWAP:
 		{
 			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP1) + 1;
+			if ((m_rev < EVM_AION_V1) && (index > 16)) {
+				goto invalidInstruction;
+			}
 			stack.swap(index);
 			break;
 		}
