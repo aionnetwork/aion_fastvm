@@ -90,14 +90,16 @@ bool SemanticInformation::isDupInstruction(AssemblyItem const& _item)
 {
 	if (_item.type() != Operation)
 		return false;
-	return Instruction::DUP1 <= _item.instruction() && _item.instruction() <= Instruction::DUP16;
+	return (Instruction::DUP1 <= _item.instruction() && _item.instruction() <= Instruction::DUP16)
+    || (Instruction::DUP17 <= _item.instruction() && _item.instruction() <= Instruction::DUP32);
 }
 
 bool SemanticInformation::isSwapInstruction(AssemblyItem const& _item)
 {
 	if (_item.type() != Operation)
 		return false;
-	return Instruction::SWAP1 <= _item.instruction() && _item.instruction() <= Instruction::SWAP32;
+	return (Instruction::SWAP1 <= _item.instruction() && _item.instruction() <= Instruction::SWAP16)
+    || (Instruction::SWAP17 <= _item.instruction() && _item.instruction() <= Instruction::SWAP32);
 }
 
 bool SemanticInformation::isJumpInstruction(AssemblyItem const& _item)

@@ -329,6 +329,8 @@ Json::Value Assembly::stream(ostream& _out, string const& _prefix, StringMap con
 AssemblyItem const& Assembly::append(AssemblyItem const& _i)
 {
 	assertThrow(m_deposit >= 0, AssemblyException, "");
+  //cout << "m depo = " << m_deposit << endl;
+  //cout << "i depo = " << _i.deposit() << endl;
 	m_deposit += _i.deposit();
 	m_items.push_back(_i);
 	if (m_items.back().location().isEmpty() && !m_currentSourceLocation.isEmpty())

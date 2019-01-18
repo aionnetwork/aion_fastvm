@@ -127,7 +127,7 @@ enum class Instruction: uint8_t
 	DUP14,				///< copies the 14th highest item in the stack to the top of the stack
 	DUP15,				///< copies the 15th highest item in the stack to the top of the stack
 	DUP16,				///< copies the 16th highest item in the stack to the top of the stack
-	DUP17,				///< copies the 17th highest item in the stack to the top of the stack
+	DUP17 = 0xb0,		///< copies the 17th highest item in the stack to the top of the stack
 	DUP18,				///< copies the 18th highest item in the stack to the top of the stack
 	DUP19,				///< copies the 19th highest item in the stack to the top of the stack
 	DUP20,				///< copies the 20th highest item in the stack to the top of the stack
@@ -160,7 +160,7 @@ enum class Instruction: uint8_t
 	SWAP14,				///< swaps the highest and 15th highest value on the stack
 	SWAP15,				///< swaps the highest and 16th highest value on the stack
 	SWAP16,				///< swaps the highest and 17th highest value on the stack
-	SWAP17,				///< swaps the highest and 18th highest value on the stack
+	SWAP17 = 0xc0,		///< swaps the highest and 18th highest value on the stack
 	SWAP18,				///< swaps the highest and 19th highest value on the stack
 	SWAP19,				///< swaps the highest and 20th highest value on the stack
 	SWAP20,				///< swaps the highest and 21th highest value on the stack
@@ -177,7 +177,7 @@ enum class Instruction: uint8_t
 	SWAP31,				///< swaps the highest and 32th highest value on the stack
 	SWAP32,				///< swaps the highest and 33th highest value on the stack
 
-	LOG0 = 0xc0,		///< Makes a log entry; no topics.
+	LOG0 = 0xa0,		///< Makes a log entry; no topics.
 	LOG1,				///< Makes a log entry; 1 topic.
 	LOG2,				///< Makes a log entry; 2 topics.
 	LOG3,				///< Makes a log entry; 3 topics.
