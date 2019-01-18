@@ -9,7 +9,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -35,12 +35,11 @@ public class Benchmark {
 
     private static AionBlock block = TestUtils.createDummyBlock();
     private static AionRepositoryImpl db = AionRepositoryImpl.inst();
-    private static IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-            db.startTracking();
+    private static IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
 
     private static ECKey key;
-    private static Address owner;
-    private static Address contract;
+    private static AionAddress owner;
+    private static AionAddress contract;
 
     private static List<byte[]> recipients = new ArrayList<>();
 
@@ -58,7 +57,7 @@ public class Benchmark {
         // create owner account
         ECKeyFac.setType(ECKeyType.ED25519);
         key = ECKeyFac.inst().create();
-        owner = Address.wrap(key.getAddress());
+        owner = AionAddress.wrap(key.getAddress());
         repo.createAccount(owner);
         repo.addBalance(owner, BigInteger.valueOf(1_000_000_000L));
 
@@ -66,8 +65,8 @@ public class Benchmark {
         byte[] deployer =
                 ContractUtils.getContractDeployer("BenchmarkERC20.sol", "FixedSupplyToken");
         byte[] nonce = DataWord.ZERO.getData();
-        Address from = owner;
-        Address to = null;
+        AionAddress from = owner;
+        AionAddress to = null;
         byte[] value = DataWord.ZERO.getData();
         long nrg = 1_000_000L;
         long nrgPrice = 1L;
@@ -98,8 +97,8 @@ public class Benchmark {
 
             // transfer token to random people
             byte[] nonce = new DataWord(ownerNonce + i).getData();
-            Address from = owner;
-            Address to = contract;
+            AionAddress from = owner;
+            AionAddress to = contract;
             byte[] value = DataWord.ZERO.getData();
             byte[] data =
                     ByteUtil.merge(
@@ -126,17 +125,17 @@ public class Benchmark {
 
         for (AionTransaction tx : txs) {
             boolean valid =
-                    tx.getHash() != null
-                            && tx.getHash().length == 32 //
+                    tx.getTransactionHash() != null
+                            && tx.getTransactionHash().length == 32 //
                             && tx.getValue() != null
                             && tx.getValue().length == 16 //
                             && tx.getData() != null //
-                            && tx.getFrom() != null //
-                            && tx.getTo() == null //
+                            && tx.getSenderAddress() != null //
+                            && tx.getDestinationAddress() == null //
                             && tx.getNonce() != null
                             && tx.getNonce().length == 16 //
-                            && tx.getNrg() > 0 //
-                            && tx.getNrgPrice() > 0 //
+                            && tx.getEnergyLimit() > 0 //
+                            && tx.getEnergyPrice() > 0 //
                             && SignatureFac.verify(
                                     tx.getRawHash(),
                                     tx.getSignature()); // TODO: verify signature here
@@ -183,8 +182,8 @@ public class Benchmark {
 
         for (int i = 0; i < recipients.size(); i++) {
             byte[] nonce = new DataWord(ownerNonce + i).getData();
-            Address from = owner;
-            Address to = contract;
+            AionAddress from = owner;
+            AionAddress to = contract;
             byte[] value = DataWord.ZERO.getData();
             byte[] data =
                     ByteUtil.merge(
@@ -198,7 +197,7 @@ public class Benchmark {
             AionTxExecSummary summary = exec.execute();
             assertFalse(summary.isFailed());
 
-            assertEquals(1, new DataWord(summary.getReceipt().getExecutionResult()).longValue());
+            assertEquals(1, new DataWord(summary.getReceipt().getTransactionOutput()).longValue());
         }
     }
 

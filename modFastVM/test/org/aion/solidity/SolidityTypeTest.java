@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
@@ -38,12 +38,12 @@ public class SolidityTypeTest {
 
     private AionTransaction createTransaction(byte[] callData) {
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from =
-                Address.wrap(
+        AionAddress from =
+                AionAddress.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to =
-                Address.wrap(
+        AionAddress to =
+                AionAddress.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222"));
         byte[] value = DataWord.ZERO.getData();
@@ -62,8 +62,8 @@ public class SolidityTypeTest {
         String contract = deployer.substring(deployer.indexOf("60506040", 1));
 
         DummyRepository repo = new DummyRepository();
-        repo.addContract(tx.getTo(), Hex.decode(contract));
-        repo.addBalance(tx.getFrom(), tx.nrgPrice().value().multiply(BigInteger.valueOf(500_000L)));
+        repo.addContract(tx.getDestinationAddress(), Hex.decode(contract));
+        repo.addBalance(tx.getSenderAddress(), tx.nrgPrice().value().multiply(BigInteger.valueOf(500_000L)));
 
         return repo;
     }
@@ -82,8 +82,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(Boolean.TRUE, new BoolType().decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(Boolean.TRUE, new BoolType().decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -102,8 +102,8 @@ public class SolidityTypeTest {
         System.out.println(receipt);
 
         assertArrayEquals(
-                Hex.decode("00000000ffffffffffffffffffffffff"), receipt.getExecutionResult());
-        assertEquals(bi, new IntType("int96").decode(receipt.getExecutionResult()));
+                Hex.decode("00000000ffffffffffffffffffffffff"), receipt.getTransactionOutput());
+        assertEquals(bi, new IntType("int96").decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -121,8 +121,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) new AddressType().decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) new AddressType().decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -141,8 +141,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -161,8 +161,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult()));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput()));
     }
 
     @Test
@@ -182,8 +182,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(x, type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(x, type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -203,8 +203,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertEquals(x, type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertEquals(x, type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -224,8 +224,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -247,8 +247,8 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
-        assertArrayEquals(x, (byte[]) type.decode(receipt.getExecutionResult(), 16));
+        assertArrayEquals(params, receipt.getTransactionOutput());
+        assertArrayEquals(x, (byte[]) type.decode(receipt.getTransactionOutput(), 16));
     }
 
     @Test
@@ -271,9 +271,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult());
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput());
         for (Object d : decoded) {
             System.out.println(d);
         }
@@ -299,9 +299,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult());
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput());
         for (Object d : decoded) {
             System.out.println(Hex.toHexString((byte[]) d));
         }
@@ -328,9 +328,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult(), 16);
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput(), 16);
         for (Object d : decoded) {
             System.out.println(d);
         }
@@ -357,9 +357,9 @@ public class SolidityTypeTest {
         AionTxReceipt receipt = exec.execute().getReceipt();
         System.out.println(receipt);
 
-        assertArrayEquals(params, receipt.getExecutionResult());
+        assertArrayEquals(params, receipt.getTransactionOutput());
 
-        Object[] decoded = (Object[]) type.decode(receipt.getExecutionResult(), 16);
+        Object[] decoded = (Object[]) type.decode(receipt.getTransactionOutput(), 16);
         for (Object d : decoded) {
             System.out.println(d);
         }

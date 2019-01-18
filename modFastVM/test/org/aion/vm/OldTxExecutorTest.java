@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.math.BigInteger;
 import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKeyFac;
@@ -20,6 +20,7 @@ import org.aion.mcf.vm.types.DataWord;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
+import org.aion.base.vm.IDataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
@@ -45,12 +46,12 @@ public class OldTxExecutorTest {
         String contract = deployer.substring(deployer.indexOf("60506040", 1)); // contract
 
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from =
-                Address.wrap(
+        AionAddress from =
+                AionAddress.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to =
-                Address.wrap(
+        AionAddress to =
+                AionAddress.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222"));
         byte[] value = DataWord.ZERO.getData();
@@ -71,7 +72,7 @@ public class OldTxExecutorTest {
         System.out.println(receipt);
 
         assertArrayEquals(
-                Hex.decode("00000000000000000000000000000000"), receipt.getExecutionResult());
+                Hex.decode("00000000000000000000000000000000"), receipt.getTransactionOutput());
     }
 
     @Test
@@ -85,11 +86,11 @@ public class OldTxExecutorTest {
         System.out.println(deployer);
 
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from =
-                Address.wrap(
+        AionAddress from =
+                AionAddress.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to = Address.EMPTY_ADDRESS();
+        AionAddress to = AionAddress.EMPTY_ADDRESS();
         byte[] value = DataWord.ZERO.getData();
         byte[] data = Hex.decode(deployer);
         long nrg = 500_000L;
@@ -98,8 +99,7 @@ public class OldTxExecutorTest {
 
         AionBlock block = TestUtils.createDummyBlock();
 
-        IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-                new DummyRepository();
+        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         repo.addBalance(from, BigInteger.valueOf(500_000L).multiply(tx.nrgPrice().value()));
 
         TransactionExecutor exec = new TransactionExecutor(tx, block, repo, LOGGER_VM);
@@ -109,7 +109,7 @@ public class OldTxExecutorTest {
 
         assertArrayEquals(
                 Hex.decode(deployer.substring(deployer.indexOf("60506040", 1))),
-                receipt.getExecutionResult());
+                receipt.getTransactionOutput());
     }
 
     @Test
@@ -123,12 +123,12 @@ public class OldTxExecutorTest {
         String contract = deployer.substring(deployer.indexOf("60506040", 1)); // contract
 
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from =
-                Address.wrap(
+        AionAddress from =
+                AionAddress.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to =
-                Address.wrap(
+        AionAddress to =
+                AionAddress.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222"));
         byte[] value = DataWord.ZERO.getData();
@@ -158,12 +158,12 @@ public class OldTxExecutorTest {
     @Test
     public void testBasicTransactionCost() {
         byte[] txNonce = DataWord.ZERO.getData();
-        Address from =
-                Address.wrap(
+        AionAddress from =
+                AionAddress.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111"));
-        Address to =
-                Address.wrap(
+        AionAddress to =
+                AionAddress.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222"));
         byte[] value = DataWord.ONE.getData();

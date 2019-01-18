@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.util.List;
-import org.aion.base.type.Address;
+import org.aion.base.type.AionAddress;
 import org.aion.base.util.ByteUtil;
 import org.aion.crypto.ECKey;
 import org.aion.log.AionLoggerFactory;
@@ -14,6 +14,7 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.TransactionExecutor;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionTxInfo;
@@ -100,9 +101,9 @@ public class InternalTransactionTest {
         ImportResult result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        Address addressA = tx1.getContractAddress();
+        AionAddress addressA = tx1.getContractAddress();
         System.out.println("contract A = " + addressA);
-        Address addressB = tx2.getContractAddress();
+        AionAddress addressB = tx2.getContractAddress();
         System.out.println("contract B = " + addressB);
         Thread.sleep(1000);
 
@@ -124,7 +125,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        AionTxInfo info = bc.getTransactionInfo(tx3.getHash());
+        AionTxInfo info = bc.getTransactionInfo(tx3.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(1, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -150,7 +151,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        info = bc.getTransactionInfo(tx4.getHash());
+        info = bc.getTransactionInfo(tx4.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(2, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -177,7 +178,7 @@ public class InternalTransactionTest {
         result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        info = bc.getTransactionInfo(tx6.getHash());
+        info = bc.getTransactionInfo(tx6.getTransactionHash());
         System.out.println(info.getReceipt());
         assertEquals(1, info.getReceipt().getLogInfoList().size());
         Thread.sleep(1000);
@@ -225,7 +226,7 @@ public class InternalTransactionTest {
         ImportResult result = bc.tryToConnect(context.block);
         assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
 
-        Address addressA = tx1.getContractAddress();
+        AionAddress addressA = tx1.getContractAddress();
         System.out.println("contract A = " + addressA);
         Thread.sleep(1000);
 
@@ -253,15 +254,15 @@ public class InternalTransactionTest {
 
         assertEquals(2, summary.getInternalTransactions().size());
 
-        assertArrayEquals(tx2.getHash(), summary.getInternalTransactions().get(0).getParentHash());
-        assertEquals(0, summary.getInternalTransactions().get(0).getDeep());
-        assertEquals(0, summary.getInternalTransactions().get(0).getIndex());
+        assertArrayEquals(tx2.getTransactionHash(), summary.getInternalTransactions().get(0).getParentTransactionHash());
+        assertEquals(0, summary.getInternalTransactions().get(0).getStackDepth());
+        assertEquals(0, summary.getInternalTransactions().get(0).getIndexOfInternalTransaction());
 
         assertArrayEquals(
-                summary.getInternalTransactions().get(0).getHash(),
-                summary.getInternalTransactions().get(1).getParentHash());
-        assertEquals(1, summary.getInternalTransactions().get(1).getDeep());
-        assertEquals(0, summary.getInternalTransactions().get(1).getIndex());
+                summary.getInternalTransactions().get(0).getTransactionHash(),
+                summary.getInternalTransactions().get(1).getParentTransactionHash());
+        assertEquals(1, summary.getInternalTransactions().get(1).getStackDepth());
+        assertEquals(0, summary.getInternalTransactions().get(1).getIndexOfInternalTransaction());
     }
 
     /*
@@ -312,7 +313,7 @@ public class InternalTransactionTest {
         AionTxExecSummary summary = exec.execute();
 
         System.out.println(summary.getReceipt());
-        for (AionInternalTx tx : summary.getInternalTransactions()) {
+        for (InternalTransactionInterface tx : summary.getInternalTransactions()) {
             System.out.println(tx);
         }
     }

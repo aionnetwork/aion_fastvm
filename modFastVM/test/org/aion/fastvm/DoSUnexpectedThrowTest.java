@@ -4,15 +4,17 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import org.aion.base.type.Address;
-import org.aion.base.type.IExecutionResult;
+import org.aion.base.db.IRepositoryCache;
+import org.aion.base.type.AionAddress;
+import org.aion.vm.FastVmResultCode;
+import org.aion.vm.FastVmTransactionResult;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
 import org.aion.vm.DummyRepository;
 import org.aion.vm.ExecutionContext;
+import org.aion.vm.KernelInterfaceForFastVM;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,11 +22,11 @@ import org.junit.Test;
 public class DoSUnexpectedThrowTest {
 
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
-    private Address caller = origin;
-    private Address address = Address.wrap(RandomUtils.nextBytes(32));
+    private AionAddress origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private AionAddress caller = origin;
+    private AionAddress address = AionAddress.wrap(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
+    private AionAddress blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
@@ -82,9 +84,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
 
     @Test
@@ -123,9 +125,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -164,9 +166,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -205,9 +207,9 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
 
     @Test
@@ -246,8 +248,12 @@ public class DoSUnexpectedThrowTest {
                         blockNrgLimit,
                         blockDifficulty);
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.OUT_OF_NRG.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+    }
+
+    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+        return new KernelInterfaceForFastVM(cache, true, false);
     }
 }
