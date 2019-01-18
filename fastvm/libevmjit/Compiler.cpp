@@ -569,6 +569,8 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 			if ((m_rev < EVM_AION_V1) && (index > 16)) {
 				goto invalidInstruction;
 			}
+      if (index >= 16)
+			  index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::DUP17)+16;
 			stack.dup(index);
 			break;
 		}
@@ -579,6 +581,8 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 			if ((m_rev < EVM_AION_V1) && (index > 16)) {
 				goto invalidInstruction;
 			}
+      if (index > 16)
+        index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP17) + 17;
 			stack.swap(index);
 			break;
 		}
