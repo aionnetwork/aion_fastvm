@@ -193,6 +193,7 @@ int64_t call_v2(
 	msg.gas = _gas;
 	msg.depth = jit.currentMsg->depth + 1;
 	msg.flags = jit.currentMsg->flags;
+	
 	if (_kind == EVM_STATICCALL)
 	{
 		msg.kind = EVM_CALL;
