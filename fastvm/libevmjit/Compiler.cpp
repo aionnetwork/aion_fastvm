@@ -563,26 +563,36 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 			break;
 		}
 
-		case Instruction::ANY_DUP:
+		case Instruction::BASE_DUP:
 		{
 			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::DUP1);
-			if ((m_rev < EVM_AION_V1) && (index > 16)) {
-				goto invalidInstruction;
-			}
-      if (index >= 16)
-			  index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::DUP17)+16;
 			stack.dup(index);
 			break;
 		}
 
-		case Instruction::ANY_SWAP:
+		case Instruction::EXT_DUP:
 		{
-			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP1) + 1;
-			if ((m_rev < EVM_AION_V1) && (index > 16)) {
+			if (m_rev < EVM_AION_V1) {
 				goto invalidInstruction;
 			}
-      if (index > 16)
-        index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP17) + 17;
+			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::DUP17) + 16;
+			stack.dup(index);
+			break;
+		}
+
+		case Instruction::BASE_SWAP:
+		{
+			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP1) + 1;
+			stack.swap(index);
+			break;
+		}
+
+		case Instruction::EXT_SWAP:
+		{
+			if (m_rev < EVM_AION_V1) {
+				goto invalidInstruction;
+			}
+			auto index = static_cast<size_t>(inst) - static_cast<size_t>(Instruction::SWAP17) + 17;
 			stack.swap(index);
 			break;
 		}
