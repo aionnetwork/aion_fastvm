@@ -253,10 +253,15 @@ public class Callback {
             ctx.setDestinationAddress(context().getDestinationAddress());
         }
 
+        // Check that the destination address is safe to call from this VM.
+        if (!kernelRepo().destinationAddressIsSafeForThisVM(codeAddress)) {
+            return new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
+        }
+
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
         TransactionResult result =
                 new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
+                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // add internal transaction
         AionInternalTx internalTx =
@@ -280,7 +285,7 @@ public class Callback {
 
         PrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
         if (pc != null) {
-            result = pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergyLimit());
+            result = pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy());
         } else {
             // get the code
             byte[] code =
@@ -317,7 +322,7 @@ public class Callback {
         KernelInterfaceForFastVM track = kernelRepo().startTracking();
         FastVmTransactionResult result =
                 new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergyLimit());
+                        FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
@@ -434,7 +439,9 @@ public class Callback {
         long blockNrgLimit = prev.getBlockEnergyLimit();
         IDataWord blockDifficulty = new DataWord(prev.getBlockDifficulty());
 
+        //TODO: properly construct a transaction first
         return new ExecutionContext(
+            null,
                 txHash,
                 AionAddress.wrap(address),
                 origin,
