@@ -1058,6 +1058,55 @@ public class FastVMTest {
         assertEquals("00000000000000000000000000000010000000000000000000000000000000010011223344556677889900112233445566778899001122334455667788990011", Hex.toHexString(result.getOutput()));
     }
 
+    @Test
+    public void testLocalVarDepth() throws IOException {
+        byte[] code = ContractUtils.getContractBody("LocalVarDepth.sol", "LocalVar");
+
+        callData = Hex.decode("f220ff7b"
+                + "0000000000000000000000000000000000000000000000000000000000000001"
+                + "0000000000000000000000000000000000000000000000000000000000000002"
+                + "0000000000000000000000000000000000000000000000000000000000000003"
+                + "0000000000000000000000000000000000000000000000000000000000000004"
+                + "0000000000000000000000000000000000000000000000000000000000000005"
+                + "0000000000000000000000000000000000000000000000000000000000000006"
+                + "0000000000000000000000000000000000000000000000000000000000000007"
+                + "0000000000000000000000000000000000000000000000000000000000000008"
+                + "0000000000000000000000000000000000000000000000000000000000000009"
+                + "000000000000000000000000000000000000000000000000000000000000000a"
+                + "000000000000000000000000000000000000000000000000000000000000000b"
+                + "000000000000000000000000000000000000000000000000000000000000000c"
+                + "000000000000000000000000000000000000000000000000000000000000000d"
+                + "000000000000000000000000000000000000000000000000000000000000000e");
+        nrgLimit = 1000_000L;
+        ExecutionContext ctx =
+                new ExecutionContext(
+                        txHash,
+                        address,
+                        origin,
+                        caller,
+                        nrgPrice,
+                        nrgLimit,
+                        callValue,
+                        callData,
+                        depth,
+                        kind,
+                        flags,
+                        blockCoinbase,
+                        blockNumber,
+                        blockTimestamp,
+                        blockNrgLimit,
+                        blockDifficulty);
+        DummyRepository repo = new DummyRepository();
+        repo.addContract(address, code);
+
+        FastVM vm = new FastVM();
+        ExecutionResult result = vm.run(code, ctx, repo);
+        assertEquals(ResultCode.OUT_OF_NRG, result.getResultCode());
+
+        result = vm.run_v1(code, ctx, repo);
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+    }
+
     @After
     public void teardown() {}
 }
