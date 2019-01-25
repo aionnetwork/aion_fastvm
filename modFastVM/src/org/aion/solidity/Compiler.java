@@ -63,13 +63,22 @@ public class Compiler {
             boolean combinedJson,
             Options... options)
             throws IOException {
+
+        if (source == null)
+            return new Result("Missing source Zip file", "", true);
+
         File unzipped = extractZip(source, "temp");
+
+        if (unzipped == null)
+            return new Result("Couldn't extract zip file", "", true);
 
         List<String> commandParts = prepareCommands(optimize, combinedJson, options);
         commandParts.add(entryPoint);
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(unzipped);
-        return runCompileProcess(source, processBuilder);
+        Result res = runCompileProcess(null, processBuilder);
+        unzipped.deleteOnExit();
+        return res;
     }
 
     private List<String> prepareCommands(boolean optimize, boolean combinedJson, Options[] options)
@@ -100,8 +109,11 @@ public class Compiler {
 
         Process process = processBuilder.start();
 
-        try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
-            stream.write(source);
+        if (source != null) {
+            try (BufferedOutputStream stream = new BufferedOutputStream(
+                process.getOutputStream())) {
+                stream.write(source);
+            }
         }
 
         ParallelReader error = new ParallelReader(process.getErrorStream());

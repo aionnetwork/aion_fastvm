@@ -100,17 +100,5 @@ public class CompilerTest {
                         Compiler.Options.BIN);
 
         assertFalse(r.isFailed());
-
-        File f = new File("temp/Import.sol");
-        assertTrue(f.exists());
-        f.delete();
-        f = new File("temp/Wallet.sol");
-        assertTrue(f.exists());
-        f.delete();
-        f = new File("temp/Ticker.sol");
-        assertTrue(f.exists());
-        f.delete();
-        f = new File("temp");
-        f.delete();
     }
 }
