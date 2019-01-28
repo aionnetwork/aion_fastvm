@@ -5,8 +5,9 @@ import static org.junit.Assert.assertEquals;
 import org.aion.base.type.AionAddress;
 import org.aion.base.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.DummyRepository;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
+import org.aion.vm.DummyRepository;
+import org.aion.vm.api.interfaces.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,11 +15,11 @@ import org.junit.Test;
 
 public class CacheTest {
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private AionAddress origin = AionAddress.wrap(RandomUtils.nextBytes(32));
-    private AionAddress caller = origin;
-    private AionAddress address = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address caller = origin;
+    private Address address = AionAddress.wrap(RandomUtils.nextBytes(32));
 
-    private AionAddress blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
@@ -50,7 +51,7 @@ public class CacheTest {
         callData = Hex.decode("8256cff3");
         ExecutionContext ctx =
                 new ExecutionContext(
-                    null,
+                        null,
                         txHash,
                         address,
                         origin,
@@ -73,7 +74,11 @@ public class CacheTest {
         int repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
-            FastVmTransactionResult result = vm.run(code, ctx, new KernelInterfaceForFastVM(new DummyRepository(), true, false));
+            FastVmTransactionResult result =
+                    vm.run(
+                            code,
+                            ctx,
+                            new KernelInterfaceForFastVM(new DummyRepository(), true, false));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {

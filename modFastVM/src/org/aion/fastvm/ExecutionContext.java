@@ -25,11 +25,10 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.aion.base.type.AionAddress;
+import org.aion.base.vm.IDataWord;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.vm.api.interfaces.Address;
-import org.aion.base.vm.IDataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionTransaction;
@@ -41,10 +40,7 @@ import org.aion.zero.types.AionTransaction;
  */
 public class ExecutionContext implements TransactionContext {
     private static final int ENCODE_BASE_LEN =
-            (AionAddress.SIZE * 4)
-                    + (DataWord.BYTES * 3)
-                    + (Long.BYTES * 4)
-                    + (Integer.BYTES * 4);
+            (Address.SIZE * 4) + (DataWord.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
     public static int CALL = 0;
     public static int DELEGATECALL = 1;
     public static int CALLCODE = 2;
@@ -312,5 +308,4 @@ public class ExecutionContext implements TransactionContext {
     public AionTransaction getTransaction() {
         return this.transaction;
     }
-
 }
