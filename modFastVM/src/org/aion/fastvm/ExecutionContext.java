@@ -182,6 +182,11 @@ public class ExecutionContext implements TransactionContext {
         return address;
     }
 
+    @Override
+    public Address getContractAddress() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
     /** @return the origination address, which is the sender of original transaction. */
     @Override
     public Address getOriginAddress() {

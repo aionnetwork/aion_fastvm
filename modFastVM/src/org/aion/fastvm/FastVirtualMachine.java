@@ -24,7 +24,7 @@ public class FastVirtualMachine implements VirtualMachine {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
-        this.kernelSnapshot = kernel.startTracking();
+        this.kernelSnapshot = kernel.makeChildKernelInterface();
     }
 
     @Override
@@ -45,17 +45,26 @@ public class FastVirtualMachine implements VirtualMachine {
      */
     @Override
     public SimpleFuture<TransactionResult>[] run(TransactionContext[] contexts) {
-        FastVmSimpleFuture<TransactionResult>[] transactionResults = new FastVmSimpleFuture[contexts.length];
+        FastVmSimpleFuture<TransactionResult>[] transactionResults =
+                new FastVmSimpleFuture[contexts.length];
 
         for (int i = 0; i < contexts.length; i++) {
-            TransactionExecutor executor = new TransactionExecutor(contexts[i].getTransaction(), contexts[i], this.kernelSnapshot.startTracking());
+            TransactionExecutor executor =
+                    new TransactionExecutor(
+                            contexts[i].getTransaction(),
+                            contexts[i],
+                            this.kernelSnapshot.makeChildKernelInterface());
             transactionResults[i] = new FastVmSimpleFuture();
             transactionResults[i].setResult(executor.execute());
 
-            // We want to flush back up to the snapshot without losing any state, so that we can pass that state to the caller.
-            KernelInterfaceForFastVM fvmKernel = (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
-            AionRepositoryCache fvmKernelRepo = (AionRepositoryCache) fvmKernel.getRepositoryCache();
-            KernelInterfaceForFastVM snapshotKernel = (KernelInterfaceForFastVM) this.kernelSnapshot;
+            // We want to flush back up to the snapshot without losing any state, so that we can
+            // pass that state to the caller.
+            KernelInterfaceForFastVM fvmKernel =
+                    (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
+            AionRepositoryCache fvmKernelRepo =
+                    (AionRepositoryCache) fvmKernel.getRepositoryCache();
+            KernelInterfaceForFastVM snapshotKernel =
+                    (KernelInterfaceForFastVM) this.kernelSnapshot;
             fvmKernelRepo.flushCopiesTo(snapshotKernel.getRepositoryCache(), false);
 
             // Mock the updateRepo call
@@ -70,15 +79,20 @@ public class FastVirtualMachine implements VirtualMachine {
         return transactionResults;
     }
 
-    private void updateSnapshot(TransactionResult txResult, AionTransaction tx, Address coinbase, List<Address> deleteAccounts) {
+    private void updateSnapshot(
+            TransactionResult txResult,
+            AionTransaction tx,
+            Address coinbase,
+            List<Address> deleteAccounts) {
         if (!txResult.getResultCode().isRejected()) {
-            KernelInterface snapshotTracker = this.kernelSnapshot.startTracking();
+            KernelInterface snapshotTracker = this.kernelSnapshot.makeChildKernelInterface();
 
             long energyUsed = computeEnergyUsed(tx.getEnergyLimit(), txResult);
 
             // Refund energy if transaction was successfully or reverted.
             if (txResult.getResultCode().isSuccess() || txResult.getResultCode().isRevert()) {
-                snapshotTracker.refundAccount(tx.getSenderAddress(), computeRefundForSender(tx, energyUsed));
+                snapshotTracker.refundAccount(
+                        tx.getSenderAddress(), computeRefundForSender(tx, energyUsed));
             }
 
             // Pay the miner.
@@ -90,7 +104,7 @@ public class FastVirtualMachine implements VirtualMachine {
                     snapshotTracker.deleteAccount(addr);
                 }
             }
-            snapshotTracker.flush();
+            snapshotTracker.commit();
         }
     }
 
@@ -122,7 +136,5 @@ public class FastVirtualMachine implements VirtualMachine {
         public R get() {
             return this.result;
         }
-
     }
-
 }

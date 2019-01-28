@@ -122,7 +122,7 @@ public final class FastVmTransactionResult implements TransactionResult {
     }
 
     @Override
-    public void setOutput(byte[] output) {
+    public void setReturnData(byte[] output) {
         this.output = (output == null) ? new byte[0] : output;
     }
 
@@ -137,7 +137,7 @@ public final class FastVmTransactionResult implements TransactionResult {
     }
 
     @Override
-    public byte[] getOutput() {
+    public byte[] getReturnData() {
         return this.output;
     }
 
