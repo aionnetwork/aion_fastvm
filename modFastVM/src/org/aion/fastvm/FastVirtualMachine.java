@@ -9,6 +9,7 @@ import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.vm.api.interfaces.VirtualMachine;
+import org.aion.zero.db.AionRepositoryCache;
 import org.aion.zero.types.AionTransaction;
 
 public class FastVirtualMachine implements VirtualMachine {
@@ -52,9 +53,10 @@ public class FastVirtualMachine implements VirtualMachine {
             transactionResults[i].setResult(executor.execute());
 
             // We want to flush back up to the snapshot without losing any state, so that we can pass that state to the caller.
-            ((KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface())
-                .getRepositoryCache()
-                .flushTo(((KernelInterfaceForFastVM) this.kernelSnapshot).getRepositoryCache(), false);
+            KernelInterfaceForFastVM fvmKernel = (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
+            AionRepositoryCache fvmKernelRepo = (AionRepositoryCache) fvmKernel.getRepositoryCache();
+            KernelInterfaceForFastVM snapshotKernel = (KernelInterfaceForFastVM) this.kernelSnapshot;
+            fvmKernelRepo.flushCopiesTo(snapshotKernel.getRepositoryCache(), false);
 
             // Mock the updateRepo call
             TransactionResult txResult = transactionResults[i].result;
