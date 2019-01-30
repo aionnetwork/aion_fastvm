@@ -35,7 +35,7 @@ public class FastVmTransactionResultUnitTest {
         assertEquals(code, result.getResultCode());
         assertEquals(code, result.getResultCode());
         assertEquals(nrgLeft, result.getEnergyRemaining());
-        assertEquals(output, result.getOutput());
+        assertEquals(output, result.getReturnData());
     }
 
     @Test
@@ -52,11 +52,11 @@ public class FastVmTransactionResultUnitTest {
         int newCode = FastVmResultCode.values()[0].toInt();
         long newNrg = 0;
         result.setResultCodeAndEnergyRemaining(FastVmResultCode.fromInt(newCode), newNrg);
-        result.setOutput(null);
+        result.setReturnData(null);
         assertEquals(newCode, result.getResultCode().toInt());
         assertEquals(FastVmResultCode.fromInt(newCode), result.getResultCode());
         assertEquals(newNrg, result.getEnergyRemaining());
-        assertEquals(0, result.getOutput().length);
+        assertEquals(0, result.getReturnData().length);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class FastVmTransactionResultUnitTest {
     @Test
     public void testGetOutputWhenNoOutputSpecified() {
         FastVmTransactionResult result = new FastVmTransactionResult(code, nrgLeft);
-        assertArrayEquals(new byte[0], result.getOutput());
+        assertArrayEquals(new byte[0], result.getReturnData());
     }
 
     @Test
@@ -152,6 +152,6 @@ public class FastVmTransactionResultUnitTest {
 
         assertEquals(original.getResultCode(), decodedResult.getResultCode());
         assertEquals(original.getEnergyRemaining(), decodedResult.getEnergyRemaining());
-        assertArrayEquals(original.getOutput(), decodedResult.getOutput());
+        assertArrayEquals(original.getReturnData(), decodedResult.getReturnData());
     }
 }
