@@ -176,6 +176,11 @@ public class ExecutionContext implements TransactionContext {
         this.address = address;
     }
 
+    @Override
+    public Address getContractAddress() {
+        return this.transaction.getContractAddress();
+    }
+
     /** @return the transaction address. */
     @Override
     public Address getDestinationAddress() {
