@@ -912,9 +912,11 @@ void ArrayUtils::accessIndex(ArrayType const& _arrayType, bool _doBoundsCheck) c
 	// stack: <index> <base_ref>
 	switch (location)
 	{
+
 	case DataLocation::Memory:
 		if (_arrayType.isDynamicallySized())
 			m_context << u128(16) << Instruction::ADD;
+		BOOST_FALLTHROUGH;
 		// fall-through
 	case DataLocation::CallData:
 		if (!_arrayType.isByteArray())

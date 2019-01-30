@@ -68,6 +68,8 @@ public:
 		bool _removeReference = true
 	) const = 0;
 
+	virtual ~LValue() = default;
+
 protected:
 	CompilerContext& m_context;
 	Type const* m_dataType;

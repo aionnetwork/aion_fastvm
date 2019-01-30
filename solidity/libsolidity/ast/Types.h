@@ -264,6 +264,8 @@ public:
 	/// should be have identical to !!interfaceType(_inLibrary) but might do optimizations.
 	virtual bool canBeUsedExternally(bool _inLibrary) const { return !!interfaceType(_inLibrary); }
 
+	virtual ~Type() = default;
+
 private:
 	/// @returns a member list containing all members added to this type by `using for` directives.
 	static MemberList::MemberMap boundFunctions(Type const& _type, ContractDefinition const& _scope);
@@ -304,8 +306,8 @@ public:
 
 	virtual unsigned calldataEncodedSize(bool _padded = true) const override { return _padded ? (m_bits > 128 ? 32: 16) : m_bits / 8; }
 	virtual unsigned storageBytes() const override { return m_bits / 8; }
-	virtual u256 storageSize() const { return m_bits > 128 ? 2 : 1; }
-	virtual unsigned sizeOnStack() const { return m_bits > 128 ? 2 : 1; }
+	virtual u256 storageSize() const override { return m_bits > 128 ? 2 : 1; }
+	virtual unsigned sizeOnStack() const override { return m_bits > 128 ? 2 : 1; }
 
 	virtual bool isValueType() const override { return true; }
 
@@ -317,6 +319,9 @@ public:
 
 	virtual TypePointer encodingType() const override { return shared_from_this(); }
 	virtual TypePointer interfaceType(bool) const override { return shared_from_this(); }
+
+	// see: https://github.com/aws/aws-sdk-cpp/pull/828
+	virtual ~IntegerType() = default;
 
 	int numBits() const { return m_bits; }
 	bool isAddress() const { return m_modifier == Modifier::Address; }
@@ -360,6 +365,8 @@ public:
 
 	virtual TypePointer encodingType() const override { return shared_from_this(); }
 	virtual TypePointer interfaceType(bool) const override { return shared_from_this(); }
+
+	virtual ~FixedPointType() = default;
 
 	/// Number of bits used for this type in total.
 	int numBits() const { return m_totalBits; }
@@ -423,9 +430,11 @@ public:
 	/// @returns true if the value is negative.
 	bool isNegative() const { return m_value < 0; }
 
-	virtual unsigned sizeOnStack() const {
+	virtual unsigned sizeOnStack() const override {
 		return literalValue(nullptr) >= (u256(1) << 128) ? 2 : 1;
 	}
+
+	virtual ~RationalNumberType() = default;
 
 private:
 	rational m_value;
@@ -460,6 +469,8 @@ public:
 	virtual std::string toString(bool) const override;
 	virtual TypePointer mobileType() const override;
 
+	virtual ~StringLiteralType() = default;
+
 	bool isValidUTF8() const;
 
 	std::string const& value() const { return m_value; }
@@ -491,8 +502,8 @@ public:
 
 	virtual unsigned calldataEncodedSize(bool _padded) const override { return _padded && m_bytes > 0 ? ((m_bytes > 16 ? 32: 16)) : m_bytes; }
 	virtual unsigned storageBytes() const override { return m_bytes; }
-	virtual u256 storageSize() const { return m_bytes > 16 ? 2 : 1; }
-	virtual unsigned sizeOnStack() const { return m_bytes > 16 ? 2 : 1; }
+	virtual u256 storageSize() const override { return m_bytes > 16 ? 2 : 1; }
+	virtual unsigned sizeOnStack() const override { return m_bytes > 16 ? 2 : 1; }
 
 	virtual bool isValueType() const override { return true; }
 
@@ -500,6 +511,9 @@ public:
 	virtual MemberList::MemberMap nativeMembers(ContractDefinition const*) const override;
 	virtual TypePointer encodingType() const override { return shared_from_this(); }
 	virtual TypePointer interfaceType(bool) const override { return shared_from_this(); }
+
+	// see: https://github.com/aws/aws-sdk-cpp/pull/828
+	virtual ~FixedBytesType() = default;
 
 	int numBytes() const { return m_bytes; }
 
@@ -527,6 +541,9 @@ public:
 	virtual u256 literalValue(Literal const* _literal) const override;
 	virtual TypePointer encodingType() const override { return shared_from_this(); }
 	virtual TypePointer interfaceType(bool) const override { return shared_from_this(); }
+	
+	// see: https://github.com/aws/aws-sdk-cpp/pull/828
+	virtual ~BoolType() = default;
 };
 
 /**
@@ -552,6 +569,8 @@ public:
 
 	virtual TypePointer mobileType() const override { return copyForLocation(m_location, true); }
 	virtual bool dataStoredIn(DataLocation _location) const override { return m_location == _location; }
+
+	virtual ~ReferenceType() = default;
 
 	/// Storage references can be pointers or bound references. In general, local variables are of
 	/// pointer type, state variables are bound references. Assignments to pointers or deleting
@@ -630,6 +649,8 @@ public:
 	virtual TypePointer interfaceType(bool _inLibrary) const override;
 	virtual bool canBeUsedExternally(bool _inLibrary) const override;
 
+	virtual ~ArrayType() = default;
+
 	/// @returns true if this is valid to be stored in calldata
 	bool validForCalldata() const;
 
@@ -694,6 +715,8 @@ public:
 		return _inLibrary ? shared_from_this() : encodingType();
 	}
 
+	virtual ~ContractType() = default;
+
 	bool isSuper() const { return m_super; }
 
 	// @returns true if and only if the contract has a payable fallback function
@@ -750,6 +773,8 @@ public:
 
 	virtual std::string canonicalName(bool _addDataLocation) const override;
 
+	virtual ~StructType() = default;
+
 	/// @returns a function that peforms the type conversion between a list of struct members
 	/// and a memory struct of this type.
 	FunctionTypePointer constructorType() const;
@@ -797,6 +822,8 @@ public:
 		return _inLibrary ? shared_from_this() : encodingType();
 	}
 
+	virtual ~EnumType() = default;
+
 	EnumDefinition const& enumDefinition() const { return m_enum; }
 	/// @returns the value that the string has in the Enum
 	unsigned int memberValue(ASTString const& _member) const;
@@ -827,6 +854,8 @@ public:
 	virtual TypePointer mobileType() const override;
 	/// Converts components to their temporary types and performs some wildcard matching.
 	virtual TypePointer closestTemporaryType(TypePointer const& _targetType) const override;
+
+	virtual ~TupleType() = default;
 
 	std::vector<TypePointer> const& components() const { return m_components; }
 
@@ -976,6 +1005,8 @@ public:
 	virtual TypePointer encodingType() const override;
 	virtual TypePointer interfaceType(bool _inLibrary) const override;
 
+	virtual ~FunctionType() = default;
+
 	/// @returns TypePointer of a new FunctionType object. All input/return parameters are an
 	/// appropriate external types (i.e. the interfaceType()s) of input/return parameters of
 	/// current function.
@@ -1078,6 +1109,8 @@ public:
 		return _inLibrary ? shared_from_this() : TypePointer();
 	}
 
+	virtual ~MappingType() = default;
+
 	TypePointer const& keyType() const { return m_keyType; }
 	TypePointer const& valueType() const { return m_valueType; }
 
@@ -1108,6 +1141,8 @@ public:
 	virtual std::string toString(bool _short) const override { return "type(" + m_actualType->toString(_short) + ")"; }
 	virtual MemberList::MemberMap nativeMembers(ContractDefinition const* _currentScope) const override;
 
+	virtual ~TypeType() = default;
+
 private:
 	TypePointer m_actualType;
 };
@@ -1130,6 +1165,8 @@ public:
 	virtual std::string identifier() const override;
 	virtual bool operator==(Type const& _other) const override;
 	virtual std::string toString(bool _short) const override;
+
+	virtual ~ModifierType() = default;
 
 private:
 	TypePointers m_parameterTypes;
@@ -1156,6 +1193,8 @@ public:
 	virtual MemberList::MemberMap nativeMembers(ContractDefinition const*) const override;
 
 	virtual std::string toString(bool _short) const override;
+
+	virtual ~ModuleType() = default;
 
 private:
 	SourceUnit const& m_sourceUnit;
@@ -1187,6 +1226,8 @@ public:
 
 	virtual std::string toString(bool _short) const override;
 
+	virtual ~MagicType() = default;
+
 	Kind kind() const { return m_kind; }
 
 private:
@@ -1213,6 +1254,8 @@ public:
 	virtual unsigned sizeOnStack() const override { return 1; }
 	virtual std::string toString(bool) const override { return "inaccessible dynamic type"; }
 	virtual TypePointer decodingType() const override { return std::make_shared<IntegerType>(256); }
+
+	virtual ~InaccessibleDynamicType() = default;
 };
 
 }
