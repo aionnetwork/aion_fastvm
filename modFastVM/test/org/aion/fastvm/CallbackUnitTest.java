@@ -1941,7 +1941,9 @@ public class CallbackUnitTest {
     }
 
     private Address getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        byte[] bytes = RandomUtils.nextBytes(Address.SIZE);
+        bytes[0] = (byte) 0xa0;
+        return new AionAddress(bytes);
     }
 
     /**
