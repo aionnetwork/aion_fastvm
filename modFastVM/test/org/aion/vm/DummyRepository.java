@@ -13,6 +13,7 @@ import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.api.interfaces.Address;
 
 public class DummyRepository implements IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> {
@@ -121,14 +122,14 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     public void addStorageRow(Address addr, ByteArrayWrapper key, ByteArrayWrapper value) {
         Map<String, byte[]> map = storage.computeIfAbsent(addr, k -> new HashMap<>());
 
-        map.put(key.toString(), value.getData());
+        map.put(key.toString(), (value.isZero()) ? value.getData() : value.getNoLeadZeroesData());
     }
 
     @Override
     public ByteArrayWrapper getStorageValue(Address addr, ByteArrayWrapper key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
-            return new ByteArrayWrapper(map.get(key.toString()));
+            return new DataWord(map.get(key.toString())).toWrapper();
         } else {
             return null;
         }
