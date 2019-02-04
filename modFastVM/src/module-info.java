@@ -8,6 +8,7 @@ module aion.fastvm {
     requires aion.precompiled;
     requires commons.lang3;
     requires commons.collections4;
+    requires aion.util;
 
     exports org.aion.solidity;
     exports org.aion.fastvm;
