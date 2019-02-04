@@ -122,14 +122,14 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     public void addStorageRow(Address addr, ByteArrayWrapper key, ByteArrayWrapper value) {
         Map<String, byte[]> map = storage.computeIfAbsent(addr, k -> new HashMap<>());
 
-        map.put(key.toString(), (value.isZero()) ? value.getData() : value.getNoLeadZeroesData());
+        map.put(key.toString(), value.getData());
     }
 
     @Override
     public ByteArrayWrapper getStorageValue(Address addr, ByteArrayWrapper key) {
         Map<String, byte[]> map = storage.get(addr);
         if (map != null && map.containsKey(key.toString())) {
-            return new DataWord(map.get(key.toString())).toWrapper();
+            return new ByteArrayWrapper(map.get(key.toString()));
         } else {
             return null;
         }
