@@ -146,12 +146,6 @@ public class ExecutionContext implements TransactionContext {
      */
     @Override
     public byte[] toBytes() {
-        // If this is a CREATE then we do not want to serialize the callData.
-        byte[] callData =
-            transaction.isContractCreationTransaction()
-                ? ByteUtil.EMPTY_BYTE_ARRAY
-                : ArrayUtils.nullToEmpty(transaction.getData());
-        
         ByteBuffer buffer = ByteBuffer.allocate(getEncodingLength());
         buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.put(address.toBytes());
