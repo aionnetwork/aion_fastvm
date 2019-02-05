@@ -336,7 +336,9 @@ public class CallbackUnitTest {
         byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
         Address address = putInStorage(key, value);
         assertArrayEquals(
-                value, repo.getStorageValue(address, new DataWord(key).toWrapper()).getData());
+                value,
+                new DataWord(repo.getStorageValue(address, new DataWord(key).toWrapper()).getData())
+                        .getData());
     }
 
     @Test
@@ -355,7 +357,10 @@ public class CallbackUnitTest {
         for (int i = 0; i < num; i++) {
             assertArrayEquals(
                     values[i],
-                    repo.getStorageValue(addresses[i], new DataWord(keys[i]).toWrapper())
+                    new DataWord(
+                                    repo.getStorageValue(
+                                                    addresses[i], new DataWord(keys[i]).toWrapper())
+                                            .getData())
                             .getData());
         }
     }
@@ -372,7 +377,10 @@ public class CallbackUnitTest {
         for (int i = 0; i < numAddrs; i++) {
             assertArrayEquals(
                     values[i],
-                    repo.getStorageValue(addresses[i], new DataWord(keys[i]).toWrapper())
+                    new DataWord(
+                                    repo.getStorageValue(
+                                                    addresses[i], new DataWord(keys[i]).toWrapper())
+                                            .getData())
                             .getData());
         }
     }
@@ -398,7 +406,11 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        repos[i].getStorageValue(addresses[j], new DataWord(keys[j]).toWrapper())
+                        new DataWord(
+                                        repos[i].getStorageValue(
+                                                        addresses[j],
+                                                        new DataWord(keys[j]).toWrapper())
+                                                .getData())
                                 .getData());
             }
             Callback.pop();
@@ -1941,7 +1953,9 @@ public class CallbackUnitTest {
     }
 
     private Address getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        byte[] bytes = RandomUtils.nextBytes(Address.SIZE);
+        bytes[0] = (byte) 0xa0;
+        return new AionAddress(bytes);
     }
 
     /**
@@ -2157,7 +2171,9 @@ public class CallbackUnitTest {
         Address address = getNewAddress();
         if (pushToRepo) {
             repo.addStorageRow(
-                    address, new DataWord(key).toWrapper(), new DataWord(value).toWrapper());
+                    address,
+                    new DataWord(key).toWrapper(),
+                    new ByteArrayWrapper(new DataWord(value).getNoLeadZeroesData()));
         } else {
             Callback.putStorage(address.toBytes(), key, value);
         }

@@ -13,6 +13,7 @@ import org.aion.base.util.ByteArrayWrapper;
 import org.aion.base.util.ByteUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
+import org.aion.mcf.vm.types.DataWord;
 import org.aion.vm.api.interfaces.Address;
 
 public class DummyRepository implements IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> {
