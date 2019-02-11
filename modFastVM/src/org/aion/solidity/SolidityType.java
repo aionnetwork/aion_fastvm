@@ -6,8 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+import org.aion.type.api.util.ByteUtil;
+import org.aion.type.api.util.Hex;
 
 public abstract class SolidityType {
 

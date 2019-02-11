@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.aion.base.type.AionAddress;
+import org.aion.type.api.type.AionAddress;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
 import org.aion.mcf.vm.types.Log;

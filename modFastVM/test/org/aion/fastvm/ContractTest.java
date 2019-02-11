@@ -5,10 +5,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.AionAddress;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+import org.aion.type.api.db.IRepositoryCache;
+import org.aion.type.api.type.AionAddress;
+import org.aion.type.api.util.ByteUtil;
+import org.aion.type.api.util.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;

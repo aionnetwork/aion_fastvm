@@ -2,8 +2,8 @@ package org.aion.fastvm;
 
 import static org.junit.Assert.assertEquals;
 
-import org.aion.base.type.AionAddress;
-import org.aion.base.util.Hex;
+import org.aion.type.api.type.AionAddress;
+import org.aion.type.api.util.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;

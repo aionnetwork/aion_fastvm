@@ -3,7 +3,7 @@ package org.aion.contract;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.aion.base.util.Hex;
+import org.aion.type.api.util.Hex;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;

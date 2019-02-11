@@ -25,15 +25,13 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.aion.base.vm.IDataWord;
+import org.aion.type.api.vm.IDataWord;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.util.bytes.ByteUtil;
 import org.aion.vm.api.interfaces.Address;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionTransaction;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Execution context, including both transaction and block information.
