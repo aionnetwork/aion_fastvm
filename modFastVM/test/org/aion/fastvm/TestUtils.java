@@ -2,7 +2,7 @@ package org.aion.fastvm;
 
 import java.util.Collections;
 import java.util.List;
-import org.aion.base.type.AionAddress;
+import org.aion.type.api.type.AionAddress;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;

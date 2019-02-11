@@ -21,8 +21,8 @@ sourceSets {
 }
 
 dependencies {
+    compile project(':type_api')
     compile project(':modAion')
-    compile project(':modAionBase')
     compile project(':modCrypto')
     compile project(':modMcf')
     compile project(':modPrecompiled')
