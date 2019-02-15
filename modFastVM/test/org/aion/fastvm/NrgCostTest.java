@@ -50,18 +50,18 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.aion.type.api.db.IRepositoryCache;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteArrayWrapper;
-import org.aion.type.api.util.ByteUtil;
-import org.aion.type.api.util.Hex;
+import org.aion.type.api.interfaces.db.RepositoryCache;
+import org.aion.type.AionAddress;
+import org.aion.type.ByteArrayWrapper;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -586,7 +586,7 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
                             AionAddress.wrap(
@@ -604,7 +604,7 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
                             AionAddress.wrap(
@@ -631,7 +631,7 @@ public class NrgCostTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
 

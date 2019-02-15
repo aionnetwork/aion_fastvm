@@ -8,17 +8,17 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collections;
-import org.aion.type.api.db.IRepositoryCache;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteUtil;
-import org.aion.type.api.util.Hex;
+import org.aion.type.api.interfaces.db.RepositoryCache;
+import org.aion.type.AionAddress;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionBlock;
@@ -737,7 +737,7 @@ public class FastVMTest {
     @After
     public void teardown() {}
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
 

@@ -5,15 +5,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import org.aion.type.api.db.IRepositoryCache;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteUtil;
-import org.aion.type.api.util.Hex;
+import org.aion.type.api.interfaces.db.RepositoryCache;
+import org.aion.type.AionAddress;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.apache.commons.lang3.RandomUtils;
@@ -222,7 +222,7 @@ public class ContractTest {
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
 
