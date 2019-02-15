@@ -12,8 +12,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteArrayWrapper;
+
 import org.aion.fastvm.FastVmResultCode;
 import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.SideEffects;
@@ -23,7 +22,10 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.AionAddress;
+import org.aion.type.ByteArrayWrapper;
+import org.aion.type.api.interfaces.common.Address;
+import org.aion.type.api.interfaces.common.Wrapper;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
@@ -655,12 +657,12 @@ public class TransactionExecutorUnitTest {
     //
     //    @Test
     //    public void testCreateWhenContractAlreadyExists() {
-    //        IRepositoryCache cache = mock(IRepositoryCache.class);
+    //        RepositoryCache cache = mock(RepositoryCache.class);
     //        when(cache.hasAccountState(Mockito.any(Address.class))).thenReturn(true);
     //        AionTransaction tx = mockTx();
     //        AionBlock block = mockBlock(getNewAddress());
     //
-    //        IRepositoryCache repo = mock(IRepositoryCache.class);
+    //        RepositoryCache repo = mock(RepositoryCache.class);
     //        when(repo.startTracking()).thenReturn(cache);
     //
     //        TransactionExecutor executor = getNewExecutor(tx, block, repo);
@@ -844,7 +846,7 @@ public class TransactionExecutorUnitTest {
     //    private TransactionExecutor getNewExecutor(
     //            AionTransaction tx, boolean isLocalCall, long blockNrg, Address coinbase) {
     //
-    //        IAionBlock block = getNewAionBlock(blockNrg, tx.getData(), coinbase);
+    //        AionBlock block = getNewAionBlock(blockNrg, tx.getData(), coinbase);
     //        long nrgLeft = tx.transactionCost(block.getNumber());
     //        return getNewExecutor(tx, block, repo, isLocalCall);
     //    }
@@ -1051,7 +1053,7 @@ public class TransactionExecutorUnitTest {
     //                        ? getNewAionTransactionContractCreation(data, nrgPrice)
     //                        : getNewAionTransaction(data, nrgPrice);
     //        TransactionExecutor executor = getNewExecutor(tx, true, 0);
-    //        ITxReceipt receipt = new AionTxReceipt();
+    //        TxReceipt receipt = new AionTxReceipt();
     //        return (AionTxReceipt) executor.buildReceipt(receipt, tx, logs);
     //    }
 
@@ -1530,7 +1532,7 @@ public class TransactionExecutorUnitTest {
     //    /**
     //     * Runs the prepare method of a TransactionExecutor.
     //     *
-    //     * @param isContractCreation Transaction is for contract creation.
+    //     * @param isContractCreation TransactionExtend is for contract creation.
     //     * @param skipNonceCheck True if the nonce check is to be skipped.
     //     * @param balanceIsEqual True if account's balance is equal to the execution cost,
     // otherwise it
@@ -1565,7 +1567,7 @@ public class TransactionExecutorUnitTest {
     //    /**
     //     * Runs the prepare method of a TransactionExecutor.
     //     *
-    //     * @param isContractCreation Transaction is for contract creation.
+    //     * @param isContractCreation TransactionExtend is for contract creation.
     //     * @param txNrgPrice The transaction energy price.
     //     * @param txValue The transaction value.
     //     */
@@ -1803,12 +1805,12 @@ public class TransactionExecutorUnitTest {
     private void checkLogs(AionTxExecSummary summary, SideEffects helper) {
         List<IExecutionLog> summaryLogs = summary.getLogs();
         List<IExecutionLog> helperLogs = helper.getExecutionLogs();
-        List<org.aion.vm.api.interfaces.Address> summaryAddrs = new ArrayList<>();
-        List<org.aion.vm.api.interfaces.Address> helperAddrs = new ArrayList<>();
-        List<ByteArrayWrapper> summaryData = new ArrayList<>();
-        List<ByteArrayWrapper> helperData = new ArrayList<>();
-        List<ByteArrayWrapper> summaryTopics = new ArrayList<>();
-        List<ByteArrayWrapper> helperTopics = new ArrayList<>();
+        List<Address> summaryAddrs = new ArrayList<>();
+        List<Address> helperAddrs = new ArrayList<>();
+        List<Wrapper> summaryData = new ArrayList<>();
+        List<Wrapper> helperData = new ArrayList<>();
+        List<Wrapper> summaryTopics = new ArrayList<>();
+        List<Wrapper> helperTopics = new ArrayList<>();
 
         for (IExecutionLog log : summaryLogs) {
             summaryAddrs.add(log.getSourceAddress());
@@ -1826,8 +1828,8 @@ public class TransactionExecutorUnitTest {
         assertEquals(helperTopics, summaryTopics);
     }
 
-    private List<ByteArrayWrapper> wrapTopics(List<byte[]> topics) {
-        List<ByteArrayWrapper> wrappedTopics = new ArrayList<>();
+    private List<Wrapper> wrapTopics(List<byte[]> topics) {
+        List<Wrapper> wrappedTopics = new ArrayList<>();
         for (byte[] topic : topics) {
             wrappedTopics.add(new ByteArrayWrapper(topic));
         }
@@ -1987,19 +1989,19 @@ public class TransactionExecutorUnitTest {
         }
     }
 
-    //    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block,
-    // IRepositoryCache repo, boolean allowNonceIncrement, boolean isLocalCall) {
+    //    private TransactionExecutor getNewExecutor(AionTransaction tx, AionBlock block,
+    // RepositoryCache repo, boolean allowNonceIncrement, boolean isLocalCall) {
     //        return new TransactionExecutor(tx, block, new KernelInterfaceForFastVM(repo,
     // allowNonceIncrement, isLocalCall), isLocalCall, LOGGER_VM);
     //    }
 
-    //    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block,
-    // IRepositoryCache repo, boolean isLocalCall) {
+    //    private TransactionExecutor getNewExecutor(AionTransaction tx, AionBlock block,
+    // RepositoryCache repo, boolean isLocalCall) {
     //        return getNewExecutor(tx, block, repo, true, isLocalCall);
     //    }
 
-    //    private TransactionExecutor getNewExecutor(AionTransaction tx, IAionBlock block,
-    // IRepositoryCache repo) {
+    //    private TransactionExecutor getNewExecutor(AionTransaction tx, AionBlock block,
+    // RepositoryCache repo) {
     //        return getNewExecutor(tx, block, repo, false);
     //    }
 }

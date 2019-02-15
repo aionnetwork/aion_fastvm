@@ -16,20 +16,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import org.aion.type.api.db.IRepositoryCache;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteArrayWrapper;
-import org.aion.type.api.vm.IDataWord;
+import org.aion.type.api.interfaces.db.RepositoryCache;
+import org.aion.type.AionAddress;
+import org.aion.type.ByteArrayWrapper;
+import org.aion.type.api.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.Constants;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -93,7 +92,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> stackRepo =
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> stackRepo =
                 Callback.kernelRepo().getRepositoryCache();
         System.out.println(repo.getRepositoryCache());
         compareRepos(repo.getRepositoryCache(), stackRepo);
@@ -221,14 +220,14 @@ public class CallbackUnitTest {
     public void testGetBalanceAccountExists() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
         Address address = pushNewBalance(balance);
-        assertArrayEquals(new DataWord(balance).getData(), Callback.getBalance(address.toBytes()));
+        assertArrayEquals(new org.aion.mcf.vm.types.DataWord(balance).getData(), Callback.getBalance(address.toBytes()));
     }
 
     @Test
     public void testGetBalanceNoSuchAccount() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
-        assertArrayEquals(new byte[DataWord.BYTES], Callback.getBalance(getNewAddress().toBytes()));
+        assertArrayEquals(new byte[org.aion.mcf.vm.types.DataWord.BYTES], Callback.getBalance(getNewAddress().toBytes()));
     }
 
     @Test
@@ -242,7 +241,7 @@ public class CallbackUnitTest {
         }
         for (int i = 0; i < depths; i++) {
             assertArrayEquals(
-                    new DataWord(balances[i]).getData(),
+                    new org.aion.mcf.vm.types.DataWord(balances[i]).getData(),
                     Callback.getBalance(addresses[i].toBytes()));
             Callback.pop();
         }
@@ -272,29 +271,29 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageIsValidEntry() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] key = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
         Address address = pushNewStorageEntry(repo, key, value, true);
         assertArrayEquals(value, Callback.getStorage(address.toBytes(), key));
     }
 
     @Test
     public void testGetStorageNoSuchEntry() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] key = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
         Address address = pushNewStorageEntry(repo, key, value, true);
-        byte[] badKey = Arrays.copyOf(key, DataWord.BYTES);
+        byte[] badKey = Arrays.copyOf(key, org.aion.mcf.vm.types.DataWord.BYTES);
         badKey[0] = (byte) ~key[0];
-        assertArrayEquals(DataWord.ZERO.getData(), Callback.getStorage(address.toBytes(), badKey));
+        assertArrayEquals(org.aion.mcf.vm.types.DataWord.ZERO.getData(), Callback.getStorage(address.toBytes(), badKey));
     }
 
     @Test
     public void testGetStorageMultipleAddresses() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -311,7 +310,7 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            IRepositoryCache repo = new DummyRepository();
+            RepositoryCache repo = new DummyRepository();
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -330,36 +329,36 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorage() {
-        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] key = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
         Address address = putInStorage(key, value);
         assertArrayEquals(
                 value,
-                new DataWord(repo.getStorageValue(address, new DataWord(key).toWrapper()).getData())
+                new org.aion.mcf.vm.types.DataWord(repo.getStorageValue(address, new org.aion.mcf.vm.types.DataWord(key).toWrapper()).getData())
                         .getData());
     }
 
     @Test
     public void testPutStorageMultipleEntries() {
         int num = RandomUtils.nextInt(3, 10);
-        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
         Address[] addresses = new Address[num];
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
-            keys[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
-            values[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
+            keys[num - 1 - i] = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+            values[num - 1 - i] = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
             addresses[num - 1 - i] = putInStorage(keys[num - 1 - i], values[num - 1 - i]);
         }
         for (int i = 0; i < num; i++) {
             assertArrayEquals(
                     values[i],
-                    new DataWord(
+                    new org.aion.mcf.vm.types.DataWord(
                                     repo.getStorageValue(
-                                                    addresses[i], new DataWord(keys[i]).toWrapper())
+                                                    addresses[i], new org.aion.mcf.vm.types.DataWord(keys[i]).toWrapper())
                                             .getData())
                             .getData());
         }
@@ -367,7 +366,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorageMultipleAddresses() {
-        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -377,9 +376,9 @@ public class CallbackUnitTest {
         for (int i = 0; i < numAddrs; i++) {
             assertArrayEquals(
                     values[i],
-                    new DataWord(
+                    new org.aion.mcf.vm.types.DataWord(
                                     repo.getStorageValue(
-                                                    addresses[i], new DataWord(keys[i]).toWrapper())
+                                                    addresses[i], new org.aion.mcf.vm.types.DataWord(keys[i]).toWrapper())
                                             .getData())
                             .getData());
         }
@@ -388,8 +387,8 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleAddressesAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        IRepositoryCache<AccountState, IBlockStoreBase<?, ?>>[] repos =
-                new IRepositoryCache[depths];
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>>[] repos =
+                new RepositoryCache[depths];
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
             repos[depths - 1 - i] = new DummyRepository();
@@ -406,10 +405,10 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        new DataWord(
+                        new org.aion.mcf.vm.types.DataWord(
                                         repos[i].getStorageValue(
                                                         addresses[j],
-                                                        new DataWord(keys[j]).toWrapper())
+                                                        new org.aion.mcf.vm.types.DataWord(keys[j]).toWrapper())
                                                 .getData())
                                 .getData());
             }
@@ -419,18 +418,18 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutThenGetStorage() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
         Address address = getNewAddress();
-        byte[] key = RandomUtils.nextBytes(DataWord.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] key = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
         Callback.putStorage(address.toBytes(), key, value);
         assertArrayEquals(value, Callback.getStorage(address.toBytes(), key));
     }
 
     @Test
     public void testPutThenGetStorageMultipleTimes() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -447,7 +446,7 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            IRepositoryCache repo = new DummyRepository();
+            RepositoryCache repo = new DummyRepository();
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -585,7 +584,8 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                        new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                            org.aion.mcf.vm.types.DataWord.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -598,7 +598,8 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                        new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                            org.aion.mcf.vm.types.DataWord.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -608,7 +609,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergy(),
-                        new DataWord(ctx.getTransferValue()),
+                        new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -627,7 +628,8 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                            new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                                org.aion.mcf.vm.types.DataWord.BYTES)),
                             false,
                             false,
                             ExecutionContext.DELEGATECALL,
@@ -643,7 +645,8 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                            new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                                org.aion.mcf.vm.types.DataWord.BYTES)),
                             i % 2 == 0,
                             false,
                             ExecutionContext.DELEGATECALL,
@@ -653,7 +656,7 @@ public class CallbackUnitTest {
                             ctx.getDestinationAddress(),
                             ctx.getSenderAddress(),
                             ctx.getTransactionEnergy(),
-                            new DataWord(ctx.getTransferValue()),
+                            new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
                             ctx.getTransactionData(),
                             ctx.getTransactionStackDepth(),
                             ctx.getTransactionKind(),
@@ -671,7 +674,8 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                        new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                            org.aion.mcf.vm.types.DataWord.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -684,7 +688,8 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                        new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                            org.aion.mcf.vm.types.DataWord.BYTES)),
                         true,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -694,7 +699,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergy(),
-                        new DataWord(ctx.getTransferValue()),
+                        new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -706,13 +711,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testCallStackDepthTooLarge() {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWord(RandomUtils.nextBytes(DataWord.BYTES)),
+                        new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+                            org.aion.mcf.vm.types.DataWord.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -726,7 +732,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWord(context.getTransferValue()),
+                        new org.aion.mcf.vm.types.DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         Constants.MAX_CALL_DEPTH,
@@ -739,14 +745,14 @@ public class CallbackUnitTest {
     @Test
     public void testCallCallersBalanceLessThanCallValue() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
                 newExecutionContext(
                         caller,
                         getNewAddress(),
-                        new DataWord(balance.add(BigInteger.ONE)),
+                        new org.aion.mcf.vm.types.DataWord(balance.add(BigInteger.ONE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -760,7 +766,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWord(context.getTransferValue()),
+                        new org.aion.mcf.vm.types.DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         0,
@@ -1798,7 +1804,7 @@ public class CallbackUnitTest {
         when(context.getTransactionData())
                 .thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
         when(context.getTransferValue())
-                .thenReturn(new BigInteger(1, RandomUtils.nextBytes(DataWord.BYTES)));
+                .thenReturn(new BigInteger(1, RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES)));
         when(context.getTransactionEnergy()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(context.getTransactionStackDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
@@ -1808,7 +1814,7 @@ public class CallbackUnitTest {
     private ExecutionContext newExecutionContext(
             Address caller,
             Address recipient,
-            DataWord callValue,
+            org.aion.mcf.vm.types.DataWord callValue,
             boolean isEmptyData,
             boolean septForkEnabled,
             int kind,
@@ -1816,7 +1822,8 @@ public class CallbackUnitTest {
 
         byte[] txHash = RandomUtils.nextBytes(32);
         Address origin = getNewAddress();
-        DataWord nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        org.aion.mcf.vm.types.DataWord nrgPrice = new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+            org.aion.mcf.vm.types.DataWord.BYTES));
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
@@ -1834,7 +1841,8 @@ public class CallbackUnitTest {
         }
         long blockTimestamp = RandomUtils.nextLong(100, 100_000);
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
-        DataWord blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        org.aion.mcf.vm.types.DataWord blockDifficulty = new org.aion.mcf.vm.types.DataWord(RandomUtils.nextBytes(
+            org.aion.mcf.vm.types.DataWord.BYTES));
         return new ExecutionContext(
                 null,
                 txHash,
@@ -1866,7 +1874,7 @@ public class CallbackUnitTest {
             Address address,
             Address caller,
             long nrgLimit,
-            IDataWord callValue,
+            DataWord callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -1874,7 +1882,7 @@ public class CallbackUnitTest {
 
         int len =
                 (Address.SIZE * 2)
-                        + DataWord.BYTES
+                        + org.aion.mcf.vm.types.DataWord.BYTES
                         + (Integer.BYTES * 4)
                         + Long.BYTES
                         + callData.length;
@@ -1911,7 +1919,7 @@ public class CallbackUnitTest {
     }
 
     private KernelInterfaceForFastVM mockKernelRepo() {
-        IRepositoryCache cache = mock(IRepositoryCache.class);
+        RepositoryCache cache = mock(RepositoryCache.class);
         when(cache.toString()).thenReturn("mocked repo.");
         KernelInterfaceForFastVM kernel = mock(KernelInterfaceForFastVM.class);
         when(kernel.getRepositoryCache()).thenReturn(cache);
@@ -1929,14 +1937,14 @@ public class CallbackUnitTest {
         assertEquals(context.getTransactionStackDepth(), other.getTransactionStackDepth());
     }
 
-    private void compareRepos(IRepositoryCache cache, IRepositoryCache other) {
+    private void compareRepos(RepositoryCache cache, RepositoryCache other) {
         Address addr = getNewAddress();
         assertEquals(cache.toString(), other.toString());
         assertEquals(cache.getCode(addr), other.getCode(addr));
     }
 
     private Address getNewAddressInRepo(
-            IRepositoryCache repo, BigInteger balance, BigInteger nonce) {
+            RepositoryCache repo, BigInteger balance, BigInteger nonce) {
         Address address = getNewAddress();
         repo.createAccount(address);
         repo.addBalance(address, balance);
@@ -1974,7 +1982,7 @@ public class CallbackUnitTest {
             Address beneficiary,
             BigInteger beneficiaryOldBalance) {
 
-        IRepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
+        RepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
         TransactionContext ctx = Callback.context();
         TransactionSideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
@@ -1988,7 +1996,7 @@ public class CallbackUnitTest {
         assertEquals(owner, tx.getSenderAddress());
         assertEquals(beneficiary, tx.getDestinationAddress());
         assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
-        assertEquals(new DataWord(ownerBalance), new DataWord(tx.getValue()));
+        assertEquals(new org.aion.mcf.vm.types.DataWord(ownerBalance), new org.aion.mcf.vm.types.DataWord(tx.getValue()));
         assertArrayEquals(new byte[0], tx.getData());
         assertEquals("selfdestruct", tx.getNote());
         assertEquals(ctx.getTransactionStackDepth(), tx.getStackDepth());
@@ -2036,9 +2044,9 @@ public class CallbackUnitTest {
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
                 context.getSenderAddress(),
-                new DataWord(previous.getTransactionEnergyPrice()),
+                new org.aion.mcf.vm.types.DataWord(previous.getTransactionEnergyPrice()),
                 context.getTransactionEnergy(),
-                new DataWord(context.getTransferValue()),
+                new org.aion.mcf.vm.types.DataWord(context.getTransferValue()),
                 context.getTransactionData(),
                 context.getTransactionStackDepth(),
                 context.getTransactionKind(),
@@ -2047,7 +2055,7 @@ public class CallbackUnitTest {
                 previous.getBlockNumber(),
                 previous.getBlockTimestamp(),
                 previous.getBlockEnergyLimit(),
-                new DataWord(previous.getBlockDifficulty()));
+                new org.aion.mcf.vm.types.DataWord(previous.getBlockDifficulty()));
     }
 
     /**
@@ -2083,7 +2091,7 @@ public class CallbackUnitTest {
      * The newly created account with this balance is returned.
      */
     private Address pushNewBalance(BigInteger balance) {
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         Address address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
@@ -2106,7 +2114,7 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            keys[i] = Arrays.copyOfRange(pack, Address.SIZE, Address.SIZE + DataWord.BYTES);
+            keys[i] = Arrays.copyOfRange(pack, Address.SIZE, Address.SIZE + org.aion.mcf.vm.types.DataWord.BYTES);
         }
         return keys;
     }
@@ -2116,16 +2124,16 @@ public class CallbackUnitTest {
         byte[][] values = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            values[i] = Arrays.copyOfRange(pack, pack.length - DataWord.BYTES, pack.length);
+            values[i] = Arrays.copyOfRange(pack, pack.length - org.aion.mcf.vm.types.DataWord.BYTES, pack.length);
         }
         return values;
     }
 
     private byte[] packIntoBytes(Address address, byte[] key, byte[] value) {
-        byte[] pack = new byte[Address.SIZE + (DataWord.BYTES * 2)];
+        byte[] pack = new byte[Address.SIZE + (org.aion.mcf.vm.types.DataWord.BYTES * 2)];
         System.arraycopy(address.toBytes(), 0, pack, 0, Address.SIZE);
-        System.arraycopy(key, 0, pack, Address.SIZE, DataWord.BYTES);
-        System.arraycopy(value, 0, pack, Address.SIZE + DataWord.BYTES, DataWord.BYTES);
+        System.arraycopy(key, 0, pack, Address.SIZE, org.aion.mcf.vm.types.DataWord.BYTES);
+        System.arraycopy(value, 0, pack, Address.SIZE + org.aion.mcf.vm.types.DataWord.BYTES, org.aion.mcf.vm.types.DataWord.BYTES);
         return pack;
     }
 
@@ -2147,14 +2155,14 @@ public class CallbackUnitTest {
      * wrapper.
      */
     private List<ByteArrayWrapper> pushNewStorageEntries(
-            IRepositoryCache repo, int num, boolean pushToRepo) {
+            RepositoryCache repo, int num, boolean pushToRepo) {
 
         Address[] addresses = new Address[num];
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
-            keys[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
-            values[num - 1 - i] = RandomUtils.nextBytes(DataWord.BYTES);
+            keys[num - 1 - i] = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
+            values[num - 1 - i] = RandomUtils.nextBytes(org.aion.mcf.vm.types.DataWord.BYTES);
             addresses[num - 1 - i] =
                     pushNewStorageEntry(repo, keys[num - 1 - i], values[num - 1 - i], pushToRepo);
         }
@@ -2166,14 +2174,14 @@ public class CallbackUnitTest {
      * with key and value as the key-value pair for some random address, which is then returned.
      */
     private Address pushNewStorageEntry(
-            IRepositoryCache repo, byte[] key, byte[] value, boolean pushToRepo) {
+            RepositoryCache repo, byte[] key, byte[] value, boolean pushToRepo) {
 
         Address address = getNewAddress();
         if (pushToRepo) {
             repo.addStorageRow(
                     address,
-                    new DataWord(key).toWrapper(),
-                    new ByteArrayWrapper(new DataWord(value).getNoLeadZeroesData()));
+                    new org.aion.mcf.vm.types.DataWord(key).toWrapper(),
+                    new ByteArrayWrapper(new org.aion.mcf.vm.types.DataWord(value).getNoLeadZeroesData()));
         } else {
             Callback.putStorage(address.toBytes(), key, value);
         }
@@ -2184,7 +2192,7 @@ public class CallbackUnitTest {
      * Pushes repo onto the top of the Callback stack by adding a new mocked Pair whose right entry
      * is repo.
      */
-    private void pushNewRepo(IRepositoryCache repo) {
+    private void pushNewRepo(RepositoryCache repo) {
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
@@ -2244,7 +2252,7 @@ public class CallbackUnitTest {
      * @param recipientBalance The balance of the recipient's account.
      * @param wasNoRecipient There was no recipient at time of performCall.
      * @param isCreateContract If the op code is CREATE
-     * @param kind Transaction kind.
+     * @param kind TransactionExtend kind.
      */
     private void checkPerformCallResults(
             ExecutionContext context,
@@ -2298,7 +2306,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWord(context.getTransferValue()),
+                        new org.aion.mcf.vm.types.DataWord(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         kind,
@@ -2348,7 +2356,7 @@ public class CallbackUnitTest {
             long nrgLimit) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        IRepositoryCache repo = new DummyRepository();
+        RepositoryCache repo = new DummyRepository();
         Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
             Address contract =
@@ -2369,7 +2377,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         caller,
                         recipient,
-                        new DataWord(callerBalance),
+                        new org.aion.mcf.vm.types.DataWord(callerBalance),
                         dataIsEmpty,
                         septForkEnabled,
                         kind,
@@ -2468,7 +2476,7 @@ public class CallbackUnitTest {
                     new BigInteger(1, tx.getNonce()));
         }
 
-        assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
+        assertEquals(new org.aion.mcf.vm.types.DataWord(context.getTransferValue()), new org.aion.mcf.vm.types.DataWord(tx.getValue()));
         if (isCreateContract) {
             assertEquals("create", tx.getNote());
         } else {
@@ -2541,13 +2549,13 @@ public class CallbackUnitTest {
         Address caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         assertEquals(Callback.kernelRepo().getNonce(caller), new BigInteger(1, tx.getNonce()));
-        assertEquals(new DataWord(context.getTransferValue()), new DataWord(tx.getValue()));
+        assertEquals(new org.aion.mcf.vm.types.DataWord(context.getTransferValue()), new org.aion.mcf.vm.types.DataWord(tx.getValue()));
         assertEquals("create", tx.getNote());
         assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(1, tx.getIndexOfInternalTransaction());
         assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
         assertArrayEquals(
-                new DataWord(Callback.kernelRepo().getNonce(caller)).getData(), tx.getNonce());
+                new org.aion.mcf.vm.types.DataWord(Callback.kernelRepo().getNonce(caller)).getData(), tx.getNonce());
         assertArrayEquals(context.getTransactionData(), tx.getData());
         assertNull(tx.getDestinationAddress());
     }
@@ -2586,7 +2594,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
 }

@@ -2,12 +2,12 @@ package org.aion.fastvm;
 
 import static org.junit.Assert.assertEquals;
 
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.Hex;
+import org.aion.type.AionAddress;
+import org.aion.util.conversions.Hex;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;

@@ -4,14 +4,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import org.aion.type.api.type.AionAddress;
-import org.aion.type.api.util.ByteUtil;
-import org.aion.type.api.util.Hex;
+import org.aion.type.AionAddress;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;

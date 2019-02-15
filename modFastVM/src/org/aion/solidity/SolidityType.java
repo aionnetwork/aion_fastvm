@@ -6,8 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.aion.type.api.util.ByteUtil;
-import org.aion.type.api.util.Hex;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 
 public abstract class SolidityType {
 
@@ -55,7 +55,7 @@ public abstract class SolidityType {
     }
 
     /**
-     * @return fixed size in bytes. For the dynamic types returns IntType.getFixedSize() which is
+     * @return fixed size in bytes. For the dynamic type returns IntType.getFixedSize() which is
      *     effectively the int offset to dynamic data
      */
     public abstract int getFixedSize();

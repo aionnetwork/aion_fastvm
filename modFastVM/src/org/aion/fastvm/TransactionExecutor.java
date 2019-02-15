@@ -25,7 +25,8 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.type.api.interfaces.common.Address;
+import org.aion.type.api.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
@@ -34,7 +35,7 @@ import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
- * Transaction executor is the middle man between kernel and VM. It executes transactions and yields
+ * TransactionExtend executor is the middle man between kernel and VM. It executes transactions and yields
  * transaction receipts.
  *
  * @author yulong
@@ -48,10 +49,10 @@ public class TransactionExecutor {
 
     private TransactionResult transactionResult;
     private TransactionContext context;
-    private TransactionInterface transaction;
+    private Transaction transaction;
 
     public TransactionExecutor(
-            TransactionInterface transaction, TransactionContext context, KernelInterface kernel) {
+            Transaction transaction, TransactionContext context, KernelInterface kernel) {
 
         this.kernel = kernel;
         this.kernelChild = this.kernel.makeChildKernelInterface();
