@@ -392,6 +392,7 @@ void CompilerUtils::memoryCopy()
 
 void CompilerUtils::splitExternalFunctionType(bool _leftAligned)
 {
+	(void) _leftAligned;
 //	// We have to split the left-aligned <address><function identifier> into two stack slots:
 //	// address (right aligned), function identifier (right aligned)
 //	if (_leftAligned)
@@ -412,6 +413,7 @@ void CompilerUtils::splitExternalFunctionType(bool _leftAligned)
 
 void CompilerUtils::combineExternalFunctionType(bool _leftAligned)
 {
+	(void) _leftAligned;
 	// <address> <function_id>
 	m_context << u128(0xffffffffUL) << Instruction::AND;
 //	rotateStackUp(3);
@@ -504,8 +506,8 @@ void CompilerUtils::convertType(
 			solAssert(targetTypeCategory == Type::Category::FixedBytes, "Invalid type conversion requested.");
 			FixedBytesType const& targetType = dynamic_cast<FixedBytesType const&>(_targetType);
 
-			uint targetBytes = targetType.numBytes();
-			uint sourceBytes = typeOnStack.numBytes();
+			unsigned int targetBytes = targetType.numBytes();
+			unsigned int sourceBytes = typeOnStack.numBytes();
 
 			if (targetType.sizeOnStack() > typeOnStack.sizeOnStack()) {
 				sourceBytes += 16;
@@ -915,6 +917,7 @@ void CompilerUtils::convertType(
 			m_context << Instruction::POP;
 			break;
 		}
+		BOOST_FALLTHROUGH;
 	}
 	default:
 		// All other types should not be convertible to non-equal types.

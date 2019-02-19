@@ -456,7 +456,17 @@ Json::Value StandardCompiler::compile(Json::Value const& _input)
 string StandardCompiler::compile(string const& _input)
 {
 	Json::Value input;
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 	Json::Reader reader;
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 	try
 	{
