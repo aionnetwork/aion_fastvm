@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.aion.type.AionAddress;
+import org.aion.types.Address;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
 import org.aion.mcf.vm.types.Log;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.types.AionInternalTx;
@@ -301,7 +301,7 @@ public class SideEffectsUnitTest {
      * @return a newly created address consisting of random bytes.
      */
     private Address getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        return new Address(RandomUtils.nextBytes(Address.SIZE));
     }
 
     /**

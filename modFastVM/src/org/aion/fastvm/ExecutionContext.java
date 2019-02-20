@@ -26,10 +26,9 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.type.api.interfaces.common.Address;
-import org.aion.type.api.interfaces.tx.Transaction;
-import org.aion.type.api.interfaces.tx.TransactionExtend;
-import org.aion.type.api.interfaces.vm.DataWord;
+import org.aion.types.Address;
+import org.aion.interfaces.tx.Transaction;
+import org.aion.interfaces.vm.DataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 
@@ -94,7 +93,7 @@ public class ExecutionContext implements TransactionContext {
      *     length 32.
      */
     public ExecutionContext(
-            TransactionExtend transaction,
+            Transaction transaction,
             byte[] txHash,
             Address destination,
             Address origin,
@@ -181,7 +180,7 @@ public class ExecutionContext implements TransactionContext {
 
     @Override
     public Address getContractAddress() {
-        return ((TransactionExtend) this.transaction).getContractAddress();
+        return this.transaction.getContractAddress();
     }
 
     /** @return the transaction address. */

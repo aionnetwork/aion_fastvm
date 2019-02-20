@@ -7,16 +7,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import org.aion.type.AionAddress;
+import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.type.api.interfaces.vm.DataWord;
+import org.aion.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionInternalTx;
@@ -86,7 +86,7 @@ public class Callback {
      * @return
      */
     public static byte[] getCode(byte[] address) {
-        byte[] code = kernelRepo().getCode(AionAddress.wrap(address));
+        byte[] code = kernelRepo().getCode(Address.wrap(address));
         return code == null ? new byte[0] : code;
     }
 
@@ -97,7 +97,7 @@ public class Callback {
      * @return
      */
     public static byte[] getBalance(byte[] address) {
-        BigInteger balance = kernelRepo().getBalance(AionAddress.wrap(address));
+        BigInteger balance = kernelRepo().getBalance(Address.wrap(address));
         return balance == null ? org.aion.mcf.vm.types.DataWord.ZERO.getData() : new org.aion.mcf.vm.types.DataWord(balance).getData();
     }
 
@@ -108,7 +108,7 @@ public class Callback {
      * @return
      */
     public static boolean exists(byte[] address) {
-        return kernelRepo().hasAccountState(AionAddress.wrap(address));
+        return kernelRepo().hasAccountState(Address.wrap(address));
     }
 
     /**
@@ -123,7 +123,7 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + (value == null ?
         // "":Hex.toHexString(value.getData())));
 
-        return kernelRepo().getStorage(AionAddress.wrap(address), key);
+        return kernelRepo().getStorage(Address.wrap(address), key);
     }
 
     /**
@@ -139,9 +139,9 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         if (value == null || value.length == 0 || isZero(value)) {
-            kernelRepo().removeStorage(AionAddress.wrap(address), key);
+            kernelRepo().removeStorage(Address.wrap(address), key);
         } else {
-            kernelRepo().putStorage(AionAddress.wrap(address), key, value);
+            kernelRepo().putStorage(Address.wrap(address), key, value);
         }
     }
 
@@ -162,26 +162,26 @@ public class Callback {
      * @param beneficiary
      */
     public static void selfDestruct(byte[] owner, byte[] beneficiary) {
-        BigInteger balance = kernelRepo().getBalance(AionAddress.wrap(owner));
+        BigInteger balance = kernelRepo().getBalance(Address.wrap(owner));
 
         // add internal transaction
         AionInternalTx internalTx =
                 newInternalTx(
-                        AionAddress.wrap(owner),
-                        AionAddress.wrap(beneficiary),
-                        kernelRepo().getNonce(AionAddress.wrap(owner)),
+                        Address.wrap(owner),
+                        Address.wrap(beneficiary),
+                        kernelRepo().getNonce(Address.wrap(owner)),
                         new org.aion.mcf.vm.types.DataWord(balance),
                         ByteUtil.EMPTY_BYTE_ARRAY,
                         "selfdestruct");
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer
-        kernelRepo().adjustBalance(AionAddress.wrap(owner), balance.negate());
+        kernelRepo().adjustBalance(Address.wrap(owner), balance.negate());
         if (!Arrays.equals(owner, beneficiary)) {
-            kernelRepo().adjustBalance(AionAddress.wrap(beneficiary), balance);
+            kernelRepo().adjustBalance(Address.wrap(beneficiary), balance);
         }
 
-        context().getSideEffects().addToDeletedAddresses(AionAddress.wrap(owner));
+        context().getSideEffects().addToDeletedAddresses(Address.wrap(owner));
     }
 
     /**
@@ -199,7 +199,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().getSideEffects().addLog(new Log(AionAddress.wrap(address), list, data));
+        context().getSideEffects().addLog(new Log(Address.wrap(address), list, data));
     }
 
     /**
@@ -339,7 +339,7 @@ public class Callback {
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
         Address newAddress =
-                AionAddress.wrap(HashUtil.calcNewAddr(ctx.getSenderAddress().toBytes(), nonce));
+                Address.wrap(HashUtil.calcNewAddr(ctx.getSenderAddress().toBytes(), nonce));
         ctx.setDestinationAddress(newAddress);
 
         // add internal transaction
@@ -455,9 +455,9 @@ public class Callback {
         return new ExecutionContext(
                 null,
                 txHash,
-                AionAddress.wrap(address),
+                Address.wrap(address),
                 origin,
-                AionAddress.wrap(caller),
+                Address.wrap(caller),
                 nrgPrice,
                 nrgLimit,
                 callValue,

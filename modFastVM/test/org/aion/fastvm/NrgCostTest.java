@@ -50,9 +50,9 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.aion.type.api.interfaces.db.RepositoryCache;
-import org.aion.type.AionAddress;
-import org.aion.type.ByteArrayWrapper;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
@@ -61,7 +61,7 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -74,11 +74,11 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NrgCostTest {
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
-    private Address address = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address address = Address.wrap(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
@@ -589,7 +589,7 @@ public class NrgCostTest {
                 RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
-                            AionAddress.wrap(
+                            Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
@@ -607,7 +607,7 @@ public class NrgCostTest {
                 RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
-                            AionAddress.wrap(
+                            Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     new DataWord(
                             repo.getStorageValue(

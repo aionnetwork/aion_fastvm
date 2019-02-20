@@ -2,12 +2,12 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
+import org.aion.interfaces.tx.Transaction;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.vm.api.interfaces.VirtualMachine;
 import org.aion.zero.db.AionRepositoryCache;
@@ -19,14 +19,6 @@ public class FastVirtualMachine implements VirtualMachine {
     // is never released to the above caller, so that the caller recieves the correct historical
     // updates in each separately returned KernelInterface and must flushTo its intended repository.
     private KernelInterface kernelSnapshot;
-
-    @Override
-    public void setKernelInterface(KernelInterface kernel) {
-        if (kernel == null) {
-            throw new NullPointerException("Cannot set null KernelInterface.");
-        }
-        this.kernelSnapshot = kernel.makeChildKernelInterface();
-    }
 
     @Override
     public void start() {
@@ -45,18 +37,33 @@ public class FastVirtualMachine implements VirtualMachine {
      * are immediately available to be consumed by some other repository without any checks.
      */
     @Override
-    public SimpleFuture<TransactionResult>[] run(TransactionContext[] contexts) {
-        FastVmSimpleFuture<TransactionResult>[] transactionResults = new FastVmSimpleFuture[contexts.length];
+    public SimpleFuture<TransactionResult>[] run(
+            KernelInterface kernel, TransactionContext[] contexts) {
+        if (kernel == null) {
+            throw new NullPointerException("Cannot set null KernelInterface.");
+        }
+        this.kernelSnapshot = kernel.makeChildKernelInterface();
+
+        FastVmSimpleFuture<TransactionResult>[] transactionResults =
+                new FastVmSimpleFuture[contexts.length];
 
         for (int i = 0; i < contexts.length; i++) {
-            TransactionExecutor executor = new TransactionExecutor(contexts[i].getTransaction(), contexts[i], this.kernelSnapshot.makeChildKernelInterface());
+            TransactionExecutor executor =
+                    new TransactionExecutor(
+                            (Transaction) contexts[i].getTransaction(),
+                            contexts[i],
+                            this.kernelSnapshot.makeChildKernelInterface());
             transactionResults[i] = new FastVmSimpleFuture();
             transactionResults[i].setResult(executor.execute());
 
-            // We want to flush back up to the snapshot without losing any state, so that we can pass that state to the caller.
-            KernelInterfaceForFastVM fvmKernel = (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
-            AionRepositoryCache fvmKernelRepo = (AionRepositoryCache) fvmKernel.getRepositoryCache();
-            KernelInterfaceForFastVM snapshotKernel = (KernelInterfaceForFastVM) this.kernelSnapshot;
+            // We want to flush back up to the snapshot without losing any state, so that we can
+            // pass that state to the caller.
+            KernelInterfaceForFastVM fvmKernel =
+                    (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
+            AionRepositoryCache fvmKernelRepo =
+                    (AionRepositoryCache) fvmKernel.getRepositoryCache();
+            KernelInterfaceForFastVM snapshotKernel =
+                    (KernelInterfaceForFastVM) this.kernelSnapshot;
             fvmKernelRepo.flushCopiesTo(snapshotKernel.getRepositoryCache(), false);
 
             // Mock the updateRepo call
@@ -71,7 +78,11 @@ public class FastVirtualMachine implements VirtualMachine {
         return transactionResults;
     }
 
-    private void updateSnapshot(TransactionResult txResult, AionTransaction tx, Address coinbase, List<Address> deleteAccounts) {
+    private void updateSnapshot(
+            TransactionResult txResult,
+            AionTransaction tx,
+            Address coinbase,
+            List<Address> deleteAccounts) {
         if (!txResult.getResultCode().isRejected()) {
             KernelInterface snapshotTracker = this.kernelSnapshot.makeChildKernelInterface();
 
@@ -79,7 +90,8 @@ public class FastVirtualMachine implements VirtualMachine {
 
             // Refund energy if transaction was successfully or reverted.
             if (txResult.getResultCode().isSuccess() || txResult.getResultCode().isRevert()) {
-                snapshotTracker.refundAccount(tx.getSenderAddress(), computeRefundForSender(tx, energyUsed));
+                snapshotTracker.refundAccount(
+                        tx.getSenderAddress(), computeRefundForSender(tx, energyUsed));
             }
 
             // Pay the miner.
@@ -123,7 +135,5 @@ public class FastVirtualMachine implements VirtualMachine {
         public R get() {
             return this.result;
         }
-
     }
-
 }
