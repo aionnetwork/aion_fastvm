@@ -16,10 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import org.aion.type.api.interfaces.db.RepositoryCache;
-import org.aion.type.AionAddress;
-import org.aion.type.ByteArrayWrapper;
-import org.aion.type.api.interfaces.vm.DataWord;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -28,7 +28,7 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.vm.DummyRepository;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -468,7 +468,7 @@ public class CallbackUnitTest {
         BigInteger ownerBalance = new BigInteger("2385234");
         BigInteger ownerNonce = new BigInteger("353245");
         Address owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        Address beneficiary = new AionAddress(Arrays.copyOf(owner.toBytes(), Address.SIZE));
+        Address beneficiary = new Address(Arrays.copyOf(owner.toBytes(), Address.SIZE));
         SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
         when(ctx.getSideEffects()).thenReturn(helper);
@@ -1963,7 +1963,7 @@ public class CallbackUnitTest {
     private Address getNewAddress() {
         byte[] bytes = RandomUtils.nextBytes(Address.SIZE);
         bytes[0] = (byte) 0xa0;
-        return new AionAddress(bytes);
+        return new Address(bytes);
     }
 
     /**
@@ -2104,7 +2104,7 @@ public class CallbackUnitTest {
         Address[] addresses = new Address[len];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            addresses[i] = new AionAddress(Arrays.copyOfRange(pack, 0, Address.SIZE));
+            addresses[i] = new Address(Arrays.copyOfRange(pack, 0, Address.SIZE));
         }
         return addresses;
     }
@@ -2252,7 +2252,7 @@ public class CallbackUnitTest {
      * @param recipientBalance The balance of the recipient's account.
      * @param wasNoRecipient There was no recipient at time of performCall.
      * @param isCreateContract If the op code is CREATE
-     * @param kind TransactionExtend kind.
+     * @param kind Transaction kind.
      */
     private void checkPerformCallResults(
             ExecutionContext context,
@@ -2335,7 +2335,7 @@ public class CallbackUnitTest {
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
-            Address contract = new AionAddress(result.getReturnData());
+            Address contract = new Address(result.getReturnData());
             assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
         }
     }
@@ -2360,7 +2360,7 @@ public class CallbackUnitTest {
         Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
             Address contract =
-                    new AionAddress(
+                    new Address(
                             HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
@@ -2452,7 +2452,7 @@ public class CallbackUnitTest {
         if (isCreateContract) {
             // Decrement nonce because the transaction incremented it after address was made.
             Address contract =
-                    new AionAddress(
+                    new Address(
                             HashUtil.calcNewAddr(
                                     context.getSenderAddress().toBytes(),
                                     Callback.kernelRepo()
@@ -2575,7 +2575,7 @@ public class CallbackUnitTest {
         Address caller = Callback.context().getSenderAddress();
         Address contract;
         contract =
-                new AionAddress(
+                new Address(
                         HashUtil.calcNewAddr(
                                 caller.toBytes(),
                                 Callback.kernelRepo()

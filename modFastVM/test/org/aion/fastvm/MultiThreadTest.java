@@ -8,14 +8,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.aion.type.AionAddress;
+import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,11 +23,11 @@ import org.junit.Test;
 public class MultiThreadTest {
 
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
-    private Address address = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address address = Address.wrap(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;

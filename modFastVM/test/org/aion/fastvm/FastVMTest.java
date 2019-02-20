@@ -8,8 +8,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collections;
-import org.aion.type.api.interfaces.db.RepositoryCache;
-import org.aion.type.AionAddress;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
@@ -18,7 +18,7 @@ import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionBlock;
@@ -33,11 +33,11 @@ import org.junit.Test;
 public class FastVMTest {
 
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
-    private Address address = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address address = Address.wrap(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
@@ -111,7 +111,7 @@ public class FastVMTest {
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113C602060E0F3");
         DummyRepository repo = new DummyRepository();
         repo.addContract(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
                 Hex.decode("11223344"));
@@ -135,7 +135,7 @@ public class FastVMTest {
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113B60E052601060E0F3");
         DummyRepository repo = new DummyRepository();
         repo.addContract(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
                 Hex.decode("11223344"));
@@ -157,7 +157,7 @@ public class FastVMTest {
                         "6F111111111111111111111111111111116F111111111111111111111111111111113160E052601060E0F3");
         DummyRepository repo = new DummyRepository();
         repo.addBalance(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
                 BigInteger.valueOf(0x34));
@@ -175,12 +175,12 @@ public class FastVMTest {
         byte[] callerCtr = ContractUtils.getContractBody("Call.sol", "Caller");
 
         caller =
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "3333333333333333333333333333333333333333333333333333333333333333"));
         origin = caller;
         address =
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222"));
 
@@ -193,20 +193,20 @@ public class FastVMTest {
 
         DummyRepository repo = new DummyRepository();
         repo.createAccount(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")));
         repo.createAccount(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222")));
         repo.addContract(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
                 calleeCtr);
         repo.addContract(
-                AionAddress.wrap(
+                Address.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222")),
                 callerCtr);
@@ -458,7 +458,7 @@ public class FastVMTest {
         System.out.println(
                 "xxx = "
                         + bc.getRepository()
-                                .getNonce(AionAddress.wrap(deployerAccount.getAddress())));
+                                .getNonce(Address.wrap(deployerAccount.getAddress())));
         Thread.sleep(1000L);
 
         // try executing a makeTest() call
@@ -478,7 +478,7 @@ public class FastVMTest {
         System.out.println(
                 "xxx = "
                         + bc.getRepository()
-                                .getNonce(AionAddress.wrap(deployerAccount.getAddress())));
+                                .getNonce(Address.wrap(deployerAccount.getAddress())));
         System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
         Thread.sleep(1000L);
 
@@ -499,12 +499,12 @@ public class FastVMTest {
         System.out.println(
                 "xxx = "
                         + bc.getRepository()
-                                .getNonce(AionAddress.wrap(deployerAccount.getAddress())));
+                                .getNonce(Address.wrap(deployerAccount.getAddress())));
         System.out.println("yyy = " + bc.getRepository().getNonce(contractAddress));
 
         assertEquals(
                 BigInteger.valueOf(3),
-                bc.getRepository().getNonce(AionAddress.wrap(deployerAccount.getAddress())));
+                bc.getRepository().getNonce(Address.wrap(deployerAccount.getAddress())));
         assertEquals(BigInteger.valueOf(2), bc.getRepository().getNonce(contractAddress));
     }
 

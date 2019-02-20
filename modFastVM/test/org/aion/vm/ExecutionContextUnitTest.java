@@ -6,10 +6,10 @@ import static org.junit.Assert.assertEquals;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import org.aion.type.AionAddress;
+import org.aion.types.Address;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.mcf.vm.types.DataWord;
-import org.aion.type.api.interfaces.common.Address;
+import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -26,13 +26,13 @@ public class ExecutionContextUnitTest {
     @Before
     public void setup() {
         recipient =
-                new AionAddress("1111111111111111111111111111111111111111111111111111111111111111");
+                new Address("1111111111111111111111111111111111111111111111111111111111111111");
         origin =
-                new AionAddress("2222222222222222222222222222222222222222222222222222222222222222");
+                new Address("2222222222222222222222222222222222222222222222222222222222222222");
         caller =
-                new AionAddress("3333333333333333333333333333333333333333333333333333333333333333");
+                new Address("3333333333333333333333333333333333333333333333333333333333333333");
         coinbase =
-                new AionAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+                new Address("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
         nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
         callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
@@ -180,7 +180,7 @@ public class ExecutionContextUnitTest {
     @Test
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
-        Address newRecipient = new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        Address newRecipient = new Address(RandomUtils.nextBytes(Address.SIZE));
         context.setDestinationAddress(newRecipient);
         assertEquals(newRecipient, context.getDestinationAddress());
     }
@@ -226,17 +226,17 @@ public class ExecutionContextUnitTest {
         ByteBuffer intBuf = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
         assertEquals(
                 context.getDestinationAddress(),
-                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+                new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Address.SIZE;
         assertEquals(
                 context.getOriginAddress(),
-                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+                new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Address.SIZE;
         assertEquals(
                 context.getSenderAddress(),
-                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+                new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += DataWord.BYTES;
         assertEquals(
@@ -283,7 +283,7 @@ public class ExecutionContextUnitTest {
         end += Address.SIZE;
         assertEquals(
                 context.getMinerAddress(),
-                new AionAddress(Arrays.copyOfRange(encoding, start, end)));
+                new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));

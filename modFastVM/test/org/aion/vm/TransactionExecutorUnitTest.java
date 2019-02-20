@@ -22,10 +22,10 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.Log;
-import org.aion.type.AionAddress;
-import org.aion.type.ByteArrayWrapper;
-import org.aion.type.api.interfaces.common.Address;
-import org.aion.type.api.interfaces.common.Wrapper;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
@@ -928,7 +928,7 @@ public class TransactionExecutorUnitTest {
      * @return a new random address.
      */
     private Address getNewAddress() {
-        return new AionAddress(RandomUtils.nextBytes(Address.SIZE));
+        return new Address(RandomUtils.nextBytes(Address.SIZE));
     }
 
     /**
@@ -1532,7 +1532,7 @@ public class TransactionExecutorUnitTest {
     //    /**
     //     * Runs the prepare method of a TransactionExecutor.
     //     *
-    //     * @param isContractCreation TransactionExtend is for contract creation.
+    //     * @param isContractCreation Transaction is for contract creation.
     //     * @param skipNonceCheck True if the nonce check is to be skipped.
     //     * @param balanceIsEqual True if account's balance is equal to the execution cost,
     // otherwise it
@@ -1567,7 +1567,7 @@ public class TransactionExecutorUnitTest {
     //    /**
     //     * Runs the prepare method of a TransactionExecutor.
     //     *
-    //     * @param isContractCreation TransactionExtend is for contract creation.
+    //     * @param isContractCreation Transaction is for contract creation.
     //     * @param txNrgPrice The transaction energy price.
     //     * @param txValue The transaction value.
     //     */
@@ -1807,10 +1807,10 @@ public class TransactionExecutorUnitTest {
         List<IExecutionLog> helperLogs = helper.getExecutionLogs();
         List<Address> summaryAddrs = new ArrayList<>();
         List<Address> helperAddrs = new ArrayList<>();
-        List<Wrapper> summaryData = new ArrayList<>();
-        List<Wrapper> helperData = new ArrayList<>();
-        List<Wrapper> summaryTopics = new ArrayList<>();
-        List<Wrapper> helperTopics = new ArrayList<>();
+        List<ByteArrayWrapper> summaryData = new ArrayList<>();
+        List<ByteArrayWrapper> helperData = new ArrayList<>();
+        List<ByteArrayWrapper> summaryTopics = new ArrayList<>();
+        List<ByteArrayWrapper> helperTopics = new ArrayList<>();
 
         for (IExecutionLog log : summaryLogs) {
             summaryAddrs.add(log.getSourceAddress());
@@ -1828,8 +1828,8 @@ public class TransactionExecutorUnitTest {
         assertEquals(helperTopics, summaryTopics);
     }
 
-    private List<Wrapper> wrapTopics(List<byte[]> topics) {
-        List<Wrapper> wrappedTopics = new ArrayList<>();
+    private List<ByteArrayWrapper> wrapTopics(List<byte[]> topics) {
+        List<ByteArrayWrapper> wrappedTopics = new ArrayList<>();
         for (byte[] topic : topics) {
             wrappedTopics.add(new ByteArrayWrapper(topic));
         }

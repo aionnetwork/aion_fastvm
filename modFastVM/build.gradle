@@ -30,17 +30,14 @@ sourceSets {
 
 dependencies {
 
-    compile 'network.aion:type-api4j:0.3.3'
-    compile 'network.aion:type4j:0.3.3'
+    compile 'network.aion:vm-api4j:0.3.3'
     compile 'network.aion:util4j:0.3.3'
     compile 'network.aion:crypto4j:0.3.3'
-
 
     compile project(':modAion')
     compile project(':modMcf')
     compile project(':modPrecompiled')
     compile 'org.json:json:20180813'
-    compile project(':aion_vm_api')
     compile files("${rootProject.projectDir}/lib/libJson.jar")
     compile files("${rootProject.projectDir}/lib/libnsc.jar")
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
@@ -52,7 +49,6 @@ dependencies {
     testCompile project(':modEvtMgr')
 
     testCompile 'network.aion:rlp4j:0.3.3'
-
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.42'
     testCompile 'org.hamcrest:hamcrest-core:1.3'
