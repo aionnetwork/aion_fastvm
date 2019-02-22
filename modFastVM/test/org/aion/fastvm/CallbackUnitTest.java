@@ -2335,7 +2335,8 @@ public class CallbackUnitTest {
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
-            Address contract = new Address(result.getReturnData());
+            Address contract = (result.getReturnData() == null || Arrays
+                .equals(result.getReturnData(), new byte[0])) ? null : new Address(result.getReturnData());
             assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
         }
     }
