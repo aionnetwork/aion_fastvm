@@ -30,9 +30,9 @@ sourceSets {
 
 dependencies {
 
-    compile 'network.aion:vm-api4j:0.3.3'
-    compile 'network.aion:util4j:0.3.3'
-    compile 'network.aion:crypto4j:0.3.3'
+    compile 'network.aion:vm-api4j:0.4.0'
+    compile 'network.aion:util4j:0.4.0'
+    compile 'network.aion:crypto4j:0.4.0'
 
     compile project(':modAion')
     compile project(':modMcf')
@@ -48,7 +48,7 @@ dependencies {
     testCompile project(':modDbImpl')
     testCompile project(':modEvtMgr')
 
-    testCompile 'network.aion:rlp4j:0.3.3'
+    testCompile 'network.aion:rlp4j:0.4.0'
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.42'
     testCompile 'org.hamcrest:hamcrest-core:1.3'
