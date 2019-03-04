@@ -8,14 +8,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class MultiThreadTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -48,9 +49,9 @@ public class MultiThreadTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
         helper = new SideEffects();
     }
@@ -73,7 +74,7 @@ public class MultiThreadTest {
 
                             callData =
                                     ByteUtil.merge(
-                                            Hex.decode("8256cff3"), new DataWord(64).getData());
+                                            Hex.decode("8256cff3"), new DataWordImpl(64).getData());
 
                             ExecutionContext ctx =
                                     new ExecutionContext(

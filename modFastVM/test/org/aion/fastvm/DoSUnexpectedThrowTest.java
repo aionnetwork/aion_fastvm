@@ -5,14 +5,14 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.math.BigInteger;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class DoSUnexpectedThrowTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -41,9 +41,9 @@ public class DoSUnexpectedThrowTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 500;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
     }
 
@@ -82,7 +82,7 @@ public class DoSUnexpectedThrowTest {
 
         callData =
                 ByteUtil.merge(
-                        Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
+                        Hex.decode("4dc80107"), address.toBytes(), new DataWordImpl(bid).getData());
         nrgLimit = 69;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -105,7 +105,7 @@ public class DoSUnexpectedThrowTest {
 
         callData =
                 ByteUtil.merge(
-                        Hex.decode("4dc80107"), address.toBytes(), new DataWord(bid).getData());
+                        Hex.decode("4dc80107"), address.toBytes(), new DataWordImpl(bid).getData());
 
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
@@ -129,7 +129,7 @@ public class DoSUnexpectedThrowTest {
 
         callData =
                 ByteUtil.merge(
-                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWordImpl(bid).getData());
 
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
@@ -153,7 +153,7 @@ public class DoSUnexpectedThrowTest {
 
         callData =
                 ByteUtil.merge(
-                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWordImpl(bid).getData());
 
         nrgLimit = 10000;
         ExecutionContext ctx = newExecutionContext();
@@ -177,7 +177,7 @@ public class DoSUnexpectedThrowTest {
 
         callData =
                 ByteUtil.merge(
-                        Hex.decode("38e771ab"), address.toBytes(), new DataWord(bid).getData());
+                        Hex.decode("38e771ab"), address.toBytes(), new DataWordImpl(bid).getData());
 
         nrgLimit = 369;
         ExecutionContext ctx = newExecutionContext();

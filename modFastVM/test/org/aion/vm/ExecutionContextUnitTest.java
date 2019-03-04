@@ -6,10 +6,11 @@ import static org.junit.Assert.assertEquals;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.fastvm.ExecutionContext;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -33,9 +34,9 @@ public class ExecutionContextUnitTest {
                 new Address("3333333333333333333333333333333333333333333333333333333333333333");
         coinbase =
                 new Address("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
-        nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
-        callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
+        blockDifficulty = new DataWordImpl(Hex.decode("0000000000000000000000000000000f"));
+        nrgPrice = new DataWordImpl(Hex.decode("00000000000000000000000000000004"));
+        callValue = new DataWordImpl(Hex.decode("00000000000000000000000000000006"));
         txHash = RandomUtils.nextBytes(32);
         callData = new byte[] {0x07};
         depth = 8;
@@ -68,21 +69,21 @@ public class ExecutionContextUnitTest {
 
     @Test
     public void testToBytesRandomBlockDifficulty() {
-        blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomNrgPrice() {
-        nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        nrgPrice = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomCallValue() {
-        callValue = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        callValue = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
@@ -238,10 +239,10 @@ public class ExecutionContextUnitTest {
                 context.getSenderAddress(),
                 new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += DataWord.BYTES;
+        end += DataWordImpl.BYTES;
         assertEquals(
                 context.getTransactionEnergyPrice(),
-                new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -249,10 +250,10 @@ public class ExecutionContextUnitTest {
         assertEquals(context.getTransactionEnergy(), longBuf.getLong());
         longBuf.clear();
         start = end;
-        end += DataWord.BYTES;
+        end += DataWordImpl.BYTES;
         assertEquals(
-                new DataWord(context.getTransferValue()),
-                new DataWord(Arrays.copyOfRange(encoding, start, end)));
+                new DataWordImpl(context.getTransferValue()),
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -302,9 +303,9 @@ public class ExecutionContextUnitTest {
         longBuf.flip();
         assertEquals(context.getBlockEnergyLimit(), longBuf.getLong());
         start = end;
-        end += DataWord.BYTES;
+        end += DataWordImpl.BYTES;
         assertEquals(
                 context.getBlockDifficulty(),
-                new DataWord(Arrays.copyOfRange(encoding, start, end)).longValue());
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
     }
 }

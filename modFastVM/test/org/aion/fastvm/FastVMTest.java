@@ -9,16 +9,16 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collections;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
 import org.aion.mcf.core.ImportResult;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionBlock;
@@ -41,7 +41,7 @@ public class FastVMTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -56,9 +56,9 @@ public class FastVMTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
     }
 
@@ -241,7 +241,7 @@ public class FastVMTest {
     public void testDynamicArray1() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWord(512L).getData());
+        callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWordImpl(512L).getData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -258,7 +258,7 @@ public class FastVMTest {
     public void testDynamicArray2() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWord(1_000_000_000L).getData());
+        callData = ByteUtil.merge(Hex.decode("a76af697"), new DataWordImpl(1_000_000_000L).getData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -275,7 +275,7 @@ public class FastVMTest {
     public void testDynamicArray3() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWord(512L).getData());
+        callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWordImpl(512L).getData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -292,7 +292,7 @@ public class FastVMTest {
     public void testDynamicArray4() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWord(1_000_000_000L).getData());
+        callData = ByteUtil.merge(Hex.decode("e59cc974"), new DataWordImpl(1_000_000_000L).getData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -685,7 +685,7 @@ public class FastVMTest {
                 bc.getTransactionInfo(
                         context4.block.getTransactionsList().get(0).getTransactionHash());
         assertEquals("", info4.getReceipt().getError());
-        assertEquals(11, new DataWord(info4.getReceipt().getTransactionOutput()).intValue());
+        assertEquals(11, new DataWordImpl(info4.getReceipt().getTransactionOutput()).intValue());
     }
 
     @Test

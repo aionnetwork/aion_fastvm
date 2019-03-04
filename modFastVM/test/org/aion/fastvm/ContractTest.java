@@ -6,14 +6,14 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.apache.commons.lang3.RandomUtils;
@@ -31,7 +31,7 @@ public class ContractTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -46,9 +46,9 @@ public class ContractTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
     }
 
@@ -89,43 +89,43 @@ public class ContractTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
-        callData = ByteUtil.merge(Hex.decode("ff40565e"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("ff40565e"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
         result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(1024L).getData());
+        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWordImpl(1024L).getData());
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
@@ -145,7 +145,7 @@ public class ContractTest {
         int n = 10;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -154,7 +154,7 @@ public class ContractTest {
 
         // verify result
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
         List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
@@ -181,7 +181,7 @@ public class ContractTest {
         int n = 128;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -190,7 +190,7 @@ public class ContractTest {
 
         // verify result
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getReturnData()));
+        assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
         List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
@@ -211,7 +211,7 @@ public class ContractTest {
         int n = 1000;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();

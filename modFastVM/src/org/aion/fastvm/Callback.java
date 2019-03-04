@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.interfaces.vm.DataWord;
@@ -16,7 +18,6 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.types.Address;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionInternalTx;
@@ -98,7 +99,7 @@ public class Callback {
      */
     public static byte[] getBalance(byte[] address) {
         BigInteger balance = kernelRepo().getBalance(Address.wrap(address));
-        return balance == null ? org.aion.mcf.vm.types.DataWord.ZERO.getData() : new org.aion.mcf.vm.types.DataWord(balance).getData();
+        return balance == null ? DataWordImpl.ZERO.getData() : new DataWordImpl(balance).getData();
     }
 
     /**
@@ -170,7 +171,7 @@ public class Callback {
                         Address.wrap(owner),
                         Address.wrap(beneficiary),
                         kernelRepo().getNonce(Address.wrap(owner)),
-                        new org.aion.mcf.vm.types.DataWord(balance),
+                        new DataWordImpl(balance),
                         ByteUtil.EMPTY_BYTE_ARRAY,
                         "selfdestruct");
         context().getSideEffects().addInternalTransaction(internalTx);
@@ -282,7 +283,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
+                        new DataWordImpl(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "call");
         context().getSideEffects().addInternalTransaction(internalTx);
@@ -349,7 +350,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
+                        new DataWordImpl(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "create");
         context().getSideEffects().addInternalTransaction(internalTx);
@@ -376,7 +377,7 @@ public class Callback {
                         ctx.getSenderAddress(),
                         null,
                         track.getNonce(ctx.getSenderAddress()),
-                        new org.aion.mcf.vm.types.DataWord(ctx.getTransferValue()),
+                        new DataWordImpl(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         "create");
         ctx.getSideEffects().addInternalTransaction(internalTx);
@@ -433,11 +434,11 @@ public class Callback {
         byte[] caller = new byte[Address.SIZE];
         buffer.get(caller);
 
-        DataWord nrgPrice = new org.aion.mcf.vm.types.DataWord(prev.getTransactionEnergyPrice());
+        DataWord nrgPrice = new DataWordImpl(prev.getTransactionEnergyPrice());
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
-        org.aion.mcf.vm.types.DataWord callValue = new org.aion.mcf.vm.types.DataWord(buf);
+        DataWordImpl callValue = new DataWordImpl(buf);
         byte[] callData = new byte[buffer.getInt()];
         buffer.get(callData);
 
@@ -449,7 +450,7 @@ public class Callback {
         long blockNumber = prev.getBlockNumber();
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
-        DataWord blockDifficulty = new org.aion.mcf.vm.types.DataWord(prev.getBlockDifficulty());
+        DataWord blockDifficulty = new DataWordImpl(prev.getBlockDifficulty());
 
         // TODO: properly construct a transaction first
         return new ExecutionContext(
@@ -483,7 +484,7 @@ public class Callback {
                 parentHash,
                 depth,
                 index,
-                new org.aion.mcf.vm.types.DataWord(nonce).getData(),
+                new DataWordImpl(nonce).getData(),
                 from,
                 to,
                 value.getData(),

@@ -20,12 +20,11 @@ import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
-import org.aion.mcf.vm.types.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.Log;
 import org.aion.types.Address;
 import org.aion.types.ByteArrayWrapper;
-import org.aion.types.Address;
-import org.aion.types.ByteArrayWrapper;
+
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
@@ -1070,7 +1069,7 @@ public class TransactionExecutorUnitTest {
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         Address from = getNewAddress();
         Address to = getNewAddress();
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         return new AionTransaction(nonce, from, to, value, data, 10000000L, nrgPrice);
     }
 
@@ -1085,7 +1084,7 @@ public class TransactionExecutorUnitTest {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         Address from = getNewAddress();
-        byte[] value = RandomUtils.nextBytes(DataWord.BYTES);
+        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         return new AionTransaction(nonce, from, null, value, data, 10000000L, nrgPrice);
     }
 
@@ -1277,7 +1276,7 @@ public class TransactionExecutorUnitTest {
         when(tx.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(tx.getData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 100)));
         when(tx.getEnergyLimit()).thenReturn(nrg);
-        when(tx.nrgPrice()).thenReturn(new DataWord(RandomUtils.nextInt(0, 100)));
+        when(tx.nrgPrice()).thenReturn(new DataWordImpl(RandomUtils.nextInt(0, 100)));
         when(tx.getEnergyPrice()).thenReturn(nrgPrice);
         when(tx.nrgLimit()).thenReturn(nrgLimit);
         when(tx.getDestinationAddress()).thenReturn(getNewAddress());

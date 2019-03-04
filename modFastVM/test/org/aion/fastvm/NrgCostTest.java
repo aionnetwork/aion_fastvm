@@ -51,6 +51,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.types.ByteArrayWrapper;
 import org.aion.util.bytes.ByteUtil;
@@ -58,10 +60,8 @@ import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -82,7 +82,7 @@ public class NrgCostTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -103,9 +103,9 @@ public class NrgCostTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 10_000_000L;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
 
         // JVM warm up
@@ -593,9 +593,9 @@ public class NrgCostTest {
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
-                            new DataWord(RandomUtils.nextBytes(16)).toWrapper(),
+                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper(),
                             new ByteArrayWrapper(
-                                    new DataWord(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
+                                    new DataWordImpl(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
                 }
                 repo.flush();
                 db.flush();
@@ -609,10 +609,10 @@ public class NrgCostTest {
                     Address address =
                             Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
-                    new DataWord(
+                    new DataWordImpl(
                             repo.getStorageValue(
                                             address,
-                                            new DataWord(RandomUtils.nextBytes(16)).toWrapper())
+                                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper())
                                     .getData());
                 }
                 repo.flush();

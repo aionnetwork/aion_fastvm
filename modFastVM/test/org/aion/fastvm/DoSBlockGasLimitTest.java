@@ -4,14 +4,15 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
+
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.types.Address;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class DoSBlockGasLimitTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -40,9 +41,9 @@ public class DoSBlockGasLimitTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 100000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
     }
 
@@ -56,7 +57,7 @@ public class DoSBlockGasLimitTest {
         BigInteger balance = BigInteger.valueOf(1000L);
         repo.addBalance(address, balance);
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
+        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWordImpl(nrgLimit).getData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -78,7 +79,7 @@ public class DoSBlockGasLimitTest {
 
         nrgLimit = 200;
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
+        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWordImpl(nrgLimit).getData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -100,7 +101,7 @@ public class DoSBlockGasLimitTest {
 
         nrgLimit = 405;
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWord(nrgLimit).getData());
+        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), new DataWordImpl(nrgLimit).getData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();

@@ -25,6 +25,8 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.types.Address;
 import org.aion.interfaces.tx.Transaction;
@@ -40,7 +42,7 @@ import org.aion.vm.api.interfaces.TransactionSideEffects;
 public class ExecutionContext implements TransactionContext {
     private static final int ENCODE_BASE_LEN =
             (Address.SIZE * 4)
-                    + (org.aion.mcf.vm.types.DataWord.BYTES * 3)
+                    + (DataWordImpl.BYTES * 3)
                     + (Long.BYTES * 4)
                     + (Integer.BYTES * 4);
     public static int CALL = 0;
@@ -203,8 +205,8 @@ public class ExecutionContext implements TransactionContext {
     /** @return the nrg price in current environment. */
     @Override
     public long getTransactionEnergyPrice() {
-        if (this.nrgPrice instanceof org.aion.mcf.vm.types.DataWord) {
-            return ((org.aion.mcf.vm.types.DataWord) this.nrgPrice).longValue();
+        if (this.nrgPrice instanceof DataWordImpl) {
+            return ((DataWordImpl) this.nrgPrice).longValue();
         } else {
             return ((DoubleDataWord) this.nrgPrice).longValue();
         }
@@ -272,8 +274,8 @@ public class ExecutionContext implements TransactionContext {
     /** @return the block difficulty. */
     @Override
     public long getBlockDifficulty() {
-        if (blockDifficulty instanceof org.aion.mcf.vm.types.DataWord) {
-            return ((org.aion.mcf.vm.types.DataWord) blockDifficulty).longValue();
+        if (blockDifficulty instanceof DataWordImpl) {
+            return ((DataWordImpl) blockDifficulty).longValue();
         } else {
             return ((DoubleDataWord) blockDifficulty).longValue();
         }
