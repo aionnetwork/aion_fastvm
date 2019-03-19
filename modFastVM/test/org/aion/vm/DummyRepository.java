@@ -6,17 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.aion.base.db.IContractDetails;
-import org.aion.base.db.IRepository;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.util.ByteArrayWrapper;
-import org.aion.base.util.ByteUtil;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.Repository;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.types.Address;
 
-public class DummyRepository implements IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> {
+public class DummyRepository implements RepositoryCache<AccountState, IBlockStoreBase<?, ?>> {
     private DummyRepository parent;
     Map<Address, AccountState> accounts = new HashMap<>();
     Map<Address, byte[]> contracts = new HashMap<>();
@@ -84,7 +84,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     }
 
     @Override
-    public IContractDetails getContractDetails(Address addr) {
+    public ContractDetails getContractDetails(Address addr) {
         throw new UnsupportedOperationException();
     }
 
@@ -162,7 +162,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     }
 
     @Override
-    public IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> startTracking() {
+    public RepositoryCache<AccountState, IBlockStoreBase<?, ?>> startTracking() {
         return new DummyRepository(this);
     }
 
@@ -174,7 +174,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     }
 
     @Override
-    public void flushTo(IRepository repo, boolean clearStorageAfterFlush) {
+    public void flushTo(Repository repo, boolean clearStorageAfterFlush) {
         DummyRepository repoAsDummy = (DummyRepository) repo;
         repoAsDummy.accounts = accounts;
         repoAsDummy.contracts = contracts;
@@ -208,7 +208,7 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     @Override
     public void updateBatch(
             Map<Address, AccountState> accountStates,
-            Map<Address, IContractDetails> contractDetailes) {
+            Map<Address, ContractDetails> contractDetailes) {
         throw new UnsupportedOperationException();
     }
 
@@ -221,12 +221,12 @@ public class DummyRepository implements IRepositoryCache<AccountState, IBlockSto
     public void loadAccountState(
             Address addr,
             Map<Address, AccountState> cacheAccounts,
-            Map<Address, IContractDetails> cacheDetails) {
+            Map<Address, ContractDetails> cacheDetails) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IRepository<AccountState, IBlockStoreBase<?, ?>> getSnapshotTo(byte[] root) {
+    public Repository<AccountState, IBlockStoreBase<?, ?>> getSnapshotTo(byte[] root) {
         throw new UnsupportedOperationException();
     }
 

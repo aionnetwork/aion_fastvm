@@ -50,18 +50,18 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.AionAddress;
-import org.aion.base.util.ByteArrayWrapper;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.DataWord;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.Address;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -74,15 +74,15 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NrgCostTest {
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
-    private Address address = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address address = Address.wrap(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = AionAddress.wrap(RandomUtils.nextBytes(32));
+    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -103,9 +103,9 @@ public class NrgCostTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 10_000_000L;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
 
         // JVM warm up
@@ -586,16 +586,16 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
-                            AionAddress.wrap(
+                            Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
-                            new DataWord(RandomUtils.nextBytes(16)).toWrapper(),
+                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper(),
                             new ByteArrayWrapper(
-                                    new DataWord(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
+                                    new DataWordImpl(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
                 }
                 repo.flush();
                 db.flush();
@@ -604,15 +604,15 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
-                            AionAddress.wrap(
+                            Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
-                    new DataWord(
+                    new DataWordImpl(
                             repo.getStorageValue(
                                             address,
-                                            new DataWord(RandomUtils.nextBytes(16)).toWrapper())
+                                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper())
                                     .getData());
                 }
                 repo.flush();
@@ -631,7 +631,7 @@ public class NrgCostTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(IRepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(cache, true, false);
     }
 

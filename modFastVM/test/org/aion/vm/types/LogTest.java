@@ -6,19 +6,19 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.aion.base.type.AionAddress;
-import org.aion.mcf.vm.types.DataWord;
+
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
 import org.aion.mcf.vm.types.Log;
-import org.aion.vm.api.interfaces.Address;
 import org.junit.Test;
 
 public class LogTest {
 
     @Test
     public void testEncode() {
-        Address address = AionAddress.ZERO_ADDRESS();
+        Address address = Address.ZERO_ADDRESS();
         List<byte[]> topics = new ArrayList<byte[]>();
-        topics.add(DataWord.ZERO.getData());
+        topics.add(DataWordImpl.ZERO.getData());
         byte[] data = new byte[200];
 
         Log info = new Log(address, topics, data);

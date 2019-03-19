@@ -7,6 +7,14 @@ ext.moduleName = 'aion.fastvm'
  * See: https://github.com/aionnetwork/aion
  */
 
+repositories {
+    maven { url "https://oss.sonatype.org/content/groups/staging" }
+
+    flatDir {
+        dirs './lib'
+    }
+}
+
 test.dependsOn copyNativeLibsForModuleTests
 
 targetCompatibility = 10
@@ -21,13 +29,15 @@ sourceSets {
 }
 
 dependencies {
+
+    compile 'network.aion:vm-api4j:0.4.0'
+    compile 'network.aion:util4j:0.4.0'
+    compile 'network.aion:crypto4j:0.4.0'
+
     compile project(':modAion')
-    compile project(':modAionBase')
-    compile project(':modCrypto')
     compile project(':modMcf')
     compile project(':modPrecompiled')
     compile 'org.json:json:20180813'
-    compile project(':aion_vm_api')
     compile files("${rootProject.projectDir}/lib/libJson.jar")
     compile files("${rootProject.projectDir}/lib/libnsc.jar")
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
@@ -36,10 +46,9 @@ dependencies {
 
     testCompile project(':modAionImpl')
     testCompile project(':modDbImpl')
-    testCompile project(':modRlp')
-    testCompile project(':modLogger')
     testCompile project(':modEvtMgr')
-    testCompile project(':modCrypto')
+
+    testCompile 'network.aion:rlp4j:0.4.0'
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.42'
     testCompile 'org.hamcrest:hamcrest-core:1.3'

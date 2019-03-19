@@ -11,7 +11,7 @@ import static org.apache.commons.lang3.StringUtils.stripEnd;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.aion.base.util.ByteUtil;
+import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.collections4.Predicate;
 import org.json.JSONArray;
 import org.json.JSONObject;

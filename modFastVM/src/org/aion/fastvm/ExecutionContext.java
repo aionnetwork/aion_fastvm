@@ -25,15 +25,14 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.aion.base.vm.IDataWord;
-import org.aion.mcf.vm.types.DataWord;
+
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.util.bytes.ByteUtil;
-import org.aion.vm.api.interfaces.Address;
+import org.aion.types.Address;
+import org.aion.interfaces.tx.Transaction;
+import org.aion.interfaces.vm.DataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
-import org.aion.zero.types.AionTransaction;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Execution context, including both transaction and block information.
@@ -42,7 +41,10 @@ import org.apache.commons.lang3.ArrayUtils;
  */
 public class ExecutionContext implements TransactionContext {
     private static final int ENCODE_BASE_LEN =
-            (Address.SIZE * 4) + (DataWord.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
+            (Address.SIZE * 4)
+                    + (DataWordImpl.BYTES * 3)
+                    + (Long.BYTES * 4)
+                    + (Integer.BYTES * 4);
     public static int CALL = 0;
     public static int DELEGATECALL = 1;
     public static int CALLCODE = 2;
@@ -52,14 +54,14 @@ public class ExecutionContext implements TransactionContext {
     private Address origin;
     private byte[] originalTxHash;
 
-    private AionTransaction transaction;
+    private Transaction transaction;
 
     public Address address;
     public Address sender;
     private Address blockCoinbase;
-    private IDataWord nrgPrice;
-    private IDataWord callValue;
-    private IDataWord blockDifficulty;
+    private DataWord nrgPrice;
+    private DataWord callValue;
+    private DataWord blockDifficulty;
     private byte[] callData;
     private byte[] txHash;
     private long nrg; // NOTE: nrg = tx_nrg_limit - tx_basic_cost
@@ -93,14 +95,14 @@ public class ExecutionContext implements TransactionContext {
      *     length 32.
      */
     public ExecutionContext(
-            AionTransaction transaction,
+            Transaction transaction,
             byte[] txHash,
             Address destination,
             Address origin,
             Address sender,
-            IDataWord nrgPrice,
+            DataWord nrgPrice,
             long nrg,
-            IDataWord callValue,
+            DataWord callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -109,7 +111,7 @@ public class ExecutionContext implements TransactionContext {
             long blockNumber,
             long blockTimestamp,
             long blockNrgLimit,
-            IDataWord blockDifficulty) {
+            DataWord blockDifficulty) {
 
         this.transaction = transaction;
         this.address = destination;
@@ -178,7 +180,6 @@ public class ExecutionContext implements TransactionContext {
         this.address = address;
     }
 
-    @Override
     public Address getContractAddress() {
         return this.transaction.getContractAddress();
     }
@@ -204,8 +205,8 @@ public class ExecutionContext implements TransactionContext {
     /** @return the nrg price in current environment. */
     @Override
     public long getTransactionEnergyPrice() {
-        if (this.nrgPrice instanceof DataWord) {
-            return ((DataWord) this.nrgPrice).longValue();
+        if (this.nrgPrice instanceof DataWordImpl) {
+            return ((DataWordImpl) this.nrgPrice).longValue();
         } else {
             return ((DoubleDataWord) this.nrgPrice).longValue();
         }
@@ -273,8 +274,8 @@ public class ExecutionContext implements TransactionContext {
     /** @return the block difficulty. */
     @Override
     public long getBlockDifficulty() {
-        if (blockDifficulty instanceof DataWord) {
-            return ((DataWord) blockDifficulty).longValue();
+        if (blockDifficulty instanceof DataWordImpl) {
+            return ((DataWordImpl) blockDifficulty).longValue();
         } else {
             return ((DoubleDataWord) blockDifficulty).longValue();
         }
@@ -312,7 +313,7 @@ public class ExecutionContext implements TransactionContext {
     }
 
     @Override
-    public AionTransaction getTransaction() {
+    public Transaction getTransaction() {
         return this.transaction;
     }
 }
