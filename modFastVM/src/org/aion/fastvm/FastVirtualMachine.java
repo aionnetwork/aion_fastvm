@@ -47,12 +47,16 @@ public class FastVirtualMachine implements VirtualMachine {
         FastVmSimpleFuture<TransactionResult>[] transactionResults =
                 new FastVmSimpleFuture[contexts.length];
 
+        boolean fork040Enable = ((KernelInterfaceForFastVM) kernel).isFork040Enable();
         for (int i = 0; i < contexts.length; i++) {
+
             TransactionExecutor executor =
                     new TransactionExecutor(
                             (Transaction) contexts[i].getTransaction(),
                             contexts[i],
-                            this.kernelSnapshot.makeChildKernelInterface());
+                            this.kernelSnapshot.makeChildKernelInterface(),
+                            fork040Enable);
+
             transactionResults[i] = new FastVmSimpleFuture();
             transactionResults[i].setResult(executor.execute());
 

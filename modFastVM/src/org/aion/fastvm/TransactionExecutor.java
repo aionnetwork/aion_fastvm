@@ -50,8 +50,19 @@ public class TransactionExecutor {
     private TransactionContext context;
     private Transaction transaction;
 
+    private boolean fork040Enable;
+
     public TransactionExecutor(
             Transaction transaction, TransactionContext context, KernelInterface kernel) {
+
+        this(transaction, context, kernel, false);
+    }
+
+    public TransactionExecutor(
+            Transaction transaction,
+            TransactionContext context,
+            KernelInterface kernel,
+            boolean fork040Enable) {
 
         this.kernel = kernel;
         this.kernelChild = this.kernel.makeChildKernelInterface();
@@ -63,15 +74,16 @@ public class TransactionExecutor {
         long energyLeft = this.transaction.getEnergyLimit() - this.transaction.getTransactionCost();
         this.transactionResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyLeft, new byte[0]);
+        this.fork040Enable = fork040Enable;
     }
 
     /**
      * Executes the transaction and returns a {@link TransactionResult}.
      *
-     * Guarantee: the {@link TransactionResult} that this method returns contains a
-     * {@link KernelInterface} that consists of ALL valid state changes pertaining to this
-     * transaction. Therefore, the recipient of this result can flush directly from this returned
-     * {@link KernelInterface} without any checks or conditional logic to satisfy.
+     * <p>Guarantee: the {@link TransactionResult} that this method returns contains a {@link
+     * KernelInterface} that consists of ALL valid state changes pertaining to this transaction.
+     * Therefore, the recipient of this result can flush directly from this returned {@link
+     * KernelInterface} without any checks or conditional logic to satisfy.
      */
     public TransactionResult execute() {
         return performChecksAndExecute();
@@ -110,7 +122,8 @@ public class TransactionExecutor {
                 this.kernelGrandChild.commit();
             }
 
-            // kernelChild holds state changes that must be flushed on anything that is not REJECTED.
+            // kernelChild holds state changes that must be flushed on anything that is not
+            // REJECTED.
             if (!transactionResult.getResultCode().isRejected()) {
                 this.kernelChild.commit();
             }
@@ -186,7 +199,12 @@ public class TransactionExecutor {
             byte[] code = this.kernelGrandChild.getCode(transaction.getDestinationAddress());
             if (!ArrayUtils.isEmpty(code)) {
                 FastVM fvm = new FastVM();
-                transactionResult = fvm.run(code, context, this.kernelGrandChild);
+                if (fork040Enable) {
+                    transactionResult = fvm.run_v1(code, context, this.kernelGrandChild);
+
+                } else {
+                    transactionResult = fvm.run(code, context, this.kernelGrandChild);
+                }
             }
         }
 
@@ -213,8 +231,13 @@ public class TransactionExecutor {
         // execute contract deployer
         if (!ArrayUtils.isEmpty(transaction.getData())) {
             FastVM fvm = new FastVM();
-            transactionResult = fvm.run(transaction.getData(), context, this.kernelGrandChild);
+            if (fork040Enable) {
+                transactionResult =
+                        fvm.run_v1(transaction.getData(), context, this.kernelGrandChild);
 
+            } else {
+                transactionResult = fvm.run(transaction.getData(), context, this.kernelGrandChild);
+            }
             if (transactionResult.getResultCode().toInt() == FastVmResultCode.SUCCESS.toInt()) {
                 this.kernelGrandChild.putCode(contractAddress, transactionResult.getReturnData());
             }
@@ -224,5 +247,9 @@ public class TransactionExecutor {
         BigInteger txValue = new BigInteger(1, transaction.getValue());
         this.kernelGrandChild.adjustBalance(transaction.getSenderAddress(), txValue.negate());
         this.kernelGrandChild.adjustBalance(contractAddress, txValue);
+    }
+
+    public void enableFork040() {
+        fork040Enable = true;
     }
 }
