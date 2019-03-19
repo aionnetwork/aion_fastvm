@@ -2,13 +2,12 @@ package org.aion.fastvm;
 
 import static org.junit.Assert.assertEquals;
 
-import org.aion.base.type.Address;
-import org.aion.base.util.Hex;
-import org.aion.mcf.vm.types.DataWord;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.util.conversions.Hex;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionHelper;
-import org.aion.vm.ExecutionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -24,7 +23,7 @@ public class CacheTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -35,15 +34,15 @@ public class CacheTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private ExecutionHelper helper;
+    private SideEffects helper;
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
-        helper = new ExecutionHelper();
+        helper = new SideEffects();
     }
 
     @Test
@@ -52,6 +51,7 @@ public class CacheTest {
         callData = Hex.decode("8256cff3");
         ExecutionContext ctx =
                 new ExecutionContext(
+                        null,
                         txHash,
                         address,
                         origin,
@@ -74,8 +74,12 @@ public class CacheTest {
         int repeat = 1000;
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
-            ExecutionResult result = (ExecutionResult) vm.run(code, ctx, new DummyRepository());
-            assertEquals(ExecutionResult.ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    vm.run(
+                            code,
+                            ctx,
+                            new KernelInterfaceForFastVM(new DummyRepository(), true, false));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {
                 System.out.println(i + "/" + repeat);

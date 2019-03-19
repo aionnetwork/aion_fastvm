@@ -118,6 +118,8 @@ public:
 	/// Will not take effect before running compile.
 	void setOptimiserSettings(bool _optimize, unsigned _runs = 200)
 	{
+		(void) _optimize;
+		(void) _runs;
 		// m_optimize = _optimize;
 		// m_optimizeRuns = _runs;
 	}

@@ -8,16 +8,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.aion.base.type.Address;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionHelper;
-import org.aion.vm.ExecutionResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +32,7 @@ public class MultiThreadTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -44,17 +43,17 @@ public class MultiThreadTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private ExecutionHelper helper;
+    private SideEffects helper;
 
     public MultiThreadTest() throws CloneNotSupportedException {}
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
-        helper = new ExecutionHelper();
+        helper = new SideEffects();
     }
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -75,10 +74,11 @@ public class MultiThreadTest {
 
                             callData =
                                     ByteUtil.merge(
-                                            Hex.decode("8256cff3"), new DataWord(64).getData());
+                                            Hex.decode("8256cff3"), new DataWordImpl(64).getData());
 
                             ExecutionContext ctx =
                                     new ExecutionContext(
+                                            null,
                                             txHash,
                                             address,
                                             origin,
@@ -98,8 +98,12 @@ public class MultiThreadTest {
                             DummyRepository repo = new DummyRepository();
 
                             FastVM vm = new FastVM();
-                            ExecutionResult result = vm.run(code, ctx, repo);
-                            assertEquals(ResultCode.SUCCESS, result.getCode());
+                            FastVmTransactionResult result =
+                                    vm.run(
+                                            code,
+                                            ctx,
+                                            new KernelInterfaceForFastVM(repo, true, false));
+                            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });
         }

@@ -50,18 +50,18 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.type.Address;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -82,7 +82,7 @@ public class NrgCostTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -103,35 +103,18 @@ public class NrgCostTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 10_000_000L;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
 
         // JVM warm up
         byte[] code = {0x00};
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
-            new FastVM().run(code, ctx, repo);
+            new FastVM().run(code, ctx, wrapInKernelInterface(repo));
         }
     }
 
@@ -203,34 +186,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -294,34 +261,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -363,34 +314,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -435,34 +370,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -505,34 +424,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -563,35 +466,19 @@ public class NrgCostTest {
             byte[] code =
                     repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             System.out.println(result);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -633,34 +520,18 @@ public class NrgCostTest {
                             CALLDATALOAD,
                             inst);
 
-            ExecutionContext ctx =
-                    new ExecutionContext(
-                            txHash,
-                            address,
-                            origin,
-                            caller,
-                            nrgPrice,
-                            nrgLimit,
-                            callValue,
-                            callData,
-                            depth,
-                            kind,
-                            flags,
-                            blockCoinbase,
-                            blockNumber,
-                            blockTimestamp,
-                            blockNrgLimit,
-                            blockDifficulty);
+            ExecutionContext ctx = newExecutionContext();
             DummyRepository repo = new DummyRepository();
             repo.addContract(address, code);
 
             // compile
-            ExecutionResult result = (ExecutionResult) new FastVM().run(code, ctx, repo);
-            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            FastVmTransactionResult result =
+                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, repo);
+                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -715,16 +586,16 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-                        db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
                             Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
-                            new DataWord(RandomUtils.nextBytes(16)),
-                            new DataWord(RandomUtils.nextBytes(16)));
+                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper(),
+                            new ByteArrayWrapper(
+                                    new DataWordImpl(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
                 }
                 repo.flush();
                 db.flush();
@@ -733,13 +604,16 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                IRepositoryCache<AccountState, DataWord, IBlockStoreBase<?, ?>> repo =
-                        db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     Address address =
                             Address.wrap(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
-                    repo.getStorageValue(address, new DataWord(RandomUtils.nextBytes(16)));
+                    new DataWordImpl(
+                            repo.getStorageValue(
+                                            address,
+                                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper())
+                                    .getData());
                 }
                 repo.flush();
                 db.flush();
@@ -755,5 +629,30 @@ public class NrgCostTest {
                     totalWrite / (r * blocks * transactions),
                     totalRead / (r * blocks * transactions));
         }
+    }
+
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
+        return new KernelInterfaceForFastVM(cache, true, false);
+    }
+
+    private ExecutionContext newExecutionContext() {
+        return new ExecutionContext(
+                null,
+                txHash,
+                address,
+                origin,
+                caller,
+                nrgPrice,
+                nrgLimit,
+                callValue,
+                callData,
+                depth,
+                kind,
+                flags,
+                blockCoinbase,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
     }
 }

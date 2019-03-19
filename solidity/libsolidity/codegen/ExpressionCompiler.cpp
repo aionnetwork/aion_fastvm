@@ -1101,6 +1101,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 		}
 		if (!alsoSearchInteger)
 			break;
+		BOOST_FALLTHROUGH;
 	}
 	case Type::Category::Integer:
 		if (member == "balance")
@@ -1905,14 +1906,14 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	unsigned offset = m_context.baseToCurrentStackOffset(contractStackPos);
 	m_context << dupInstruction(offset) << dupInstruction(offset);
 
-	bool existenceChecked = false;
+	// bool existenceChecked = false;
 	// Check the the target contract exists (has code) for non-low-level calls.
 	if (funKind == FunctionType::Kind::External || funKind == FunctionType::Kind::CallCode || funKind == FunctionType::Kind::DelegateCall)
 	{
 		// again, contract address takes two data words
 		m_context << Instruction::DUP2 << Instruction::DUP2 << Instruction::EXTCODESIZE << Instruction::ISZERO;
 		m_context.appendConditionalRevert();
-		existenceChecked = true;
+		// existenceChecked = true;
 	}
 
 	if (_functionType.gasSet())

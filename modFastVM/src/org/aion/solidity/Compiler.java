@@ -1,16 +1,23 @@
 package org.aion.solidity;
 
+import static java.nio.file.Files.createTempDirectory;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Compiler {
 
@@ -39,6 +46,44 @@ public class Compiler {
 
     public Result compile(byte[] source, boolean optimize, boolean combinedJson, Options... options)
             throws IOException {
+
+        List<String> commandParts = prepareCommands(optimize, combinedJson, options);
+
+        ProcessBuilder processBuilder =
+                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+        return runCompileProcess(source, processBuilder);
+    }
+
+    public Result compileZip(byte[] source, String entryPoint, Options... options)
+            throws IOException {
+        return compileZip(source, entryPoint, false, true, options);
+    }
+
+    public Result compileZip(
+            byte[] source,
+            String entryPoint,
+            boolean optimize,
+            boolean combinedJson,
+            Options... options)
+            throws IOException {
+
+        if (source == null) return new Result("Missing source Zip file", "", true);
+
+        Path unzipped = createTempDirectory("temp");
+        extractZip(source, unzipped);
+
+        if (unzipped == null) return new Result("Couldn't extract zip file", "", true);
+
+        List<String> commandParts = prepareCommands(optimize, combinedJson, options);
+        commandParts.add(entryPoint);
+
+        ProcessBuilder processBuilder = new ProcessBuilder(commandParts).directory(unzipped.toFile());
+        Result res = runCompileProcess(null, processBuilder);
+        return res;
+    }
+
+    private List<String> prepareCommands(boolean optimize, boolean combinedJson, Options[] options)
+            throws IOException {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(solc.getCanonicalPath());
 
@@ -54,17 +99,22 @@ public class Compiler {
                 commandParts.add("--" + option.getName());
             }
         }
+        return commandParts;
+    }
 
-        ProcessBuilder processBuilder =
-                new ProcessBuilder(commandParts).directory(solc.getParentFile());
+    private Result runCompileProcess(byte[] source, ProcessBuilder processBuilder)
+            throws IOException {
         processBuilder
                 .environment()
                 .put("LD_LIBRARY_PATH", solc.getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 
-        try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
-            stream.write(source);
+        if (source != null) {
+            try (BufferedOutputStream stream =
+                    new BufferedOutputStream(process.getOutputStream())) {
+                stream.write(source);
+            }
         }
 
         ParallelReader error = new ParallelReader(process.getErrorStream());
@@ -79,6 +129,25 @@ public class Compiler {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void extractZip(byte[] source, Path tempDir) throws IOException {
+
+        ZipInputStream zipStream = new ZipInputStream(new ByteArrayInputStream(source));
+        ZipEntry zipEntry = zipStream.getNextEntry();
+        while (zipEntry != null) {
+            File f = new File(tempDir.toFile(), zipEntry.getName());
+            FileOutputStream fileOutputStream = new FileOutputStream(f);
+            int len;
+            byte[] buffer = new byte[1024];
+            while ((len = zipStream.read(buffer)) > 0) {
+                fileOutputStream.write(buffer, 0, len);
+            }
+            fileOutputStream.close();
+            zipEntry = zipStream.getNextEntry();
+        }
+        zipStream.closeEntry();
+        zipStream.close();
     }
 
     public Result compileHelloAion() throws IOException {

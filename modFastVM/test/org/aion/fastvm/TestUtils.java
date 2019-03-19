@@ -2,8 +2,9 @@ package org.aion.fastvm;
 
 import java.util.Collections;
 import java.util.List;
-import org.aion.base.type.Address;
-import org.aion.mcf.vm.types.DataWord;
+
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;
@@ -12,9 +13,9 @@ public class TestUtils {
 
     public static AionBlock createDummyBlock() {
         byte[] parentHash = new byte[32];
-        byte[] coinbase = RandomUtils.nextBytes(Address.ADDRESS_LEN);
+        byte[] coinbase = RandomUtils.nextBytes(Address.SIZE);
         byte[] logsBloom = new byte[0];
-        byte[] difficulty = new DataWord(0x1000000L).getData();
+        byte[] difficulty = new DataWordImpl(0x1000000L).getData();
         long number = 1;
         long timestamp = System.currentTimeMillis() / 1000;
         byte[] extraData = new byte[0];

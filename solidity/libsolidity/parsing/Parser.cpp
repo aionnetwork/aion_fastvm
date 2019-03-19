@@ -867,6 +867,7 @@ ASTPointer<Statement> Parser::parseStatement()
 			m_scanner->next();
 			break;
 		}
+	BOOST_FALLTHROUGH;
 	// fall-through
 	default:
 		statement = parseSimpleStatement(docString);
@@ -1269,6 +1270,7 @@ ASTPointer<Expression> Parser::parsePrimaryExpression()
 			expression = nodeFactory.createNode<Literal>(token, literal, subdenomination);
 			break;
 		}
+		BOOST_FALLTHROUGH;
 		// fall-through
 	case Token::StringLiteral:
 		nodeFactory.markEndPosition();

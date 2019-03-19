@@ -256,7 +256,7 @@ Json::Value Assembly::streamAsmJson(ostream& _out, StringMap const& _sourceCodes
 					createJsonValue("PUSH [ErrorTag]", i.location().start, i.location().end, ""));
 			else
 				collection.append(
-					createJsonValue("PUSH [tag]", i.location().start, i.location().end, string(i.data())));
+					createJsonValue("PUSH [tag]", i.location().start, i.location().end, dev::toString(i.data())));
 			break;
 		case PushSub:
 			collection.append(
@@ -277,7 +277,7 @@ Json::Value Assembly::streamAsmJson(ostream& _out, StringMap const& _sourceCodes
 			break;
 		case Tag:
 			collection.append(
-				createJsonValue("tag", i.location().start, i.location().end, string(i.data())));
+				createJsonValue("tag", i.location().start, i.location().end, dev::toString(i.data())));
 			collection.append(
 				createJsonValue("JUMPDEST", i.location().start, i.location().end));
 			break;
@@ -352,6 +352,9 @@ void Assembly::injectStart(AssemblyItem const& _i)
 
 Assembly& Assembly::optimise(bool _enable, bool _isCreation, size_t _runs)
 {
+	(void) _enable;
+	(void) _isCreation;
+	(void) _runs;
 	/* OptimiserSettings settings;
 	settings.isCreation = _isCreation;
 	settings.runPeephole = true;
@@ -369,6 +372,7 @@ Assembly& Assembly::optimise(bool _enable, bool _isCreation, size_t _runs)
 
 Assembly& Assembly::optimise(OptimiserSettings _settings)
 {
+	(void) _settings;
 	/* optimiseInternal(_settings); */
 	return *this;
 }

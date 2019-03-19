@@ -1,10 +1,9 @@
 package org.aion.fastvm;
 
-import org.aion.base.db.IRepositoryCache;
-import org.aion.base.util.NativeLoader;
-import org.aion.vm.ExecutionContext;
-import org.aion.vm.ExecutionResult;
-import org.aion.vm.VirtualMachine;
+import org.aion.util.file.NativeLoader;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
+import org.aion.vm.api.interfaces.KernelInterface;
+import org.aion.vm.api.interfaces.TransactionContext;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -12,7 +11,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * @author yulong
  */
-public class FastVM implements VirtualMachine {
+public class FastVM {
 
     public static int REVISION_FRONTIER = 0;
     public static int REVISION_HOMESTEAD = 1;
@@ -49,14 +48,19 @@ public class FastVM implements VirtualMachine {
     private static native void destroy(long instance);
 
     @SuppressWarnings("unchecked")
-    public ExecutionResult run(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
-        Callback.push(Pair.of(ctx, repo));
+    public FastVmTransactionResult run(byte[] code, TransactionContext ctx, KernelInterface repo) {
+        if (!(repo instanceof KernelInterfaceForFastVM)) {
+            throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
+        }
+
+        KernelInterfaceForFastVM kernelRepo = (KernelInterfaceForFastVM) repo;
+        Callback.push(Pair.of(ctx, kernelRepo));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
         destroy(instance);
         Callback.pop();
 
-        return ExecutionResult.parse(result);
+        return FastVmTransactionResult.fromBytes(result);
     }
 
     @SuppressWarnings("unchecked")

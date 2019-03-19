@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.aion.base.type.Address;
+import org.aion.types.Address;
+import org.aion.fastvm.SideEffects;
+import org.aion.fastvm.SideEffects.Call;
 import org.aion.mcf.vm.types.Log;
-import org.aion.vm.ExecutionHelper.Call;
+import org.aion.types.Address;
+import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -22,48 +26,48 @@ import org.junit.Test;
 // NOTE: Calls have no restrictions on them, can be null or anything, is this wanted?
 // Also, seems no one uses Call, is it even necessary?
 
-public class ExecutionHelperUnitTest {
-    private ExecutionHelper helper;
+public class SideEffectsUnitTest {
+    private SideEffects sideEffects;
 
     @Before
     public void setup() {
-        helper = new ExecutionHelper();
+        sideEffects = new SideEffects();
     }
 
     @After
     public void tearDown() {
-        helper = null;
+        sideEffects = null;
     }
 
     @Test
     public void testNewExecutionHelper() {
-        assertTrue(helper.getDeleteAccounts().isEmpty());
-        assertTrue(helper.getLogs().isEmpty());
-        assertTrue(helper.getCalls().isEmpty());
-        assertTrue(helper.getInternalTransactions().isEmpty());
+        assertTrue(sideEffects.getAddressesToBeDeleted().isEmpty());
+        assertTrue(sideEffects.getExecutionLogs().isEmpty());
+        assertTrue(sideEffects.getCalls().isEmpty());
+        assertTrue(sideEffects.getInternalTransactions().isEmpty());
     }
 
     @Test
     public void testAddDeleteAccount() {
         Address addr = getNewAddress();
-        helper.addDeleteAccount(addr);
-        assertEquals(1, helper.getDeleteAccounts().size());
-        assertEquals(addr, helper.getDeleteAccounts().get(0));
+        sideEffects.addToDeletedAddresses(addr);
+        assertEquals(1, sideEffects.getAddressesToBeDeleted().size());
+        assertEquals(addr, sideEffects.getAddressesToBeDeleted().get(0));
     }
 
     @Test
     public void testAddDeleteAccountDuplicate() {
         Address addr1 = getNewAddress();
         Address addr2 = getNewAddress();
-        helper.addDeleteAccount(addr1);
-        helper.addDeleteAccount(addr2);
-        helper.addDeleteAccount(addr2);
-        assertEquals(2, helper.getDeleteAccounts().size());
-        Address addr = helper.getDeleteAccounts().get(0);
+        sideEffects.addToDeletedAddresses(addr1);
+        sideEffects.addToDeletedAddresses(addr2);
+        sideEffects.addToDeletedAddresses(addr2);
+        assertEquals(2, sideEffects.getAddressesToBeDeleted().size());
+        Address addr = (Address) sideEffects.getAddressesToBeDeleted().get(0);
         if (addr.equals(addr1)) {
-            assertEquals(addr2, helper.getDeleteAccounts().get(1));
+            assertEquals(addr2, sideEffects.getAddressesToBeDeleted().get(1));
         } else if (addr.equals(addr2)) {
-            assertEquals(addr1, helper.getDeleteAccounts().get(1));
+            assertEquals(addr1, sideEffects.getAddressesToBeDeleted().get(1));
         } else {
             fail("Delete accounts not added properly.");
         }
@@ -73,9 +77,9 @@ public class ExecutionHelperUnitTest {
     public void testAddDeleteAccountsCollectionContainsNulls() {
         int numAddrs = 15;
         Collection<Address> addresses = getNewAddresses(numAddrs, 12);
-        helper.addDeleteAccounts(addresses);
-        assertEquals(numAddrs, helper.getDeleteAccounts().size());
-        for (Address addr : helper.getDeleteAccounts()) {
+        sideEffects.addAllToDeletedAddresses(addresses);
+        assertEquals(numAddrs, sideEffects.getAddressesToBeDeleted().size());
+        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(addresses.contains(addr));
         }
     }
@@ -90,9 +94,9 @@ public class ExecutionHelperUnitTest {
             duplicates.add(addrIt.next());
         }
         duplicates.addAll(addresses);
-        helper.addDeleteAccounts(duplicates);
-        assertEquals(numAddrs, helper.getDeleteAccounts().size());
-        for (Address addr : helper.getDeleteAccounts()) {
+        sideEffects.addAllToDeletedAddresses(duplicates);
+        assertEquals(numAddrs, sideEffects.getAddressesToBeDeleted().size());
+        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(addresses.contains(addr));
         }
     }
@@ -104,72 +108,72 @@ public class ExecutionHelperUnitTest {
         Collection<Address> addresses = getNewAddresses(numAddrs1, 3);
         Collection<Address> merged = new ArrayList<>(addresses);
         merged.addAll(getNewAddresses(numAddrs2, 6));
-        helper.addDeleteAccounts(addresses);
-        helper.addDeleteAccounts(merged);
-        assertEquals(numAddrs1 + numAddrs2, helper.getDeleteAccounts().size());
-        for (Address addr : helper.getDeleteAccounts()) {
+        sideEffects.addAllToDeletedAddresses(addresses);
+        sideEffects.addAllToDeletedAddresses(merged);
+        assertEquals(numAddrs1 + numAddrs2, sideEffects.getAddressesToBeDeleted().size());
+        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(merged.contains(addr));
         }
     }
 
     @Test
     public void testAddLogBulk() {
-        Collection<Log> logs = getNewLogs(29);
-        for (Log log : logs) {
-            helper.addLog(log);
+        Collection<IExecutionLog> logs = getNewLogs(29);
+        for (IExecutionLog log : logs) {
+            sideEffects.addLog(log);
         }
-        assertEquals(logs, helper.getLogs());
+        assertEquals(logs, sideEffects.getExecutionLogs());
     }
 
     @Test
     public void testAddLogBulkSomeDuplicates() {
-        Collection<Log> logs = getNewLogs(22);
-        for (Log log : logs) {
-            helper.addLog(log);
-            helper.addLog(log);
+        Collection<IExecutionLog> logs = getNewLogs(22);
+        for (IExecutionLog log : logs) {
+            sideEffects.addLog(log);
+            sideEffects.addLog(log);
         }
-        assertEquals(logs.size() * 2, helper.getLogs().size());
-        for (Log log : helper.getLogs()) {
+        assertEquals(logs.size() * 2, sideEffects.getExecutionLogs().size());
+        for (IExecutionLog log : sideEffects.getExecutionLogs()) {
             assertTrue(logs.contains(log));
         }
     }
 
     @Test
     public void testAddLogsBulk() {
-        Collection<Log> logs = getNewLogs(38);
-        helper.addLogs(logs);
-        assertEquals(logs, helper.getLogs());
+        Collection<IExecutionLog> logs = getNewLogs(38);
+        sideEffects.addLogs(logs);
+        assertEquals(logs, sideEffects.getExecutionLogs());
     }
 
     @Test
     public void testAddLogsSomeNull() {
         int numLogs = 33;
-        Collection<Log> logs = getNewLogs(numLogs);
+        Collection<IExecutionLog> logs = getNewLogs(numLogs);
         for (int i = 0; i < 8; i++) {
             logs.add(null);
         }
-        helper.addLogs(logs);
-        assertEquals(numLogs, helper.getLogs().size());
-        for (Log log : logs) {
+        sideEffects.addLogs(logs);
+        assertEquals(numLogs, sideEffects.getExecutionLogs().size());
+        for (IExecutionLog log : logs) {
             assertTrue(logs.contains(log));
         }
     }
 
     @Test
     public void testAddLogsSomeDuplicates() {
-        Collection<Log> logs = getNewLogs(29);
-        helper.addLogs(logs);
-        helper.addLogs(logs);
-        assertEquals(logs.size() * 2, helper.getLogs().size());
-        for (Log log : logs) {
+        Collection<IExecutionLog> logs = getNewLogs(29);
+        sideEffects.addLogs(logs);
+        sideEffects.addLogs(logs);
+        assertEquals(logs.size() * 2, sideEffects.getExecutionLogs().size());
+        for (IExecutionLog log : logs) {
             assertTrue(logs.contains(log));
         }
     }
 
     @Test
     public void testAddCallNullFields() {
-        helper.addCall(null, null, null);
-        List<Call> calls = helper.getCalls();
+        sideEffects.addCall(null, null, null);
+        List<Call> calls = sideEffects.getCalls();
         assertEquals(1, calls.size());
         Call call = calls.get(0);
         assertNull(call.getData());
@@ -179,97 +183,97 @@ public class ExecutionHelperUnitTest {
 
     @Test
     public void testAddTxBulk() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(22);
-        for (AionInternalTx tx : txs) {
-            helper.addInternalTransaction(tx);
+        Collection<InternalTransactionInterface> txs = getNewInternalTxs(22);
+        for (InternalTransactionInterface tx : txs) {
+            sideEffects.addInternalTransaction(tx);
         }
-        assertEquals(txs, helper.getInternalTransactions());
+        assertEquals(txs, sideEffects.getInternalTransactions());
     }
 
     @Test
     public void testAddTxBulkSomeDuplicates() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(17);
-        for (AionInternalTx tx : txs) {
-            helper.addInternalTransaction(tx);
-            helper.addInternalTransaction(tx);
+        Collection<InternalTransactionInterface> txs = getNewInternalTxs(17);
+        for (InternalTransactionInterface tx : txs) {
+            sideEffects.addInternalTransaction(tx);
+            sideEffects.addInternalTransaction(tx);
         }
-        assertEquals(txs.size() * 2, helper.getInternalTransactions().size());
+        assertEquals(txs.size() * 2, sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testAddTxs() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(26);
-        helper.addInternalTransactions(txs);
-        assertEquals(txs.size(), helper.getInternalTransactions().size());
+        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
+        sideEffects.addInternalTransactions(txs);
+        assertEquals(txs.size(), sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testAddTxsSomeNull() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(26);
-        Collection<AionInternalTx> txsWithNulls = new ArrayList<>(txs);
+        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
+        List<InternalTransactionInterface> txsWithNulls = new ArrayList<>(txs);
         for (int i = 0; i < 19; i++) {
             txsWithNulls.add(null);
         }
-        helper.addInternalTransactions(txsWithNulls);
-        assertEquals(txs.size(), helper.getInternalTransactions().size());
+        sideEffects.addInternalTransactions(txsWithNulls);
+        assertEquals(txs.size(), sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testAddTxsSomeDuplicates() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(26);
-        helper.addInternalTransactions(txs);
-        helper.addInternalTransactions(txs);
-        assertEquals(txs.size() * 2, helper.getInternalTransactions().size());
+        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
+        sideEffects.addInternalTransactions(txs);
+        sideEffects.addInternalTransactions(txs);
+        assertEquals(txs.size() * 2, sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testRejectEmptyTxListThrowsNoExceptions() {
-        helper.rejectInternalTransactions();
+        sideEffects.markAllInternalTransactionsAsRejected();
     }
 
     @Test
     public void testRejectNonEmptyTxList() {
-        helper.addInternalTransactions(getNewInternalTxs(33));
-        for (AionInternalTx tx : helper.getInternalTransactions()) {
+        sideEffects.addInternalTransactions(getNewInternalTxs(33));
+        for (InternalTransactionInterface tx : sideEffects.getInternalTransactions()) {
             assertFalse(tx.isRejected());
         }
-        helper.rejectInternalTransactions();
-        for (AionInternalTx tx : helper.getInternalTransactions()) {
+        sideEffects.markAllInternalTransactionsAsRejected();
+        for (InternalTransactionInterface tx : sideEffects.getInternalTransactions()) {
             assertTrue(tx.isRejected());
         }
     }
 
     @Test
-    public void testMergeWhenSuccessTrue() {
+    public void testMergeSideEffects() {
         int otherTx = 21, helperTx = 15, otherAddrs = 17, helperAddrs = 23, otherLogs = 13;
         int helperLogs = 11, numCalls = 12;
-        ExecutionHelper other = getNewHelper(otherTx, otherAddrs, otherLogs, 9);
-        helper = getNewHelper(helperTx, helperAddrs, helperLogs, numCalls);
-        helper.merge(other, true);
+        SideEffects other = getNewHelper(otherTx, otherAddrs, otherLogs, 9);
+        sideEffects = getNewHelper(helperTx, helperAddrs, helperLogs, numCalls);
+        sideEffects.merge(other);
 
         // Txs, addrs, logs all merge but no calls get transferred.
         int numTxs = otherTx + helperTx;
         int numAddrs = otherAddrs + helperAddrs;
         int numLogs = otherLogs + helperLogs;
-        assertEquals(numTxs, helper.getInternalTransactions().size());
-        assertEquals(numAddrs, helper.getDeleteAccounts().size());
-        assertEquals(numLogs, helper.getLogs().size());
-        assertEquals(numCalls, helper.getCalls().size());
+        assertEquals(numTxs, sideEffects.getInternalTransactions().size());
+        assertEquals(numAddrs, sideEffects.getAddressesToBeDeleted().size());
+        assertEquals(numLogs, sideEffects.getExecutionLogs().size());
+        assertEquals(numCalls, sideEffects.getCalls().size());
     }
 
     @Test
-    public void testMergeWhenSuccessFalse() {
+    public void testAddInternalTransactionsOfOtherSideEffects() {
         int otherTx = 32, helperTx = 42, helperAddrs = 33, helperLogs = 27, numCalls = 21;
-        ExecutionHelper other = getNewHelper(otherTx, 22, 17, 9);
-        helper = getNewHelper(helperTx, helperAddrs, helperLogs, numCalls);
-        helper.merge(other, false);
+        SideEffects other = getNewHelper(otherTx, 22, 17, 9);
+        sideEffects = getNewHelper(helperTx, helperAddrs, helperLogs, numCalls);
+        sideEffects.addInternalTransactions(other.getInternalTransactions());
 
         // Txs are the only thing transferred.
         int numTxs = otherTx + helperTx;
-        assertEquals(numTxs, helper.getInternalTransactions().size());
-        assertEquals(helperAddrs, helper.getDeleteAccounts().size());
-        assertEquals(helperLogs, helper.getLogs().size());
-        assertEquals(numCalls, helper.getCalls().size());
+        assertEquals(numTxs, sideEffects.getInternalTransactions().size());
+        assertEquals(helperAddrs, sideEffects.getAddressesToBeDeleted().size());
+        assertEquals(helperLogs, sideEffects.getExecutionLogs().size());
+        assertEquals(numCalls, sideEffects.getCalls().size());
     }
 
     /**
@@ -297,7 +301,7 @@ public class ExecutionHelperUnitTest {
      * @return a newly created address consisting of random bytes.
      */
     private Address getNewAddress() {
-        return new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
+        return new Address(RandomUtils.nextBytes(Address.SIZE));
     }
 
     /**
@@ -306,8 +310,8 @@ public class ExecutionHelperUnitTest {
      * @param num The number of logs to produce.
      * @return the collection of new logs.
      */
-    private Collection<Log> getNewLogs(int num) {
-        Collection<Log> logs = new ArrayList<>();
+    private Collection<IExecutionLog> getNewLogs(int num) {
+        Collection<IExecutionLog> logs = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             logs.add(getNewLog());
         }
@@ -351,8 +355,8 @@ public class ExecutionHelperUnitTest {
      * @param num The number of internal transactions in the collection.
      * @return the collection of internal transactions.
      */
-    private Collection<AionInternalTx> getNewInternalTxs(int num) {
-        Collection<AionInternalTx> internals = new ArrayList<>();
+    private List<InternalTransactionInterface> getNewInternalTxs(int num) {
+        List<InternalTransactionInterface> internals = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             internals.add(getNewInternalTx());
         }
@@ -390,10 +394,10 @@ public class ExecutionHelperUnitTest {
      * @param numCalls The number of calls.
      * @return the new ExecutionHelper.
      */
-    private ExecutionHelper getNewHelper(int numTxs, int numAddrs, int numLogs, int numCalls) {
-        ExecutionHelper helper = new ExecutionHelper();
+    private SideEffects getNewHelper(int numTxs, int numAddrs, int numLogs, int numCalls) {
+        SideEffects helper = new SideEffects();
         helper.addInternalTransactions(getNewInternalTxs(numTxs));
-        helper.addDeleteAccounts(getNewAddresses(numAddrs, 0));
+        helper.addAllToDeletedAddresses(getNewAddresses(numAddrs, 0));
         helper.addLogs(getNewLogs(numLogs));
         for (int i = 0; i < numCalls; i++) {
             helper.addCall(null, null, null);

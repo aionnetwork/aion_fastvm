@@ -5,17 +5,17 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import org.aion.base.type.Address;
-import org.aion.base.type.IExecutionResult;
-import org.aion.base.util.ByteUtil;
-import org.aion.base.util.Hex;
+import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.util.bytes.ByteUtil;
+import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.DataWord;
-import org.aion.mcf.vm.types.Log;
-import org.aion.vm.AbstractExecutionResult.ResultCode;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
-import org.aion.vm.ExecutionContext;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class ContractTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWord(0x100000000L);
+    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
 
     private DataWord nrgPrice;
     private long nrgLimit;
@@ -46,9 +46,9 @@ public class ContractTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWord.ONE;
+        nrgPrice = DataWordImpl.ONE;
         nrgLimit = 20000;
-        callValue = DataWord.ZERO;
+        callValue = DataWordImpl.ZERO;
         callData = new byte[0];
     }
 
@@ -62,58 +62,24 @@ public class ContractTest {
         callData = Hex.decode("26121ff0");
         nrgLimit = 1_000_000L;
 
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         callData = Hex.decode("e2179b8e");
         nrgLimit = 1_000_000L;
 
-        ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         assertEquals(
                 "000000000000000000000000000000100000000000000000000000000000040061000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062",
-                Hex.toHexString(result.getOutput()));
+                Hex.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -123,135 +89,50 @@ public class ContractTest {
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, contract);
 
-        callData = ByteUtil.merge(Hex.decode("ff40565e"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("ff40565e"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("231e93d4"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
-        ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("1dae8972"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
-        ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(6L).getData());
+        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
-        ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(8L).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
 
-        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWord(1024L).getData());
+        callData = ByteUtil.merge(Hex.decode("9d4cd86c"), new DataWordImpl(1024L).getData());
         nrgLimit = 100_000L;
-        ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, repo);
+        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
-        assertEquals(ResultCode.REVERT.toInt(), result.getCode());
-        assertTrue(result.getNrgLeft() > 0);
+        assertEquals(FastVmResultCode.REVERT, result.getResultCode());
+        assertTrue(result.getEnergyRemaining() > 0);
     }
 
     @Test
@@ -264,45 +145,28 @@ public class ContractTest {
         int n = 10;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 100_000L;
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
-        for (AionInternalTx tx : txs) {
+        for (InternalTransactionInterface tx : txs) {
             System.out.println(tx);
         }
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
-        for (Log log : logs) {
+        for (IExecutionLog log : logs) {
             System.out.println(log);
         }
     }
@@ -317,40 +181,23 @@ public class ContractTest {
         int n = 128;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.SUCCESS.toInt(), result.getCode());
-        assertEquals(new DataWord(n).toString(), Hex.toHexString(result.getOutput()));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
-        List<AionInternalTx> txs = ctx.helper().getInternalTransactions();
+        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<Log> logs = ctx.helper().getLogs();
+        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
     }
 
@@ -364,31 +211,39 @@ public class ContractTest {
         int n = 1000;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toBytes(), new DataWord(n).getData());
+                        Hex.decode("2d7df21a"), address.toBytes(), new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+        ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        IExecutionResult result = vm.run(contract, ctx, repo);
+        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         // verify result
-        assertEquals(ResultCode.REVERT.toInt(), result.getCode());
+        assertEquals(FastVmResultCode.REVERT, result.getResultCode());
+    }
+
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
+        return new KernelInterfaceForFastVM(cache, true, false);
+    }
+
+    private ExecutionContext newExecutionContext() {
+        return new ExecutionContext(
+                null,
+                txHash,
+                address,
+                origin,
+                caller,
+                nrgPrice,
+                nrgLimit,
+                callValue,
+                callData,
+                depth,
+                kind,
+                flags,
+                blockCoinbase,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
     }
 }

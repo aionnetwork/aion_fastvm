@@ -1,10 +1,17 @@
 package org.aion.solidity;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
+import org.aion.solidity.Compiler.Result;
 import org.junit.Test;
 
 public class CompilerTest {
@@ -76,5 +83,22 @@ public class CompilerTest {
 
         System.out.println("Method: name = " + func.name + ", payable = " + func.payable);
         assertTrue(func.payable);
+    }
+
+    @Test
+    public void testCompileZip() throws IOException {
+
+        Compiler comp = Compiler.getInstance();
+
+        InputStream in = ContractUtils.class.getResourceAsStream("contracts.zip");
+
+        Result r =
+                comp.compileZip(
+                        in.readAllBytes(),
+                        "Import.sol",
+                        Compiler.Options.ABI,
+                        Compiler.Options.BIN);
+
+        assertFalse(r.isFailed());
     }
 }

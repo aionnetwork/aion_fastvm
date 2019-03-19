@@ -6,8 +6,11 @@ import static org.junit.Assert.assertEquals;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import org.aion.base.type.Address;
-import org.aion.mcf.vm.types.DataWord;
+
+import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Address;
+import org.aion.fastvm.ExecutionContext;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -23,13 +26,17 @@ public class ExecutionContextUnitTest {
 
     @Before
     public void setup() {
-        recipient = new Address("1111111111111111111111111111111111111111111111111111111111111111");
-        origin = new Address("2222222222222222222222222222222222222222222222222222222222222222");
-        caller = new Address("3333333333333333333333333333333333333333333333333333333333333333");
-        coinbase = new Address("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        blockDifficulty = new DataWord(Hex.decode("0000000000000000000000000000000f"));
-        nrgPrice = new DataWord(Hex.decode("00000000000000000000000000000004"));
-        callValue = new DataWord(Hex.decode("00000000000000000000000000000006"));
+        recipient =
+                new Address("1111111111111111111111111111111111111111111111111111111111111111");
+        origin =
+                new Address("2222222222222222222222222222222222222222222222222222222222222222");
+        caller =
+                new Address("3333333333333333333333333333333333333333333333333333333333333333");
+        coinbase =
+                new Address("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        blockDifficulty = new DataWordImpl(Hex.decode("0000000000000000000000000000000f"));
+        nrgPrice = new DataWordImpl(Hex.decode("00000000000000000000000000000004"));
+        callValue = new DataWordImpl(Hex.decode("00000000000000000000000000000006"));
         txHash = RandomUtils.nextBytes(32);
         callData = new byte[] {0x07};
         depth = 8;
@@ -62,21 +69,21 @@ public class ExecutionContextUnitTest {
 
     @Test
     public void testToBytesRandomBlockDifficulty() {
-        blockDifficulty = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomNrgPrice() {
-        nrgPrice = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        nrgPrice = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomCallValue() {
-        callValue = new DataWord(RandomUtils.nextBytes(DataWord.BYTES));
+        callValue = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
@@ -168,15 +175,15 @@ public class ExecutionContextUnitTest {
     @Test
     public void testGetTxHash() {
         ExecutionContext context = newExecutionContext();
-        assertArrayEquals(txHash, context.transactionHash());
+        assertArrayEquals(txHash, context.getTransactionHash());
     }
 
     @Test
     public void testSetRecipient() {
         ExecutionContext context = newExecutionContext();
-        Address newRecipient = new Address(RandomUtils.nextBytes(Address.ADDRESS_LEN));
-        context.setDestination(newRecipient);
-        assertEquals(newRecipient, context.address());
+        Address newRecipient = new Address(RandomUtils.nextBytes(Address.SIZE));
+        context.setDestinationAddress(newRecipient);
+        assertEquals(newRecipient, context.getDestinationAddress());
     }
 
     // <-------------------------------------HELPERS BELOW----------------------------------------->
@@ -187,6 +194,7 @@ public class ExecutionContextUnitTest {
      */
     private ExecutionContext newExecutionContext() {
         return new ExecutionContext(
+                null,
                 txHash,
                 recipient,
                 origin,
@@ -214,78 +222,90 @@ public class ExecutionContextUnitTest {
      */
     private void checkEncoding(ExecutionContext context, byte[] encoding) {
         int start = 0;
-        int end = Address.ADDRESS_LEN;
+        int end = Address.SIZE;
         ByteBuffer longBuf = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
         ByteBuffer intBuf = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
-        assertEquals(context.address(), new Address(Arrays.copyOfRange(encoding, start, end)));
-        start = end;
-        end += Address.ADDRESS_LEN;
-        assertEquals(context.origin(), new Address(Arrays.copyOfRange(encoding, start, end)));
-        start = end;
-        end += Address.ADDRESS_LEN;
-        assertEquals(context.sender(), new Address(Arrays.copyOfRange(encoding, start, end)));
-        start = end;
-        end += DataWord.BYTES;
-        assertEquals(context.nrgPrice(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
-        start = end;
-        end += Long.BYTES;
-        longBuf.put(Arrays.copyOfRange(encoding, start, end));
-        longBuf.flip();
-        assertEquals(context.nrgLimit(), longBuf.getLong());
-        longBuf.clear();
-        start = end;
-        end += DataWord.BYTES;
-        assertEquals(context.callValue(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
-        start = end;
-        end += Integer.BYTES;
-        intBuf.put(Arrays.copyOfRange(encoding, start, end));
-        intBuf.flip();
-        assertEquals(context.callData().length, intBuf.getInt());
-        intBuf.clear();
-        start = end;
-        end += context.callData().length;
-        assertArrayEquals(context.callData(), Arrays.copyOfRange(encoding, start, end));
-        start = end;
-        end += Integer.BYTES;
-        intBuf.put(Arrays.copyOfRange(encoding, start, end));
-        intBuf.flip();
-        assertEquals(context.depth(), intBuf.getInt());
-        intBuf.clear();
-        start = end;
-        end += Integer.BYTES;
-        intBuf.put(Arrays.copyOfRange(encoding, start, end));
-        intBuf.flip();
-        assertEquals(context.kind(), intBuf.getInt());
-        intBuf.clear();
-        start = end;
-        end += Integer.BYTES;
-        intBuf.put(Arrays.copyOfRange(encoding, start, end));
-        intBuf.flip();
-        assertEquals(context.flags(), intBuf.getInt());
-        start = end;
-        end += Address.ADDRESS_LEN;
         assertEquals(
-                context.blockCoinbase(), new Address(Arrays.copyOfRange(encoding, start, end)));
+                context.getDestinationAddress(),
+                new Address(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += Long.BYTES;
-        longBuf.put(Arrays.copyOfRange(encoding, start, end));
-        longBuf.flip();
-        assertEquals(context.blockNumber(), longBuf.getLong());
-        longBuf.clear();
-        start = end;
-        end += Long.BYTES;
-        longBuf.put(Arrays.copyOfRange(encoding, start, end));
-        longBuf.flip();
-        assertEquals(context.blockTimestamp(), longBuf.getLong());
-        longBuf.clear();
-        start = end;
-        end += Long.BYTES;
-        longBuf.put(Arrays.copyOfRange(encoding, start, end));
-        longBuf.flip();
-        assertEquals(context.blockNrgLimit(), longBuf.getLong());
-        start = end;
-        end += DataWord.BYTES;
+        end += Address.SIZE;
         assertEquals(
-                context.blockDifficulty(), new DataWord(Arrays.copyOfRange(encoding, start, end)));
+                context.getOriginAddress(),
+                new Address(Arrays.copyOfRange(encoding, start, end)));
+        start = end;
+        end += Address.SIZE;
+        assertEquals(
+                context.getSenderAddress(),
+                new Address(Arrays.copyOfRange(encoding, start, end)));
+        start = end;
+        end += DataWordImpl.BYTES;
+        assertEquals(
+                context.getTransactionEnergyPrice(),
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
+        start = end;
+        end += Long.BYTES;
+        longBuf.put(Arrays.copyOfRange(encoding, start, end));
+        longBuf.flip();
+        assertEquals(context.getTransactionEnergy(), longBuf.getLong());
+        longBuf.clear();
+        start = end;
+        end += DataWordImpl.BYTES;
+        assertEquals(
+                new DataWordImpl(context.getTransferValue()),
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)));
+        start = end;
+        end += Integer.BYTES;
+        intBuf.put(Arrays.copyOfRange(encoding, start, end));
+        intBuf.flip();
+        assertEquals(context.getTransactionData().length, intBuf.getInt());
+        intBuf.clear();
+        start = end;
+        end += context.getTransactionData().length;
+        assertArrayEquals(context.getTransactionData(), Arrays.copyOfRange(encoding, start, end));
+        start = end;
+        end += Integer.BYTES;
+        intBuf.put(Arrays.copyOfRange(encoding, start, end));
+        intBuf.flip();
+        assertEquals(context.getTransactionStackDepth(), intBuf.getInt());
+        intBuf.clear();
+        start = end;
+        end += Integer.BYTES;
+        intBuf.put(Arrays.copyOfRange(encoding, start, end));
+        intBuf.flip();
+        assertEquals(context.getTransactionKind(), intBuf.getInt());
+        intBuf.clear();
+        start = end;
+        end += Integer.BYTES;
+        intBuf.put(Arrays.copyOfRange(encoding, start, end));
+        intBuf.flip();
+        assertEquals(context.getFlags(), intBuf.getInt());
+        start = end;
+        end += Address.SIZE;
+        assertEquals(
+                context.getMinerAddress(),
+                new Address(Arrays.copyOfRange(encoding, start, end)));
+        start = end;
+        end += Long.BYTES;
+        longBuf.put(Arrays.copyOfRange(encoding, start, end));
+        longBuf.flip();
+        assertEquals(context.getBlockNumber(), longBuf.getLong());
+        longBuf.clear();
+        start = end;
+        end += Long.BYTES;
+        longBuf.put(Arrays.copyOfRange(encoding, start, end));
+        longBuf.flip();
+        assertEquals(context.getBlockTimestamp(), longBuf.getLong());
+        longBuf.clear();
+        start = end;
+        end += Long.BYTES;
+        longBuf.put(Arrays.copyOfRange(encoding, start, end));
+        longBuf.flip();
+        assertEquals(context.getBlockEnergyLimit(), longBuf.getLong());
+        start = end;
+        end += DataWordImpl.BYTES;
+        assertEquals(
+                context.getBlockDifficulty(),
+                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
     }
 }

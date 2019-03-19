@@ -27,6 +27,11 @@
 namespace dev
 {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif // defined(__clang__)
+
 /// Serialise the JSON object (@a _input) with indentation
 inline std::string jsonPrettyPrint(Json::Value const& _input)
 {
@@ -40,5 +45,9 @@ inline std::string jsonCompactPrint(Json::Value const& _input)
 	writer.omitEndingLineFeed();
 	return writer.write(_input);
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif // defined(__clang__)
 
 }

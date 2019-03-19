@@ -134,6 +134,7 @@ public:
 	virtual void endVisit(Identifier& _node) { endVisitNode(_node); }
 	virtual void endVisit(ElementaryTypeNameExpression& _node) { endVisitNode(_node); }
 	virtual void endVisit(Literal& _node) { endVisitNode(_node); }
+	virtual ~ASTVisitor() = default;
 
 protected:
 	/// Generic function called by default for each node, to be overridden by derived classes
@@ -238,6 +239,7 @@ public:
 	virtual void endVisit(Identifier const& _node) { endVisitNode(_node); }
 	virtual void endVisit(ElementaryTypeNameExpression const& _node) { endVisitNode(_node); }
 	virtual void endVisit(Literal const& _node) { endVisitNode(_node); }
+	virtual ~ASTConstVisitor() = default;
 
 protected:
 	/// Generic function called by default for each node, to be overridden by derived classes
