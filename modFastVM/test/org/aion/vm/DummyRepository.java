@@ -247,6 +247,11 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
     public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {}
 
     @Override
+    public byte getVMUsed(Address contract) {
+        return 0x01;
+    }
+
+    @Override
     public void compact() {
         throw new UnsupportedOperationException(
                 "The tracking cache cannot be compacted. \'Compact\' should be called on the tracked repository.");
