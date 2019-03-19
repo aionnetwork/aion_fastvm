@@ -48,7 +48,7 @@ dependencies {
     testCompile project(':modDbImpl')
     testCompile project(':modEvtMgr')
 
-    testCompile 'network.aion:vm-api4j:0.4.0'
+    testCompile project(':aion_vm_api')
     testCompile 'network.aion:rlp4j:0.4.0'
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.42'

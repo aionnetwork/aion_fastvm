@@ -250,7 +250,6 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
     @Override
     public void removeTxBatch(Set<byte[]> pendingTx, boolean isPool) {}
 
-    @Override
     public byte getVMUsed(Address contract) {
         return 0x01;
     }
