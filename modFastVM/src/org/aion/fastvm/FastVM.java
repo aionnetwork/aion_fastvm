@@ -1,5 +1,6 @@
 package org.aion.fastvm;
 
+import org.aion.interfaces.db.RepositoryCache;
 import org.aion.util.file.NativeLoader;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.api.interfaces.KernelInterface;
@@ -64,13 +65,18 @@ public class FastVM {
     }
 
     @SuppressWarnings("unchecked")
-    public ExecutionResult run_v1(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
-        Callback.push(Pair.of(ctx, repo));
+    public FastVmTransactionResult run_v1(byte[] code, TransactionContext ctx, KernelInterface repo) {
+        if (!(repo instanceof KernelInterfaceForFastVM)) {
+            throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
+        }
+
+        KernelInterfaceForFastVM kernelRepo = (KernelInterfaceForFastVM) repo;
+        Callback.push(Pair.of(ctx, kernelRepo));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION_V1);
         destroy(instance);
         Callback.pop();
 
-        return ExecutionResult.parse(result);
+        return FastVmTransactionResult.fromBytes(result);
     }
 }

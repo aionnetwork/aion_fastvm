@@ -19,6 +19,8 @@ import org.aion.crypto.ECKey;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.vm.DummyRepository;
+import org.aion.vm.api.interfaces.ResultCode;
+import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.types.AionBlock;
@@ -754,33 +756,20 @@ public class FastVMTest {
                 + "000000000000000000000000000000000000000000000000000000000000000d"
                 + "000000000000000000000000000000000000000000000000000000000000000e");
         nrgLimit = 1000_000L;
-        ExecutionContext ctx =
-                new ExecutionContext(
-                        txHash,
-                        address,
-                        origin,
-                        caller,
-                        nrgPrice,
-                        nrgLimit,
-                        callValue,
-                        callData,
-                        depth,
-                        kind,
-                        flags,
-                        blockCoinbase,
-                        blockNumber,
-                        blockTimestamp,
-                        blockNrgLimit,
-                        blockDifficulty);
+
+
+
+        ExecutionContext ctx = newExecutionContext();
         DummyRepository repo = new DummyRepository();
         repo.addContract(address, code);
 
-        FastVM vm = new FastVM();
-        ExecutionResult result = vm.run(code, ctx, repo);
-        assertEquals(ResultCode.OUT_OF_NRG, result.getResultCode());
 
-        result = vm.run_v1(code, ctx, repo);
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+
+        result = vm.run_v1(code, ctx, wrapInKernelInterface(repo));
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
 
     @After
