@@ -6,15 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.aion.types.ByteArrayWrapper;
 import org.aion.interfaces.db.ContractDetails;
 import org.aion.interfaces.db.Repository;
 import org.aion.interfaces.db.RepositoryCache;
-import org.aion.types.ByteArrayWrapper;
-import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.types.Address;
+import org.aion.types.ByteArrayWrapper;
+import org.aion.util.bytes.ByteUtil;
 
 public class DummyRepository implements RepositoryCache<AccountState, IBlockStoreBase<?, ?>> {
     private DummyRepository parent;
@@ -179,6 +178,11 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
         repoAsDummy.accounts = accounts;
         repoAsDummy.contracts = contracts;
         repoAsDummy.storage = storage;
+    }
+
+    @Override
+    public void flushCopiesTo(Repository repo, boolean clearStorageAfterFlush) {
+        flushTo(repo, clearStorageAfterFlush);
     }
 
     @Override

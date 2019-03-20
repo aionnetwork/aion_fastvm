@@ -2,6 +2,7 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
+import org.aion.interfaces.db.RepositoryCache;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.types.Address;
@@ -10,7 +11,6 @@ import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.vm.api.interfaces.VirtualMachine;
-import org.aion.zero.db.AionRepositoryCache;
 import org.aion.zero.types.AionTransaction;
 
 public class FastVirtualMachine implements VirtualMachine {
@@ -60,8 +60,7 @@ public class FastVirtualMachine implements VirtualMachine {
             // pass that state to the caller.
             KernelInterfaceForFastVM fvmKernel =
                     (KernelInterfaceForFastVM) transactionResults[i].result.getKernelInterface();
-            AionRepositoryCache fvmKernelRepo =
-                    (AionRepositoryCache) fvmKernel.getRepositoryCache();
+            RepositoryCache fvmKernelRepo = fvmKernel.getRepositoryCache();
             KernelInterfaceForFastVM snapshotKernel =
                     (KernelInterfaceForFastVM) this.kernelSnapshot;
             fvmKernelRepo.flushCopiesTo(snapshotKernel.getRepositoryCache(), false);
