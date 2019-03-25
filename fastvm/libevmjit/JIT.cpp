@@ -65,6 +65,7 @@ char toChar(evm_revision rev)
 	case EVM_BYZANTIUM: return 'B';
 	case EVM_AION: return 'A';
 	case EVM_CONSTANTINOPLE: return 'C';
+	case EVM_AION_V1: return 'D';
 	}
 	LLVM_BUILTIN_UNREACHABLE;
 }
@@ -192,6 +193,7 @@ int64_t call_v2(
 	msg.gas = _gas;
 	msg.depth = jit.currentMsg->depth + 1;
 	msg.flags = jit.currentMsg->flags;
+	
 	if (_kind == EVM_STATICCALL)
 	{
 		msg.kind = EVM_CALL;

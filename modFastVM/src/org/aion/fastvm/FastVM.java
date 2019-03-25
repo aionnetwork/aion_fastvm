@@ -19,6 +19,7 @@ public class FastVM {
     public static int REVISION_SPURIOUS_DRAGON = 3;
     public static int REVISION_BYZANTIUM = 4;
     public static int REVISION_AION = 5;
+    public static int REVISION_AION_V1 = 7;
 
     public static int FLAG_STATIC = 1;
 
@@ -60,5 +61,16 @@ public class FastVM {
         Callback.pop();
 
         return FastVmTransactionResult.fromBytes(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    public ExecutionResult run_v1(byte[] code, ExecutionContext ctx, IRepositoryCache repo) {
+        Callback.push(Pair.of(ctx, repo));
+        long instance = create();
+        byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION_V1);
+        destroy(instance);
+        Callback.pop();
+
+        return ExecutionResult.parse(result);
     }
 }

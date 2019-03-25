@@ -158,6 +158,22 @@ enum class Instruction: uint8_t
 	DUP14,				///< copies the 14th highest item in the stack to the top of the stack
 	DUP15,				///< copies the 15th highest item in the stack to the top of the stack
 	DUP16,				///< copies the 16th highest item in the stack to the top of the stack
+	DUP17 = 0xb0,	///< copies the 17th highest item in the stack to the top of the stack
+	DUP18,				///< copies the 18th highest item in the stack to the top of the stack
+	DUP19,				///< copies the 19th highest item in the stack to the top of the stack
+	DUP20,				///< copies the 20th highest item in the stack to the top of the stack
+	DUP21,				///< copies the 21th highest item in the stack to the top of the stack
+	DUP22,				///< copies the 22th highest item in the stack to the top of the stack
+	DUP23,				///< copies the 23th highest item in the stack to the top of the stack
+	DUP24,				///< copies the 24th highest item in the stack to the top of the stack
+	DUP25,				///< copies the 25th highest item in the stack to the top of the stack
+	DUP26,				///< copies the 26th highest item in the stack to the top of the stack
+	DUP27,				///< copies the 27th highest item in the stack to the top of the stack
+	DUP28,				///< copies the 28th highest item in the stack to the top of the stack
+	DUP29,				///< copies the 29th highest item in the stack to the top of the stack
+	DUP30,				///< copies the 30th highest item in the stack to the top of the stack
+	DUP31,				///< copies the 31th highest item in the stack to the top of the stack
+	DUP32,				///< copies the 32th highest item in the stack to the top of the stack
 
 	SWAP1 = 0x90,		///< swaps the highest and second highest value on the stack
 	SWAP2,				///< swaps the highest and third highest value on the stack
@@ -175,6 +191,22 @@ enum class Instruction: uint8_t
 	SWAP14,				///< swaps the highest and 15th highest value on the stack
 	SWAP15,				///< swaps the highest and 16th highest value on the stack
 	SWAP16,				///< swaps the highest and 17th highest value on the stack
+	SWAP17 = 0xc0,	   ///< swaps the highest and 18th highest value on the stack
+	SWAP18,				///< swaps the highest and 19th highest value on the stack
+	SWAP19,				///< swaps the highest and 20th highest value on the stack
+	SWAP20,				///< swaps the highest and 21th highest value on the stack
+	SWAP21,				///< swaps the highest and 22th highest value on the stack
+	SWAP22,				///< swaps the highest and 23th highest value on the stack
+	SWAP23,				///< swaps the highest and 24th highest value on the stack
+	SWAP24,				///< swaps the highest and 25th highest value on the stack
+	SWAP25,				///< swaps the highest and 26th highest value on the stack
+	SWAP26,				///< swaps the highest and 27th highest value on the stack
+	SWAP27,				///< swaps the highest and 28th highest value on the stack
+	SWAP28,				///< swaps the highest and 29th highest value on the stack
+	SWAP29,				///< swaps the highest and 30th highest value on the stack
+	SWAP30,				///< swaps the highest and 31th highest value on the stack
+	SWAP31,				///< swaps the highest and 32th highest value on the stack
+	SWAP32,				///< swaps the highest and 33th highest value on the stack
 
 	LOG0 = 0xa0,		///< Makes a log entry; no topics.
 	LOG1,				///< Makes a log entry; 1 topic.
@@ -196,18 +228,21 @@ enum class Instruction: uint8_t
 };
 
 /// @returns the number of PUSH Instruction _inst
+// deprecated
 inline unsigned getPushNumber(Instruction _inst)
 {
 	return (byte)_inst - unsigned(Instruction::PUSH1) + 1;
 }
 
 /// @returns the number of DUP Instruction _inst
+// deprecated
 inline unsigned getDupNumber(Instruction _inst)
 {
 	return (byte)_inst - unsigned(Instruction::DUP1) + 1;
 }
 
 /// @returns the number of SWAP Instruction _inst
+// deprecated
 inline unsigned getSwapNumber(Instruction _inst)
 {
 	return (byte)_inst - unsigned(Instruction::SWAP1) + 1;
@@ -223,15 +258,15 @@ inline Instruction pushInstruction(unsigned _number)
 /// @returns the DUP<_number> instruction
 inline Instruction dupInstruction(unsigned _number)
 {
-	assertThrow(1 <= _number && _number <= 16, InvalidOpcode, std::string("Invalid DUP instruction requested (") + std::to_string(_number) + ").");
-	return Instruction(unsigned(Instruction::DUP1) + _number - 1);
+	assertThrow(1 <= _number && _number <= 32, InvalidOpcode, std::string("Invalid DUP instruction requested (") + std::to_string(_number) + ").");
+	return _number <= 16? Instruction(unsigned(Instruction::DUP1) + _number - 1): Instruction(unsigned(Instruction::DUP17) + _number - 17);
 }
 
 /// @returns the SWAP<_number> instruction
 inline Instruction swapInstruction(unsigned _number)
 {
-	assertThrow(1 <= _number && _number <= 16, InvalidOpcode, std::string("Invalid SWAP instruction requested (") + std::to_string(_number) + ").");
-	return Instruction(unsigned(Instruction::SWAP1) + _number - 1);
+	assertThrow(1 <= _number && _number <= 32, InvalidOpcode, std::string("Invalid SWAP instruction requested (") + std::to_string(_number) + ").");
+	return _number <= 16? Instruction(unsigned(Instruction::SWAP1) + _number - 1):Instruction(unsigned(Instruction::SWAP17) + _number - 17);
 }
 
 /// @returns the LOG<_number> instruction
