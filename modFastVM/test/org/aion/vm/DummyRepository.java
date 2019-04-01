@@ -98,6 +98,21 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
     }
 
     @Override
+    public void saveVmType(Address contract, byte vmType) {
+        // does noting since only FVM used this implementation for testing
+    }
+
+    @Override
+    public void saveObjectGraph(Address contract, byte[] graph) {
+        throw new RuntimeException("Not supported");
+    }
+
+    @Override
+    public byte[] getObjectGraph(Address contract) {
+        throw new RuntimeException("Not supported");
+    }
+
+    @Override
     public byte[] getCode(Address addr) {
         byte[] code = contracts.get(addr);
         return code == null ? ByteUtil.EMPTY_BYTE_ARRAY : code;
@@ -106,6 +121,11 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
     @Override
     public byte[] getTransformedCode(Address address) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public byte getVmType(Address contract) {
+        return 0x01;
     }
 
     @Override
