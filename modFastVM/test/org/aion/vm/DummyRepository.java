@@ -104,6 +104,11 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
     }
 
     @Override
+    public byte[] getTransformedCode(Address address) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Map<ByteArrayWrapper, ByteArrayWrapper> getStorage(
             Address address, Collection<ByteArrayWrapper> keys) {
         throw new RuntimeException("Not supported");
@@ -252,6 +257,11 @@ public class DummyRepository implements RepositoryCache<AccountState, IBlockStor
 
     public byte getVMUsed(Address contract) {
         return 0x01;
+    }
+
+    @Override
+    public void setTransformedCode(Address address, byte[] code) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
