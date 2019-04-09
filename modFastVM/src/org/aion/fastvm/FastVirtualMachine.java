@@ -4,14 +4,17 @@ import java.math.BigInteger;
 import java.util.List;
 import org.aion.interfaces.db.RepositoryCache;
 import org.aion.interfaces.tx.Transaction;
+import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.types.Address;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.vm.api.interfaces.VirtualMachine;
 import org.aion.zero.types.AionTransaction;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class FastVirtualMachine implements VirtualMachine {
 
@@ -38,10 +41,16 @@ public class FastVirtualMachine implements VirtualMachine {
      */
     @Override
     public SimpleFuture<TransactionResult>[] run(
-            KernelInterface kernel, TransactionContext[] contexts) {
+            KernelInterface kernel, TransactionInterface[] transactions) {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
+
+        TransactionContext[] contexts = new TransactionContext[transactions.length];
+        for (int i = 0; i < transactions.length; i++) {
+            contexts[i] = constructTransactionContext(transactions[i], kernel);
+        }
+
         this.kernelSnapshot = kernel.makeChildKernelInterface();
 
         FastVmSimpleFuture<TransactionResult>[] transactionResults =
@@ -76,6 +85,7 @@ public class FastVirtualMachine implements VirtualMachine {
             List<Address> accountsToDelete = contexts[i].getSideEffects().getAddressesToBeDeleted();
 
             updateSnapshot(txResult, transaction, miner, accountsToDelete);
+            txResult.getSideEffects().merge(contexts[i].getSideEffects());
         }
 
         return transactionResults;
@@ -125,6 +135,54 @@ public class FastVirtualMachine implements VirtualMachine {
         BigInteger energyPrice = BigInteger.valueOf(transaction.getEnergyPrice());
         BigInteger energyConsumed = BigInteger.valueOf(energyUsed);
         return energyConsumed.multiply(energyPrice);
+    }
+
+    private ExecutionContext constructTransactionContext(
+        TransactionInterface transaction, KernelInterface kernel) {
+        byte[] txHash = transaction.getTransactionHash();
+        Address address =
+                transaction.isContractCreationTransaction()
+                        ? transaction.getContractAddress()
+                        : transaction.getDestinationAddress();
+        Address origin = transaction.getSenderAddress();
+        Address caller = transaction.getSenderAddress();
+
+        DataWordImpl nrgPrice = new DataWordImpl(transaction.getEnergyPrice());
+        long nrg = transaction.getEnergyLimit() - transaction.getTransactionCost();
+        DataWordImpl callValue = new DataWordImpl(ArrayUtils.nullToEmpty(transaction.getValue()));
+        byte[] callData = ArrayUtils.nullToEmpty(transaction.getData());
+
+        int depth = 0;
+        int kind =
+                transaction.isContractCreationTransaction()
+                        ? ExecutionContext.CREATE
+                        : ExecutionContext.CALL;
+        int flags = 0;
+
+        Address blockCoinbase = kernel.getMinerAddress();
+        long blockNumber = kernel.getBlockNumber();
+        long blockTimestamp = kernel.getBlockTimestamp();
+        long blockNrgLimit = kernel.getBlockEnergyLimit();
+        DataWordImpl blockDifficulty = new DataWordImpl(kernel.getBlockDifficulty());
+
+        return new ExecutionContext(
+                transaction,
+                txHash,
+                address,
+                origin,
+                caller,
+                nrgPrice,
+                nrg,
+                callValue,
+                callData,
+                depth,
+                kind,
+                flags,
+                blockCoinbase,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit,
+                blockDifficulty);
     }
 
     private class FastVmSimpleFuture<R> implements SimpleFuture {

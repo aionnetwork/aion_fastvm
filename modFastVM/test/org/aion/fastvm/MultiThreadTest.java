@@ -102,7 +102,15 @@ public class MultiThreadTest {
                                     vm.run(
                                             code,
                                             ctx,
-                                            new KernelInterfaceForFastVM(repo, true, false));
+                                            new KernelInterfaceForFastVM(
+                                                    repo,
+                                                    true,
+                                                    false,
+                                                    blockDifficulty,
+                                                    blockNumber,
+                                                    blockTimestamp,
+                                                    blockNrgLimit,
+                                                    blockCoinbase));
                             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });

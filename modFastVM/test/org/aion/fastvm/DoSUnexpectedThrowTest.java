@@ -187,7 +187,15 @@ public class DoSUnexpectedThrowTest {
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(cache, true, false);
+    private KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
+        return new KernelInterfaceForFastVM(
+            cache,
+            true,
+            false,
+            blockDifficulty,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit,
+            blockCoinbase);
     }
 }

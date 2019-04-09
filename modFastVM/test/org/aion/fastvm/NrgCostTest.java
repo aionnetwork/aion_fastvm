@@ -631,8 +631,16 @@ public class NrgCostTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(cache, true, false);
+    private  KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
+        return new KernelInterfaceForFastVM(
+            cache,
+            true,
+            false,
+            blockDifficulty,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit,
+            blockCoinbase);
     }
 
     private ExecutionContext newExecutionContext() {

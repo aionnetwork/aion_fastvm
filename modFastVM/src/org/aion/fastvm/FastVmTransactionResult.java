@@ -5,22 +5,24 @@ import java.nio.ByteOrder;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.ResultCode;
 import org.aion.vm.api.interfaces.TransactionResult;
+import org.aion.vm.api.interfaces.TransactionSideEffects;
 
 public final class FastVmTransactionResult implements TransactionResult {
     private KernelInterface kernel;
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
+    private SideEffects sideEffects;
 
     /**
      * Constructs a new {@code TransactionResult} with no side-effects, with zero energy remaining,
      * with an empty byte array as its output and {@link FastVmResultCode#SUCCESS} as its result code.
      */
     public FastVmTransactionResult() {
+        setKernelAndSideEffects();
         this.code = FastVmResultCode.SUCCESS;
         this.output = new byte[0];
         this.energyRemaining = 0;
-        this.kernel = null;
     }
 
     /**
@@ -31,10 +33,10 @@ public final class FastVmTransactionResult implements TransactionResult {
      * @param energyRemaining The energy remaining after executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
+        setKernelAndSideEffects();
         this.code = code;
         this.energyRemaining = energyRemaining;
         this.output = new byte[0];
-        this.kernel = null;
     }
 
     /**
@@ -46,10 +48,15 @@ public final class FastVmTransactionResult implements TransactionResult {
      * @param output The output of executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
+        setKernelAndSideEffects();
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
         this.energyRemaining = energyRemaining;
+    }
+
+    private void setKernelAndSideEffects() {
         this.kernel = null;
+        sideEffects = new SideEffects();
     }
 
     /**
@@ -156,6 +163,11 @@ public final class FastVmTransactionResult implements TransactionResult {
         return "TransactionResult { code = " + this.code
             + ", energy remaining = " + this.energyRemaining + "}";
 //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
+    }
+
+    @Override
+    public TransactionSideEffects getSideEffects() {
+        return sideEffects;
     }
 
     public String toStringWithSideEffects() {

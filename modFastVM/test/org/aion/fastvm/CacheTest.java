@@ -78,7 +78,15 @@ public class CacheTest {
                     vm.run(
                             code,
                             ctx,
-                            new KernelInterfaceForFastVM(new DummyRepository(), true, false));
+                        new KernelInterfaceForFastVM(
+                            new DummyRepository(),
+                            true,
+                            false,
+                            blockDifficulty,
+                            blockNumber,
+                            blockTimestamp,
+                            blockNrgLimit,
+                            blockCoinbase));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {

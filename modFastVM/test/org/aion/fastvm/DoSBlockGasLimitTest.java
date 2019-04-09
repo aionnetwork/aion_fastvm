@@ -62,7 +62,15 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
+                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                    repo,
+                    true,
+                    false,
+                    blockDifficulty,
+                    blockNumber,
+                    blockTimestamp,
+                    blockNrgLimit,
+                    blockCoinbase));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -84,7 +92,15 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
+                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                    repo,
+                    true,
+                    false,
+                    blockDifficulty,
+                    blockNumber,
+                    blockTimestamp,
+                    blockNrgLimit,
+                    blockCoinbase));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -106,7 +122,15 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(repo, true, false));
+                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                    repo,
+                    true,
+                    false,
+                    blockDifficulty,
+                    blockNumber,
+                    blockTimestamp,
+                    blockNrgLimit,
+                    blockCoinbase));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }

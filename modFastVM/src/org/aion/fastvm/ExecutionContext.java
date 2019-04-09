@@ -29,9 +29,9 @@ import java.nio.ByteOrder;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.types.Address;
-import org.aion.interfaces.tx.Transaction;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.vm.api.interfaces.TransactionContext;
+import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 
 /**
@@ -54,7 +54,7 @@ public class ExecutionContext implements TransactionContext {
     private Address origin;
     private byte[] originalTxHash;
 
-    private Transaction transaction;
+    private TransactionInterface transaction;
 
     public Address address;
     public Address sender;
@@ -95,7 +95,7 @@ public class ExecutionContext implements TransactionContext {
      *     length 32.
      */
     public ExecutionContext(
-            Transaction transaction,
+        TransactionInterface transaction,
             byte[] txHash,
             Address destination,
             Address origin,
@@ -313,7 +313,7 @@ public class ExecutionContext implements TransactionContext {
     }
 
     @Override
-    public Transaction getTransaction() {
+    public TransactionInterface getTransaction() {
         return this.transaction;
     }
 }
