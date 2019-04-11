@@ -1793,13 +1793,26 @@ public class CallbackUnitTest {
         Pair pair = mock(Pair.class);
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight())
-                .thenReturn(new KernelInterfaceForFastVM(new DummyRepository(), true, false));
+                .thenReturn(
+                        new KernelInterfaceForFastVM(
+                                new DummyRepository(),
+                                true,
+                                false,
+                                new DataWordImpl(),
+                                0L,
+                                0L,
+                                0L,
+                                Address.ZERO_ADDRESS()));
         return pair;
     }
 
     private ExecutionContext mockContext() {
         ExecutionContext context = mock(ExecutionContext.class);
         when(context.getBlockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getBlockTimestamp()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getBlockDifficulty()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getBlockEnergyLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getMinerAddress()).thenReturn(getNewAddress());
         when(context.getSenderAddress()).thenReturn(getNewAddress());
         when(context.getTransactionData())
                 .thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
@@ -2595,7 +2608,9 @@ public class CallbackUnitTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(cache, true, false);
+    private static KernelInterfaceForFastVM wrapInKernelInterface(
+            RepositoryCache cache) {
+        return new KernelInterfaceForFastVM(
+                cache, true, false, new DataWordImpl(), 0L, 0L, 0L, Address.ZERO_ADDRESS());
     }
 }

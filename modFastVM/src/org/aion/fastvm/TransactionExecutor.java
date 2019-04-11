@@ -23,6 +23,7 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.types.Address;
@@ -227,6 +228,10 @@ public class TransactionExecutor {
 
         // create account
         this.kernelGrandChild.createAccount(contractAddress);
+        if (this.kernelGrandChild instanceof KernelInterfaceForFastVM) {
+            // TODO: refactor to use the implementation directly
+            ((KernelInterfaceForFastVM) this.kernelGrandChild).setVmType(contractAddress);
+        }
 
         // execute contract deployer
         if (!ArrayUtils.isEmpty(transaction.getData())) {
