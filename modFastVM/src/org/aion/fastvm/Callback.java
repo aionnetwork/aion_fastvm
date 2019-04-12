@@ -401,6 +401,10 @@ public class Callback {
             // charge the codedeposit
             if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
                 result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
+                internalTx.markAsRejected();
+                ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
+
+                track.rollback();
                 return result;
             }
             byte[] code = result.getReturnData();

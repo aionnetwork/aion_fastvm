@@ -50,8 +50,15 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Properties;
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.types.ByteArrayWrapper;
@@ -61,8 +68,9 @@ import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.DummyRepository;
+import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -76,7 +84,7 @@ public class NrgCostTest {
     private byte[] txHash = RandomUtils.nextBytes(32);
     private Address origin = Address.wrap(RandomUtils.nextBytes(32));
     private Address caller = origin;
-    private Address address = Address.wrap(RandomUtils.nextBytes(32));
+    private Address address;
 
     private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
@@ -95,6 +103,8 @@ public class NrgCostTest {
 
     public NrgCostTest() {}
 
+    private AionRepositoryCache repo;
+
     @BeforeClass
     public static void note() {
         System.out.println(
@@ -108,11 +118,41 @@ public class NrgCostTest {
         callValue = DataWordImpl.ZERO;
         callData = new byte[0];
 
+        address = Address.wrap(RandomUtils.nextBytes(32));
+
+        RepositoryConfig repoConfig =
+            new RepositoryConfig() {
+                @Override
+                public String getDbPath() {
+                    return "";
+                }
+
+                @Override
+                public PruneConfig getPruneConfig() {
+                    return new CfgPrune(false);
+                }
+
+                @Override
+                public ContractDetails contractDetailsImpl() {
+                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                }
+
+                @Override
+                public Properties getDatabaseConfig(String db_name) {
+                    Properties props = new Properties();
+                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                    return props;
+                }
+            };
+
+        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+
         // JVM warm up
         byte[] code = {0x00};
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.createAccount(address);
+        repo.saveCode(address, code);
         for (int i = 0; i < 10000; i++) {
             new FastVM().run(code, ctx, wrapInKernelInterface(repo));
         }
@@ -187,8 +227,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -262,8 +302,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -315,8 +355,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -371,8 +411,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -425,8 +465,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -467,8 +507,8 @@ public class NrgCostTest {
                     repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -521,8 +561,8 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            DummyRepository repo = new DummyRepository();
-            repo.addContract(address, code);
+            repo.createAccount(address);
+            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =

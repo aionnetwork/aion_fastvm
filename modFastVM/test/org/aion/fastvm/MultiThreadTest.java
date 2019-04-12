@@ -4,19 +4,28 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
+import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.DummyRepository;
+import org.aion.zero.impl.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,8 +53,10 @@ public class MultiThreadTest {
     private int flags = 0;
 
     private SideEffects helper;
+    private AionRepositoryCache repo;
 
-    public MultiThreadTest() throws CloneNotSupportedException {}
+
+    public MultiThreadTest() {}
 
     @Before
     public void setup() {
@@ -54,6 +65,34 @@ public class MultiThreadTest {
         callValue = DataWordImpl.ZERO;
         callData = new byte[0];
         helper = new SideEffects();
+
+        RepositoryConfig repoConfig =
+            new RepositoryConfig() {
+                @Override
+                public String getDbPath() {
+                    return "";
+                }
+
+                @Override
+                public PruneConfig getPruneConfig() {
+                    return new CfgPrune(false);
+                }
+
+                @Override
+                public ContractDetails contractDetailsImpl() {
+                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                }
+
+                @Override
+                public Properties getDatabaseConfig(String db_name) {
+                    Properties props = new Properties();
+                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                    return props;
+                }
+            };
+
+        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -95,7 +134,6 @@ public class MultiThreadTest {
                                             blockTimestamp,
                                             blockNrgLimit,
                                             blockDifficulty);
-                            DummyRepository repo = new DummyRepository();
 
                             FastVM vm = new FastVM();
                             FastVmTransactionResult result =
