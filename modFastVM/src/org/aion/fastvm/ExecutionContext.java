@@ -30,9 +30,11 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.types.Address;
 import org.aion.interfaces.vm.DataWord;
+import org.aion.util.bytes.ByteUtil;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Execution context, including both transaction and block information.
@@ -41,10 +43,7 @@ import org.aion.vm.api.interfaces.TransactionSideEffects;
  */
 public class ExecutionContext implements TransactionContext {
     private static final int ENCODE_BASE_LEN =
-            (Address.SIZE * 4)
-                    + (DataWordImpl.BYTES * 3)
-                    + (Long.BYTES * 4)
-                    + (Integer.BYTES * 4);
+            (Address.SIZE * 4) + (DataWordImpl.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
     public static int CALL = 0;
     public static int DELEGATECALL = 1;
     public static int CALLCODE = 2;
@@ -95,7 +94,7 @@ public class ExecutionContext implements TransactionContext {
      *     length 32.
      */
     public ExecutionContext(
-        TransactionInterface transaction,
+            TransactionInterface transaction,
             byte[] txHash,
             Address destination,
             Address origin,
@@ -148,6 +147,12 @@ public class ExecutionContext implements TransactionContext {
      */
     @Override
     public byte[] toBytes() {
+
+        // If this is a CREATE then we do not want to serialize the callData.
+        if (transaction != null && transaction.isContractCreationTransaction()) {
+            callData = ByteUtil.EMPTY_BYTE_ARRAY;
+        }
+
         ByteBuffer buffer = ByteBuffer.allocate(getEncodingLength());
         buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.put(address.toBytes());
