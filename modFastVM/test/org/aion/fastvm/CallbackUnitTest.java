@@ -16,7 +16,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.db.RepositoryConfig;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.types.ByteArrayWrapper;
@@ -28,11 +35,13 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.vm.DummyRepository;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
+import org.aion.zero.impl.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
@@ -42,11 +51,38 @@ import org.mockito.Mockito;
 
 /** Unit tests for Callback class. */
 public class CallbackUnitTest {
-    private DummyRepository dummyRepo;
+    private AionRepositoryCache dummyRepo;
+    private RepositoryConfig repoConfig;
 
     @Before
     public void setup() {
-        dummyRepo = new DummyRepository();
+        repoConfig =
+                new RepositoryConfig() {
+                    @Override
+                    public String getDbPath() {
+                        return "";
+                    }
+
+                    @Override
+                    public PruneConfig getPruneConfig() {
+                        return new CfgPrune(false);
+                    }
+
+                    @Override
+                    public ContractDetails contractDetailsImpl() {
+                        return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                    }
+
+                    @Override
+                    public Properties getDatabaseConfig(String db_name) {
+                        Properties props = new Properties();
+                        props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                        props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                        return props;
+                    }
+                };
+
+        dummyRepo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
     @After
@@ -220,14 +256,17 @@ public class CallbackUnitTest {
     public void testGetBalanceAccountExists() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
         Address address = pushNewBalance(balance);
-        assertArrayEquals(new DataWordImpl(balance).getData(), Callback.getBalance(address.toBytes()));
+        assertArrayEquals(
+                new DataWordImpl(balance).getData(), Callback.getBalance(address.toBytes()));
     }
 
     @Test
     public void testGetBalanceNoSuchAccount() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
-        assertArrayEquals(new byte[DataWordImpl.BYTES], Callback.getBalance(getNewAddress().toBytes()));
+        assertArrayEquals(
+                new byte[DataWordImpl.BYTES], Callback.getBalance(getNewAddress().toBytes()));
     }
 
     @Test
@@ -271,7 +310,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageIsValidEntry() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
@@ -281,19 +321,22 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageNoSuchEntry() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         Address address = pushNewStorageEntry(repo, key, value, true);
         byte[] badKey = Arrays.copyOf(key, DataWordImpl.BYTES);
         badKey[0] = (byte) ~key[0];
-        assertArrayEquals(DataWordImpl.ZERO.getData(), Callback.getStorage(address.toBytes(), badKey));
+        assertArrayEquals(
+                DataWordImpl.ZERO.getData(), Callback.getStorage(address.toBytes(), badKey));
     }
 
     @Test
     public void testGetStorageMultipleAddresses() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -310,7 +353,8 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            RepositoryCache repo = new DummyRepository();
+            RepositoryCache repo =
+                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -329,21 +373,25 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorage() {
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
         byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         Address address = putInStorage(key, value);
         assertArrayEquals(
                 value,
-                new DataWordImpl(repo.getStorageValue(address, new DataWordImpl(key).toWrapper()).getData())
+                new DataWordImpl(
+                                repo.getStorageValue(address, new DataWordImpl(key).toWrapper())
+                                        .getData())
                         .getData());
     }
 
     @Test
     public void testPutStorageMultipleEntries() {
         int num = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         Address[] addresses = new Address[num];
         byte[][] keys = new byte[num][];
@@ -358,7 +406,8 @@ public class CallbackUnitTest {
                     values[i],
                     new DataWordImpl(
                                     repo.getStorageValue(
-                                                    addresses[i], new DataWordImpl(keys[i]).toWrapper())
+                                                    addresses[i],
+                                                    new DataWordImpl(keys[i]).toWrapper())
                                             .getData())
                             .getData());
         }
@@ -366,7 +415,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorageMultipleAddresses() {
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = new DummyRepository();
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -378,7 +428,8 @@ public class CallbackUnitTest {
                     values[i],
                     new DataWordImpl(
                                     repo.getStorageValue(
-                                                    addresses[i], new DataWordImpl(keys[i]).toWrapper())
+                                                    addresses[i],
+                                                    new DataWordImpl(keys[i]).toWrapper())
                                             .getData())
                             .getData());
         }
@@ -387,11 +438,11 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleAddressesAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>>[] repos =
-                new RepositoryCache[depths];
+        RepositoryCache<AccountState, IBlockStoreBase<?, ?>>[] repos = new RepositoryCache[depths];
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            repos[depths - 1 - i] = new DummyRepository();
+            repos[depths - 1 - i] =
+                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
             pushNewRepo(repos[depths - 1 - i]);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs =
@@ -418,7 +469,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutThenGetStorage() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         Address address = getNewAddress();
         byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
@@ -429,7 +481,8 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutThenGetStorageMultipleTimes() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -446,7 +499,8 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            RepositoryCache repo = new DummyRepository();
+            RepositoryCache repo =
+                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -584,22 +638,22 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(
-                            DataWordImpl.BYTES)),
+                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(new DummyRepository());
+        when(pair.getRight())
+                .thenReturn(
+                        new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig)));
         Callback.push(pair);
         ExecutionContext ctx =
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(
-                            DataWordImpl.BYTES)),
+                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -628,15 +682,17 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWordImpl(RandomUtils.nextBytes(
-                                DataWordImpl.BYTES)),
+                            new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                             false,
                             false,
                             ExecutionContext.DELEGATECALL,
                             nrgLimit);
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
-            when(pair.getRight()).thenReturn(new DummyRepository());
+            when(pair.getRight())
+                    .thenReturn(
+                            new AionRepositoryCache(
+                                    AionRepositoryImpl.createForTesting(repoConfig)));
             Callback.push(pair);
         }
         for (int i = 0; i < depths; i++) {
@@ -645,8 +701,7 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWordImpl(RandomUtils.nextBytes(
-                                DataWordImpl.BYTES)),
+                            new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                             i % 2 == 0,
                             false,
                             ExecutionContext.DELEGATECALL,
@@ -674,22 +729,22 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(
-                            DataWordImpl.BYTES)),
+                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(new DummyRepository());
+        when(pair.getRight())
+                .thenReturn(
+                        new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig)));
         Callback.push(pair);
         ExecutionContext ctx =
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(
-                            DataWordImpl.BYTES)),
+                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                         true,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -711,14 +766,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testCallStackDepthTooLarge() {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(
-                            DataWordImpl.BYTES)),
+                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -745,7 +800,8 @@ public class CallbackUnitTest {
     @Test
     public void testCallCallersBalanceLessThanCallValue() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         Address caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
@@ -1076,7 +1132,7 @@ public class CallbackUnitTest {
         // Seems misleading -- we are saying it was SUCCESS when obviously it was FAILURE, this is
         // because in 'post execution' it was SUCCESS but its low nrgLimit made it fail afterwards.
         // Nonetheless, the changes we expect of SUCCESS here did occur.
-        checkPerformCallState(context, callerBalance, false, true, true);
+        checkPerformCallState(context, callerBalance, false, false, true);
     }
 
     @Test
@@ -1115,7 +1171,7 @@ public class CallbackUnitTest {
         // Seems misleading -- we are saying it was SUCCESS when obviously it was FAILURE, this is
         // because in 'post execution' it was SUCCESS but its low nrgLimit made it fail afterwards.
         // Nonetheless, the changes we expect of SUCCESS here did occur.
-        checkPerformCallState(context, callerBalance, false, true, true);
+        checkPerformCallState(context, callerBalance, false, false, true);
     }
 
     @Test
@@ -1225,7 +1281,7 @@ public class CallbackUnitTest {
                 true,
                 new byte[0]);
         checkContextHelper(false);
-        checkPerformCallState(context, callerBalance, false, true, true);
+        checkPerformCallState(context, callerBalance, false, false, true);
     }
 
     @Test
@@ -1260,10 +1316,10 @@ public class CallbackUnitTest {
                 false,
                 ExecutionContext.CREATE,
                 false,
-                true,
+                false,
                 new byte[0]);
         checkContextHelper(false);
-        checkPerformCallState(context, callerBalance, false, true, true);
+        checkPerformCallState(context, callerBalance, false, false, true);
     }
 
     @Test
@@ -1445,7 +1501,14 @@ public class CallbackUnitTest {
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
-        checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+        checkPerformCallResults(
+                context,
+                callerBalance,
+                recipientBalance,
+                false,
+                false,
+                kind,
+                mockedResult.getResultCode());
     }
 
     private void performCallIsPrecompiledNotSuccessSeptForkDisabled(int kind) {
@@ -1474,7 +1537,13 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
-                        context, callerBalance, recipientBalance, false, false, kind);
+                        context,
+                        callerBalance,
+                        recipientBalance,
+                        false,
+                        false,
+                        kind,
+                        mockedResult.getResultCode());
             }
         }
     }
@@ -1502,7 +1571,14 @@ public class CallbackUnitTest {
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
-        checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+        checkPerformCallResults(
+                context,
+                callerBalance,
+                recipientBalance,
+                false,
+                false,
+                kind,
+                mockedResult.getResultCode());
     }
 
     private void performCallIsPrecompiledNotSuccessSeptForkEnabled(int kind) {
@@ -1531,7 +1607,13 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
-                        context, callerBalance, recipientBalance, false, false, kind);
+                        context,
+                        callerBalance,
+                        recipientBalance,
+                        false,
+                        false,
+                        kind,
+                        mockedResult.getResultCode());
             }
         }
     }
@@ -1563,7 +1645,14 @@ public class CallbackUnitTest {
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
-            checkPerformCallResults(context, callerBalance, recipientBalance, true, false, kind);
+            checkPerformCallResults(
+                    context,
+                    callerBalance,
+                    recipientBalance,
+                    true,
+                    false,
+                    kind,
+                    mockedResult.getResultCode());
         }
     }
 
@@ -1594,7 +1683,14 @@ public class CallbackUnitTest {
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
-            checkPerformCallResults(context, callerBalance, recipientBalance, true, false, kind);
+            checkPerformCallResults(
+                    context,
+                    callerBalance,
+                    recipientBalance,
+                    true,
+                    false,
+                    kind,
+                    mockedResult.getResultCode());
         }
     }
 
@@ -1625,7 +1721,14 @@ public class CallbackUnitTest {
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
-            checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+            checkPerformCallResults(
+                    context,
+                    callerBalance,
+                    recipientBalance,
+                    false,
+                    false,
+                    kind,
+                    mockedResult.getResultCode());
         }
     }
 
@@ -1656,7 +1759,14 @@ public class CallbackUnitTest {
             runPerformCallAndCheck(
                     context, vm, factory, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
-            checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+            checkPerformCallResults(
+                    context,
+                    callerBalance,
+                    recipientBalance,
+                    false,
+                    false,
+                    kind,
+                    mockedResult.getResultCode());
         }
     }
 
@@ -1683,7 +1793,14 @@ public class CallbackUnitTest {
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
-        checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+        checkPerformCallResults(
+                context,
+                callerBalance,
+                recipientBalance,
+                false,
+                false,
+                kind,
+                mockedResult.getResultCode());
     }
 
     private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(int kind) {
@@ -1713,7 +1830,13 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
-                        context, callerBalance, recipientBalance, false, false, kind);
+                        context,
+                        callerBalance,
+                        recipientBalance,
+                        false,
+                        false,
+                        kind,
+                        mockedResult.getResultCode());
             }
         }
     }
@@ -1741,7 +1864,14 @@ public class CallbackUnitTest {
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
-        checkPerformCallResults(context, callerBalance, recipientBalance, false, false, kind);
+        checkPerformCallResults(
+                context,
+                callerBalance,
+                recipientBalance,
+                false,
+                false,
+                kind,
+                mockedResult.getResultCode());
     }
 
     private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(int kind) {
@@ -1771,7 +1901,13 @@ public class CallbackUnitTest {
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
-                        context, callerBalance, recipientBalance, false, false, kind);
+                        context,
+                        callerBalance,
+                        recipientBalance,
+                        false,
+                        false,
+                        kind,
+                        mockedResult.getResultCode());
             }
         }
     }
@@ -1795,7 +1931,8 @@ public class CallbackUnitTest {
         when(pair.getRight())
                 .thenReturn(
                         new KernelInterfaceForFastVM(
-                                new DummyRepository(),
+                                new AionRepositoryCache(
+                                        AionRepositoryImpl.createForTesting(repoConfig)),
                                 true,
                                 false,
                                 new DataWordImpl(),
@@ -1835,8 +1972,7 @@ public class CallbackUnitTest {
 
         byte[] txHash = RandomUtils.nextBytes(32);
         Address origin = getNewAddress();
-        DataWordImpl nrgPrice = new DataWordImpl(RandomUtils.nextBytes(
-            DataWordImpl.BYTES));
+        DataWordImpl nrgPrice = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
@@ -1854,8 +1990,7 @@ public class CallbackUnitTest {
         }
         long blockTimestamp = RandomUtils.nextLong(100, 100_000);
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
-        DataWordImpl blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(
-            DataWordImpl.BYTES));
+        DataWordImpl blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
         return new ExecutionContext(
                 null,
                 txHash,
@@ -2104,7 +2239,8 @@ public class CallbackUnitTest {
      * The newly created account with this balance is returned.
      */
     private Address pushNewBalance(BigInteger balance) {
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         Address address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
@@ -2266,6 +2402,7 @@ public class CallbackUnitTest {
      * @param wasNoRecipient There was no recipient at time of performCall.
      * @param isCreateContract If the op code is CREATE
      * @param kind Transaction kind.
+     * @param resultCode fvm execution result
      */
     private void checkPerformCallResults(
             ExecutionContext context,
@@ -2273,11 +2410,15 @@ public class CallbackUnitTest {
             BigInteger recipientBalance,
             boolean wasNoRecipient,
             boolean isCreateContract,
-            int kind) {
+            int kind,
+            FastVmResultCode resultCode) {
 
         TransactionContext ctx = Callback.context();
         checkInternalTransaction(
-                context, ctx.getSideEffects().getInternalTransactions().get(0), isCreateContract);
+                context,
+                ctx.getSideEffects().getInternalTransactions().get(0),
+                isCreateContract,
+                true);
         checkPerformCallBalances(
                 context.getSenderAddress(),
                 callerBalance,
@@ -2285,7 +2426,8 @@ public class CallbackUnitTest {
                 recipientBalance,
                 context.getTransferValue(),
                 wasNoRecipient,
-                kind);
+                kind,
+                resultCode);
     }
 
     /**
@@ -2348,9 +2490,15 @@ public class CallbackUnitTest {
             byte[] code) {
 
         if (!contractAlreadyExists && postExecuteWasSuccess) {
-            Address contract = (result.getReturnData() == null || Arrays
-                .equals(result.getReturnData(), new byte[0])) ? null : new Address(result.getReturnData());
-            assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
+            Address contract =
+                    (result.getReturnData() == null
+                                    || Arrays.equals(result.getReturnData(), new byte[0]))
+                            ? null
+                            : new Address(result.getReturnData());
+
+            if (contract != null) {
+                assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
+            }
         }
     }
 
@@ -2370,12 +2518,12 @@ public class CallbackUnitTest {
             long nrgLimit) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        RepositoryCache repo = new DummyRepository();
+        RepositoryCache repo =
+                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         Address caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
             Address contract =
-                    new Address(
-                            HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
+                    new Address(HashUtil.calcNewAddr(caller.toBytes(), callerNonce.toByteArray()));
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }
@@ -2422,7 +2570,8 @@ public class CallbackUnitTest {
             BigInteger recipientPrevBalance,
             BigInteger callValue,
             boolean wasNoRecipient,
-            int kind) {
+            int kind,
+            FastVmResultCode resultCode) {
 
         if (caller.equals(recipient)) {
             assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
@@ -2430,9 +2579,13 @@ public class CallbackUnitTest {
             if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
                 assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
             } else {
-                assertEquals(
-                        callerPrevBalance.subtract(callValue),
-                        Callback.kernelRepo().getBalance(caller));
+                if (!resultCode.isSuccess()) {
+                    assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
+                } else {
+                    assertEquals(
+                            callerPrevBalance.subtract(callValue),
+                            Callback.kernelRepo().getBalance(caller));
+                }
             }
 
             if (wasNoRecipient) {
@@ -2447,9 +2600,14 @@ public class CallbackUnitTest {
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
                     assertEquals(recipientPrevBalance, Callback.kernelRepo().getBalance(recipient));
                 } else {
-                    assertEquals(
-                            recipientPrevBalance.add(callValue),
-                            Callback.kernelRepo().getBalance(recipient));
+                    if (!resultCode.isSuccess()) {
+                        assertEquals(
+                                recipientPrevBalance, Callback.kernelRepo().getBalance(recipient));
+                    } else {
+                        assertEquals(
+                                recipientPrevBalance.add(callValue),
+                                Callback.kernelRepo().getBalance(recipient));
+                    }
                 }
             }
         }
@@ -2460,7 +2618,10 @@ public class CallbackUnitTest {
      * context was the context used to set up the performCall test.
      */
     private void checkInternalTransaction(
-            TransactionContext context, InternalTransactionInterface tx, boolean isCreateContract) {
+            TransactionContext context,
+            InternalTransactionInterface tx,
+            boolean isCreateContract,
+            boolean wasSuccess) {
 
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (isCreateContract) {
@@ -2469,16 +2630,20 @@ public class CallbackUnitTest {
                     new Address(
                             HashUtil.calcNewAddr(
                                     context.getSenderAddress().toBytes(),
-                                    Callback.kernelRepo()
-                                            .getNonce(context.getSenderAddress())
-                                            .subtract(BigInteger.ONE)
-                                            .toByteArray()));
+                                    wasSuccess
+                                            ? Callback.kernelRepo()
+                                                    .getNonce(context.getSenderAddress())
+                                                    .subtract(BigInteger.ONE)
+                                                    .toByteArray()
+                                            : Callback.kernelRepo()
+                                                    .getNonce(context.getSenderAddress())
+                                                    .toByteArray()));
             assertEquals(contract, tx.getDestinationAddress());
         } else {
             assertEquals(context.getDestinationAddress(), tx.getDestinationAddress());
         }
 
-        if (isCreateContract) {
+        if (isCreateContract && wasSuccess) {
             assertEquals(
                     Callback.kernelRepo()
                             .getNonce(context.getSenderAddress())
@@ -2550,7 +2715,7 @@ public class CallbackUnitTest {
         List<InternalTransactionInterface> internalTxs =
                 context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
-        checkInternalTransaction(context, internalTxs.get(0), true);
+        checkInternalTransaction(context, internalTxs.get(0), true, wasSuccess);
         checkSecondInteralTransaction(context, internalTxs.get(1));
         if (!wasSuccess) {
             assertTrue(internalTxs.get(1).isRejected());
@@ -2562,14 +2727,26 @@ public class CallbackUnitTest {
             TransactionContext context, InternalTransactionInterface tx) {
         Address caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
-        assertEquals(Callback.kernelRepo().getNonce(caller), new BigInteger(1, tx.getNonce()));
+        if (tx.isRejected()) {
+            assertEquals(
+                    Callback.kernelRepo().getNonce(caller),
+                    new BigInteger(1, tx.getNonce()).subtract(BigInteger.ONE));
+            assertArrayEquals(
+                    new DataWordImpl(Callback.kernelRepo().getNonce(caller).add(BigInteger.ONE))
+                            .getData(),
+                    tx.getNonce());
+        } else {
+            assertEquals(Callback.kernelRepo().getNonce(caller), new BigInteger(1, tx.getNonce()));
+            assertArrayEquals(
+                    new DataWordImpl(Callback.kernelRepo().getNonce(caller)).getData(),
+                    tx.getNonce());
+        }
         assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
         assertEquals("create", tx.getNote());
         assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
         assertEquals(1, tx.getIndexOfInternalTransaction());
         assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
-        assertArrayEquals(
-                new DataWordImpl(Callback.kernelRepo().getNonce(caller)).getData(), tx.getNonce());
+
         assertArrayEquals(context.getTransactionData(), tx.getData());
         assertNull(tx.getDestinationAddress());
     }
@@ -2596,7 +2773,11 @@ public class CallbackUnitTest {
                                         .getNonce(caller)
                                         .subtract(BigInteger.ONE)
                                         .toByteArray()));
-        assertEquals(callerBalance.subtract(value), Callback.kernelRepo().getBalance(caller));
+        if (postExecuteWasSuccess) {
+            assertEquals(callerBalance.subtract(value), Callback.kernelRepo().getBalance(caller));
+        } else {
+            assertEquals(callerBalance, Callback.kernelRepo().getBalance(caller));
+        }
         if (contractExisted) {
             assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(contract));
         } else {
@@ -2608,8 +2789,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(
-            RepositoryCache cache) {
+    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(
                 cache, true, false, new DataWordImpl(), 0L, 0L, 0L, Address.ZERO_ADDRESS());
     }

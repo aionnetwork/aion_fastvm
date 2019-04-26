@@ -2,7 +2,8 @@ package org.aion.vm;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
@@ -13,11 +14,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import java.util.Properties;
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
 import org.aion.fastvm.FastVmResultCode;
 import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.SideEffects;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
+import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWordImpl;
@@ -28,6 +36,9 @@ import org.aion.types.ByteArrayWrapper;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
+import org.aion.zero.impl.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionInternalTx;
 import org.aion.zero.types.AionTransaction;
@@ -50,11 +61,36 @@ import org.slf4j.Logger;
 /** Tests the TransactionExecutor class. */
 public class TransactionExecutorUnitTest {
     private static final Logger LOGGER_VM = AionLoggerFactory.getLogger(LogEnum.VM.toString());
-    private DummyRepository repo;
+    private AionRepositoryCache repo;
 
     @Before
     public void setup() {
-        repo = new DummyRepository();
+        RepositoryConfig repoConfig =
+            new RepositoryConfig() {
+                @Override
+                public String getDbPath() {
+                    return "";
+                }
+
+                @Override
+                public PruneConfig getPruneConfig() {
+                    return new CfgPrune(false);
+                }
+
+                @Override
+                public ContractDetails contractDetailsImpl() {
+                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                }
+
+                @Override
+                public Properties getDatabaseConfig(String db_name) {
+                    Properties props = new Properties();
+                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                    return props;
+                }
+            };
+        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
     @After
@@ -1963,7 +1999,7 @@ public class TransactionExecutorUnitTest {
             // nrg consume??
             assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
             for (Address address : helper.getAddressesToBeDeleted()) {
-                assertTrue(repo.accounts.containsKey(address));
+                assertNotNull(repo.getAccountState(address));
             }
             return;
         }
@@ -1983,7 +2019,7 @@ public class TransactionExecutorUnitTest {
 
         if (result.getResultCode().equals(FastVmResultCode.SUCCESS)) {
             for (Address address : helper.getAddressesToBeDeleted()) {
-                assertFalse(repo.accounts.containsKey(address));
+                assertNull(repo.getAccountState(address));
             }
         }
     }

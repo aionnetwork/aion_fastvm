@@ -5,17 +5,26 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.DummyRepository;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
+import org.aion.zero.impl.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +51,10 @@ public class ContractTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    public ContractTest() throws CloneNotSupportedException {}
+    private AionRepositoryCache repo;
+
+
+    public ContractTest() {}
 
     @Before
     public void setup() {
@@ -50,14 +62,41 @@ public class ContractTest {
         nrgLimit = 20000;
         callValue = DataWordImpl.ZERO;
         callData = new byte[0];
+
+        RepositoryConfig repoConfig =
+            new RepositoryConfig() {
+                @Override
+                public String getDbPath() {
+                    return "";
+                }
+
+                @Override
+                public PruneConfig getPruneConfig() {
+                    return new CfgPrune(false);
+                }
+
+                @Override
+                public ContractDetails contractDetailsImpl() {
+                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                }
+
+                @Override
+                public Properties getDatabaseConfig(String db_name) {
+                    Properties props = new Properties();
+                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                    return props;
+                }
+            };
+
+        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
     @Test
     public void testByteArrayMap() throws IOException {
         byte[] contract = ContractUtils.getContractBody("ByteArrayMap.sol", "ByteArrayMap");
 
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         callData = Hex.decode("26121ff0");
         nrgLimit = 1_000_000L;
@@ -86,8 +125,7 @@ public class ContractTest {
     public void testFibonacci() throws IOException {
         byte[] contract = ContractUtils.getContractBody("Fibonacci.sol", "Fibonacci");
 
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         callData = ByteUtil.merge(Hex.decode("ff40565e"), new DataWordImpl(6L).getData());
         nrgLimit = 100_000L;
@@ -139,8 +177,7 @@ public class ContractTest {
     public void testRecursive1() throws IOException {
         byte[] contract = ContractUtils.getContractBody("Recursive.sol", "Recursive");
 
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         int n = 10;
         callData =
@@ -175,8 +212,7 @@ public class ContractTest {
     public void testRecursive2() throws IOException {
         byte[] contract = ContractUtils.getContractBody("Recursive.sol", "Recursive");
 
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         int n = 128;
         callData =
@@ -205,8 +241,7 @@ public class ContractTest {
     public void testRecursive3() throws IOException {
         byte[] contract = ContractUtils.getContractBody("Recursive.sol", "Recursive");
 
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         int n = 1000;
         callData =

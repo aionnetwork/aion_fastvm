@@ -8,8 +8,15 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Properties;
+import org.aion.db.impl.DBVendor;
+import org.aion.db.impl.DatabaseFactory;
+import org.aion.interfaces.db.ContractDetails;
+import org.aion.interfaces.db.PruneConfig;
 import org.aion.interfaces.db.RepositoryCache;
+import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Address;
 import org.aion.util.bytes.ByteUtil;
@@ -18,11 +25,11 @@ import org.aion.contract.ContractUtils;
 import org.aion.crypto.ECKey;
 import org.aion.mcf.core.ImportResult;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.DummyRepository;
-import org.aion.vm.api.interfaces.ResultCode;
-import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.impl.BlockContext;
 import org.aion.zero.impl.StandaloneBlockchain;
+import org.aion.zero.impl.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.impl.types.AionTxInfo;
 import org.aion.zero.types.AionTransaction;
@@ -54,6 +61,8 @@ public class FastVMTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
+    private AionRepositoryCache repo;
+
     public FastVMTest() {}
 
     @Before
@@ -62,6 +71,34 @@ public class FastVMTest {
         nrgLimit = 20000;
         callValue = DataWordImpl.ZERO;
         callData = new byte[0];
+
+        RepositoryConfig repoConfig =
+            new RepositoryConfig() {
+                @Override
+                public String getDbPath() {
+                    return "";
+                }
+
+                @Override
+                public PruneConfig getPruneConfig() {
+                    return new CfgPrune(false);
+                }
+
+                @Override
+                public ContractDetails contractDetailsImpl() {
+                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                }
+
+                @Override
+                public Properties getDatabaseConfig(String db_name) {
+                    Properties props = new Properties();
+                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                    return props;
+                }
+            };
+
+        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
     @Test
@@ -76,7 +113,7 @@ public class FastVMTest {
 
         byte[] code = Hex.decode("6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60020160E052601060E0F3");
         FastVmTransactionResult result =
-                vm.run(code, ctx, wrapInKernelInterface(new DummyRepository()));
+                vm.run(code, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
@@ -92,7 +129,6 @@ public class FastVMTest {
         byte[] code =
                 Hex.decode(
                         "6020600060E06F111111111111111111111111111111116F000000000000000000000000111111113C602060E0F3");
-        DummyRepository repo = new DummyRepository();
 
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
@@ -111,12 +147,9 @@ public class FastVMTest {
         byte[] code =
                 Hex.decode(
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113C602060E0F3");
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(
-                Address.wrap(
-                        Hex.decode(
-                                "1111111111111111111111111111111111111111111111111111111111111111")),
-                Hex.decode("11223344"));
+        repo.saveCode(Address.wrap(
+            Hex.decode(
+                "1111111111111111111111111111111111111111111111111111111111111111")), Hex.decode("11223344"));
 
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
@@ -135,8 +168,8 @@ public class FastVMTest {
         byte[] code =
                 Hex.decode(
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113B60E052601060E0F3");
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(
+
+        repo.saveCode(
                 Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
@@ -157,7 +190,7 @@ public class FastVMTest {
         byte[] code =
                 Hex.decode(
                         "6F111111111111111111111111111111116F111111111111111111111111111111113160E052601060E0F3");
-        DummyRepository repo = new DummyRepository();
+
         repo.addBalance(
                 Address.wrap(
                         Hex.decode(
@@ -193,7 +226,6 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
-        DummyRepository repo = new DummyRepository();
         repo.createAccount(
                 Address.wrap(
                         Hex.decode(
@@ -202,12 +234,12 @@ public class FastVMTest {
                 Address.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222")));
-        repo.addContract(
+        repo.saveCode(
                 Address.wrap(
                         Hex.decode(
                                 "1111111111111111111111111111111111111111111111111111111111111111")),
                 calleeCtr);
-        repo.addContract(
+        repo.saveCode(
                 Address.wrap(
                         Hex.decode(
                                 "2222222222222222222222222222222222222222222222222222222222222222")),
@@ -230,7 +262,6 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
-        DummyRepository repo = new DummyRepository();
 
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
         System.out.println(result);
@@ -247,8 +278,7 @@ public class FastVMTest {
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
@@ -264,8 +294,7 @@ public class FastVMTest {
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
@@ -281,8 +310,7 @@ public class FastVMTest {
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
@@ -298,8 +326,7 @@ public class FastVMTest {
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, contract);
+        repo.saveCode(address, contract);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
@@ -318,7 +345,6 @@ public class FastVMTest {
                         + "600256" /* JUMP */;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(Hex.decode(code), ctx, wrapInKernelInterface(repo));
@@ -331,7 +357,6 @@ public class FastVMTest {
         String code = "5b" + "632fffffff6000a0" + "600056";
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(Hex.decode(code), ctx, wrapInKernelInterface(repo));
@@ -344,7 +369,6 @@ public class FastVMTest {
         String code = "5b" + "632fffffff60002050" + "600056";
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(Hex.decode(code), ctx, wrapInKernelInterface(repo));
@@ -360,7 +384,6 @@ public class FastVMTest {
                         + "20"; // SHA3
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(Hex.decode(code), ctx, wrapInKernelInterface(repo));
@@ -376,8 +399,7 @@ public class FastVMTest {
         nrgLimit = 100000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
@@ -394,8 +416,7 @@ public class FastVMTest {
         nrgLimit = 100000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
@@ -411,8 +432,7 @@ public class FastVMTest {
         nrgLimit = 500_000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
@@ -698,8 +718,7 @@ public class FastVMTest {
         nrgLimit = 100000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
@@ -724,8 +743,7 @@ public class FastVMTest {
         nrgLimit = 100000L;
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.run(code, ctx, wrapInKernelInterface(repo));
@@ -760,8 +778,7 @@ public class FastVMTest {
 
 
         ExecutionContext ctx = newExecutionContext();
-        DummyRepository repo = new DummyRepository();
-        repo.addContract(address, code);
+        repo.saveCode(address, code);
 
 
         FastVM vm = new FastVM();
