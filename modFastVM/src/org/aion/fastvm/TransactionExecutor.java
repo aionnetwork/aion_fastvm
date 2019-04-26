@@ -218,19 +218,34 @@ public class TransactionExecutor {
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
         // TODO: computing contract address needs to be done correctly. This is a hack.
-        Address contractAddress = ((AionTransaction) transaction).getContractAddress();
+        Address contractAddress = transaction.getContractAddress();
 
+        boolean createNewAccount = true;
         if (this.kernelGrandChild.hasAccountState(contractAddress)) {
-            transactionResult.setResultCode(FastVmResultCode.FAILURE);
-            transactionResult.setEnergyRemaining(0);
-            return;
+            if (fork040Enable) {
+                byte[] code = this.kernelGrandChild.getCode(contractAddress);
+                // If the contract address already has the code, return FAILURE
+                if (code != null && code.length > 0) {
+                    transactionResult.setResultCode(FastVmResultCode.FAILURE);
+                    transactionResult.setEnergyRemaining(0);
+                    return;
+                } else {
+                    createNewAccount = false;
+                }
+            } else {
+                transactionResult.setResultCode(FastVmResultCode.FAILURE);
+                transactionResult.setEnergyRemaining(0);
+                return;
+            }
         }
 
         // create account
-        this.kernelGrandChild.createAccount(contractAddress);
-        if (this.kernelGrandChild instanceof KernelInterfaceForFastVM) {
-            // TODO: refactor to use the implementation directly
-            ((KernelInterfaceForFastVM) this.kernelGrandChild).setVmType(contractAddress);
+        if (createNewAccount) {
+            this.kernelGrandChild.createAccount(contractAddress);
+            if (this.kernelGrandChild instanceof KernelInterfaceForFastVM) {
+                // TODO: refactor to use the implementation directly
+                ((KernelInterfaceForFastVM) this.kernelGrandChild).setVmType(contractAddress);
+            }
         }
 
         // execute contract deployer
