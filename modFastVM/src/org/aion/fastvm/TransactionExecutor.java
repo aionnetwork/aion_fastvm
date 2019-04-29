@@ -218,16 +218,29 @@ public class TransactionExecutor {
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
         // TODO: computing contract address needs to be done correctly. This is a hack.
-        Address contractAddress = ((AionTransaction) transaction).getContractAddress();
+        Address contractAddress = transaction.getContractAddress();
 
+        boolean requireNewAccount = true;
         if (this.kernelGrandChild.hasAccountState(contractAddress)) {
-            transactionResult.setResultCode(FastVmResultCode.FAILURE);
-            transactionResult.setEnergyRemaining(0);
-            return;
+            if (!fork040Enable) {
+                transactionResult.setResultCode(FastVmResultCode.FAILURE);
+                transactionResult.setEnergyRemaining(0);
+                return;
+            }
+
+            byte[] code = this.kernelGrandChild.getCode(contractAddress);
+            if (code != null && code.length > 0) {
+                transactionResult.setResultCode(FastVmResultCode.FAILURE);
+                transactionResult.setEnergyRemaining(0);
+                return;
+            }
+            requireNewAccount = false;
         }
 
         // create account
-        this.kernelGrandChild.createAccount(contractAddress);
+        if (requireNewAccount) {
+            this.kernelGrandChild.createAccount(contractAddress);
+        }
         if (this.kernelGrandChild instanceof KernelInterfaceForFastVM) {
             // TODO: refactor to use the implementation directly
             ((KernelInterfaceForFastVM) this.kernelGrandChild).setVmType(contractAddress);
