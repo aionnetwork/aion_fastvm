@@ -2146,9 +2146,6 @@ public class CallbackUnitTest {
         assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
         assertEquals(new DataWordImpl(ownerBalance), new DataWordImpl(tx.getValue()));
         assertArrayEquals(new byte[0], tx.getData());
-        assertEquals("selfdestruct", tx.getNote());
-        assertEquals(ctx.getTransactionStackDepth(), tx.getStackDepth());
-        assertEquals(0, tx.getIndexOfInternalTransaction());
     }
 
     private byte[] makeTopics(int num) {
@@ -2656,15 +2653,7 @@ public class CallbackUnitTest {
         }
 
         assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
-        if (isCreateContract) {
-            assertEquals("create", tx.getNote());
-        } else {
-            assertEquals("call", tx.getNote());
-        }
-        assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
-        assertEquals(0, tx.getIndexOfInternalTransaction());
         assertArrayEquals(context.getTransactionData(), tx.getData());
-        assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
     }
 
     /**
@@ -2742,10 +2731,6 @@ public class CallbackUnitTest {
                     tx.getNonce());
         }
         assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
-        assertEquals("create", tx.getNote());
-        assertEquals(context.getTransactionStackDepth(), tx.getStackDepth());
-        assertEquals(1, tx.getIndexOfInternalTransaction());
-        assertArrayEquals(context.getTransactionHash(), tx.getParentTransactionHash());
 
         assertArrayEquals(context.getTransactionData(), tx.getData());
         assertNull(tx.getDestinationAddress());
