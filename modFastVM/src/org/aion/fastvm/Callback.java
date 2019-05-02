@@ -358,6 +358,14 @@ public class Callback {
 
         // in case of hashing collisions
         boolean alreadyExsits = track.hasAccountState(newAddress);
+
+        if (track.isFork040Enable()) {
+            byte[] code = track.getCode(newAddress);
+            if (code == null || code.length == 0) {
+                alreadyExsits = false;
+            }
+        }
+
         BigInteger oldBalance = track.getBalance(newAddress);
         track.createAccount(newAddress);
         track.incrementNonce(newAddress); // EIP-161
