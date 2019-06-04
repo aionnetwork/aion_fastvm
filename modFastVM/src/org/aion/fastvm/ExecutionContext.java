@@ -26,9 +26,9 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.vm.api.types.Address;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -42,21 +42,21 @@ import org.aion.vm.api.interfaces.TransactionSideEffects;
  */
 public class ExecutionContext implements TransactionContext {
     private static final int ENCODE_BASE_LEN =
-            (Address.SIZE * 4) + (DataWordImpl.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
+            (AionAddress.LENGTH * 4) + (DataWordImpl.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
     public static int CALL = 0;
     public static int DELEGATECALL = 1;
     public static int CALLCODE = 2;
     public static int CREATE = 3;
 
     private SideEffects sideEffects;
-    private Address origin;
+    private AionAddress origin;
     private byte[] originalTxHash;
 
     private TransactionInterface transaction;
 
-    public Address address;
-    public Address sender;
-    private Address blockCoinbase;
+    public AionAddress address;
+    public AionAddress sender;
+    private AionAddress blockCoinbase;
     private DataWord nrgPrice;
     private DataWord callValue;
     private DataWord blockDifficulty;
@@ -95,9 +95,9 @@ public class ExecutionContext implements TransactionContext {
     public ExecutionContext(
             TransactionInterface transaction,
             byte[] txHash,
-            Address destination,
-            Address origin,
-            Address sender,
+            AionAddress destination,
+            AionAddress origin,
+            AionAddress sender,
             DataWord nrgPrice,
             long nrg,
             DataWord callValue,
@@ -105,7 +105,7 @@ public class ExecutionContext implements TransactionContext {
             int depth,
             int kind,
             int flags,
-            Address blockCoinbase,
+            AionAddress blockCoinbase,
             long blockNumber,
             long blockTimestamp,
             long blockNrgLimit,
@@ -154,9 +154,9 @@ public class ExecutionContext implements TransactionContext {
 
         ByteBuffer buffer = ByteBuffer.allocate(getEncodingLength());
         buffer.order(ByteOrder.BIG_ENDIAN);
-        buffer.put(address.toBytes());
-        buffer.put(origin.toBytes());
-        buffer.put(sender.toBytes());
+        buffer.put(address.toByteArray());
+        buffer.put(origin.toByteArray());
+        buffer.put(sender.toByteArray());
         buffer.put(nrgPrice.getData());
         buffer.putLong(nrg);
         buffer.put(callValue.getData());
@@ -165,7 +165,7 @@ public class ExecutionContext implements TransactionContext {
         buffer.putInt(depth);
         buffer.putInt(kind);
         buffer.putInt(flags);
-        buffer.put(blockCoinbase.toBytes());
+        buffer.put(blockCoinbase.toByteArray());
         buffer.putLong(blockNumber);
         buffer.putLong(blockTimestamp);
         buffer.putLong(blockNrgLimit);
@@ -180,29 +180,29 @@ public class ExecutionContext implements TransactionContext {
     }
 
     @Override
-    public void setDestinationAddress(Address address) {
+    public void setDestinationAddress(AionAddress address) {
         this.address = address;
     }
 
-    public Address getContractAddress() {
+    public AionAddress getContractAddress() {
         return this.transaction.getContractAddress();
     }
 
     /** @return the transaction address. */
     @Override
-    public Address getDestinationAddress() {
+    public AionAddress getDestinationAddress() {
         return address;
     }
 
     /** @return the origination address, which is the sender of original transaction. */
     @Override
-    public Address getOriginAddress() {
+    public AionAddress getOriginAddress() {
         return origin;
     }
 
     /** @return the transaction caller. */
     @Override
-    public Address getSenderAddress() {
+    public AionAddress getSenderAddress() {
         return sender;
     }
 
@@ -253,7 +253,7 @@ public class ExecutionContext implements TransactionContext {
 
     /** @return the block's beneficiary. */
     @Override
-    public Address getMinerAddress() {
+    public AionAddress getMinerAddress() {
         return blockCoinbase;
     }
 

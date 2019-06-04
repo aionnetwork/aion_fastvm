@@ -6,7 +6,7 @@ import org.aion.interfaces.db.RepositoryCache;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.api.types.Address;
+import org.aion.types.AionAddress;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -81,8 +81,8 @@ public class FastVirtualMachine implements VirtualMachine {
             // Mock the updateRepo call
             TransactionResult txResult = transactionResults[i].result;
             AionTransaction transaction = (AionTransaction) contexts[i].getTransaction();
-            Address miner = contexts[i].getMinerAddress();
-            List<Address> accountsToDelete = contexts[i].getSideEffects().getAddressesToBeDeleted();
+            AionAddress miner = contexts[i].getMinerAddress();
+            List<AionAddress> accountsToDelete = contexts[i].getSideEffects().getAddressesToBeDeleted();
 
             updateSnapshot(txResult, transaction, miner, accountsToDelete);
             txResult.getSideEffects().merge(contexts[i].getSideEffects());
@@ -94,8 +94,8 @@ public class FastVirtualMachine implements VirtualMachine {
     private void updateSnapshot(
             TransactionResult txResult,
             AionTransaction tx,
-            Address coinbase,
-            List<Address> deleteAccounts) {
+            AionAddress coinbase,
+            List<AionAddress> deleteAccounts) {
         if (!txResult.getResultCode().isRejected()) {
             KernelInterface snapshotTracker = this.kernelSnapshot.makeChildKernelInterface();
 
@@ -112,7 +112,7 @@ public class FastVirtualMachine implements VirtualMachine {
 
             // Delete any accounts marked for deletion.
             if (txResult.getResultCode().isSuccess()) {
-                for (Address addr : deleteAccounts) {
+                for (AionAddress addr : deleteAccounts) {
                     snapshotTracker.deleteAccount(addr);
                 }
             }
@@ -140,13 +140,12 @@ public class FastVirtualMachine implements VirtualMachine {
     private ExecutionContext constructTransactionContext(
         TransactionInterface transaction, KernelInterface kernel) {
         byte[] txHash = transaction.getTransactionHash();
-        Address address =
+        AionAddress address =
                 transaction.isContractCreationTransaction()
                         ? transaction.getContractAddress()
                         : transaction.getDestinationAddress();
-        Address origin = transaction.getSenderAddress();
-        Address caller = transaction.getSenderAddress();
-
+        AionAddress origin = transaction.getSenderAddress();
+        AionAddress caller = transaction.getSenderAddress();
         DataWordImpl nrgPrice = new DataWordImpl(transaction.getEnergyPrice());
         long nrg = transaction.getEnergyLimit() - transaction.getTransactionCost();
         DataWordImpl callValue = new DataWordImpl(ArrayUtils.nullToEmpty(transaction.getValue()));
@@ -159,7 +158,7 @@ public class FastVirtualMachine implements VirtualMachine {
                         : ExecutionContext.CALL;
         int flags = 0;
 
-        Address blockCoinbase = kernel.getMinerAddress();
+        AionAddress blockCoinbase = kernel.getMinerAddress();
         long blockNumber = kernel.getBlockNumber();
         long blockTimestamp = kernel.getBlockTimestamp();
         long blockNrgLimit = kernel.getBlockEnergyLimit();

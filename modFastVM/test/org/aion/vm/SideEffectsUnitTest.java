@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.aion.vm.api.types.Address;
+import org.aion.types.AionAddress;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
 import org.aion.mcf.vm.types.Log;
@@ -48,7 +48,7 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddDeleteAccount() {
-        Address addr = getNewAddress();
+        AionAddress addr = getNewAddress();
         sideEffects.addToDeletedAddresses(addr);
         assertEquals(1, sideEffects.getAddressesToBeDeleted().size());
         assertEquals(addr, sideEffects.getAddressesToBeDeleted().get(0));
@@ -56,13 +56,13 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddDeleteAccountDuplicate() {
-        Address addr1 = getNewAddress();
-        Address addr2 = getNewAddress();
+        AionAddress addr1 = getNewAddress();
+        AionAddress addr2 = getNewAddress();
         sideEffects.addToDeletedAddresses(addr1);
         sideEffects.addToDeletedAddresses(addr2);
         sideEffects.addToDeletedAddresses(addr2);
         assertEquals(2, sideEffects.getAddressesToBeDeleted().size());
-        Address addr = (Address) sideEffects.getAddressesToBeDeleted().get(0);
+        AionAddress addr = sideEffects.getAddressesToBeDeleted().get(0);
         if (addr.equals(addr1)) {
             assertEquals(addr2, sideEffects.getAddressesToBeDeleted().get(1));
         } else if (addr.equals(addr2)) {
@@ -75,10 +75,10 @@ public class SideEffectsUnitTest {
     @Test
     public void testAddDeleteAccountsCollectionContainsNulls() {
         int numAddrs = 15;
-        Collection<Address> addresses = getNewAddresses(numAddrs, 12);
+        Collection<AionAddress> addresses = getNewAddresses(numAddrs, 12);
         sideEffects.addAllToDeletedAddresses(addresses);
         assertEquals(numAddrs, sideEffects.getAddressesToBeDeleted().size());
-        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
+        for (AionAddress addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(addresses.contains(addr));
         }
     }
@@ -86,16 +86,16 @@ public class SideEffectsUnitTest {
     @Test
     public void testAddDeleteAccountsCollectionContainsDuplicates() {
         int numAddrs = 31;
-        Collection<Address> addresses = getNewAddresses(numAddrs, 3);
-        Collection<Address> duplicates = new ArrayList<>();
-        Iterator<Address> addrIt = addresses.iterator();
+        Collection<AionAddress> addresses = getNewAddresses(numAddrs, 3);
+        Collection<AionAddress> duplicates = new ArrayList<>();
+        Iterator<AionAddress> addrIt = addresses.iterator();
         for (int i = 0; i < addresses.size() / 2; i++) {
             duplicates.add(addrIt.next());
         }
         duplicates.addAll(addresses);
         sideEffects.addAllToDeletedAddresses(duplicates);
         assertEquals(numAddrs, sideEffects.getAddressesToBeDeleted().size());
-        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
+        for (AionAddress addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(addresses.contains(addr));
         }
     }
@@ -104,13 +104,13 @@ public class SideEffectsUnitTest {
     public void testAddDeleteAccountsWithDuplicates() {
         int numAddrs1 = 23;
         int numAddrs2 = 45;
-        Collection<Address> addresses = getNewAddresses(numAddrs1, 3);
-        Collection<Address> merged = new ArrayList<>(addresses);
+        Collection<AionAddress> addresses = getNewAddresses(numAddrs1, 3);
+        Collection<AionAddress> merged = new ArrayList<>(addresses);
         merged.addAll(getNewAddresses(numAddrs2, 6));
         sideEffects.addAllToDeletedAddresses(addresses);
         sideEffects.addAllToDeletedAddresses(merged);
         assertEquals(numAddrs1 + numAddrs2, sideEffects.getAddressesToBeDeleted().size());
-        for (Address addr : sideEffects.getAddressesToBeDeleted()) {
+        for (AionAddress addr : sideEffects.getAddressesToBeDeleted()) {
             assertTrue(merged.contains(addr));
         }
     }
@@ -283,8 +283,8 @@ public class SideEffectsUnitTest {
      * @param numNull The number of nulls to add to the collection.
      * @return the collection of newly created addresses and numNull nulls.
      */
-    private Collection<Address> getNewAddresses(int num, int numNull) {
-        Collection<Address> collection = new ArrayList<>();
+    private Collection<AionAddress> getNewAddresses(int num, int numNull) {
+        Collection<AionAddress> collection = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             collection.add(getNewAddress());
             if (i < numNull) {
@@ -299,8 +299,8 @@ public class SideEffectsUnitTest {
      *
      * @return a newly created address consisting of random bytes.
      */
-    private Address getNewAddress() {
-        return new Address(RandomUtils.nextBytes(Address.SIZE));
+    private AionAddress getNewAddress() {
+        return new AionAddress(RandomUtils.nextBytes(AionAddress.LENGTH));
     }
 
     /**
@@ -368,8 +368,8 @@ public class SideEffectsUnitTest {
      * @return a new internal transaction.
      */
     private AionInternalTx getNewInternalTx() {
-        Address sender = getNewAddress();
-        Address recipient = getNewAddress();
+        AionAddress sender = getNewAddress();
+        AionAddress recipient = getNewAddress();
         String note = "";
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] parentHash = RandomUtils.nextBytes(arraySizes);

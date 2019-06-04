@@ -3,6 +3,7 @@ package org.aion.fastvm;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
+import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
 import org.aion.interfaces.db.ContractDetails;
@@ -11,7 +12,6 @@ import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.vm.api.types.Address;
 import org.aion.util.conversions.Hex;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
@@ -24,11 +24,11 @@ import org.junit.Test;
 
 public class CacheTest {
     private byte[] txHash = RandomUtils.nextBytes(32);
-    private Address origin = Address.wrap(RandomUtils.nextBytes(32));
-    private Address caller = origin;
-    private Address address = Address.wrap(RandomUtils.nextBytes(32));
+    private AionAddress origin = new AionAddress(RandomUtils.nextBytes(32));
+    private AionAddress caller = origin;
+    private AionAddress address = new AionAddress(RandomUtils.nextBytes(32));
 
-    private Address blockCoinbase = Address.wrap(RandomUtils.nextBytes(32));
+    private AionAddress blockCoinbase = new AionAddress(RandomUtils.nextBytes(32));
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;

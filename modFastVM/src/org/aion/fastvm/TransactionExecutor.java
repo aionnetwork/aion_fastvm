@@ -23,10 +23,10 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.vm.api.types.Address;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
@@ -217,7 +217,7 @@ public class TransactionExecutor {
     /** Prepares contract create. */
     private void executeContractCreationTransaction() {
         // TODO: computing contract address needs to be done correctly. This is a hack.
-        Address contractAddress = transaction.getContractAddress();
+        AionAddress contractAddress = transaction.getContractAddress();
 
         boolean requireNewAccount = true;
         if (this.kernelGrandChild.hasAccountState(contractAddress)) {

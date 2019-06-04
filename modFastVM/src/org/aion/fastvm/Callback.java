@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.vm.api.types.Address;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
@@ -87,7 +87,7 @@ public class Callback {
      * @return
      */
     public static byte[] getCode(byte[] address) {
-        byte[] code = kernelRepo().getCode(Address.wrap(address));
+        byte[] code = kernelRepo().getCode(new AionAddress(address));
         return code == null ? new byte[0] : code;
     }
 
@@ -98,7 +98,7 @@ public class Callback {
      * @return
      */
     public static byte[] getBalance(byte[] address) {
-        BigInteger balance = kernelRepo().getBalance(Address.wrap(address));
+        BigInteger balance = kernelRepo().getBalance(new AionAddress(address));
         return balance == null ? DataWordImpl.ZERO.getData() : new DataWordImpl(balance).getData();
     }
 
@@ -109,7 +109,7 @@ public class Callback {
      * @return
      */
     public static boolean exists(byte[] address) {
-        return kernelRepo().hasAccountState(Address.wrap(address));
+        return kernelRepo().hasAccountState(new AionAddress(address));
     }
 
     /**
@@ -124,7 +124,7 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + (value == null ?
         // "":Hex.toHexString(value.getData())));
 
-        return kernelRepo().getStorage(Address.wrap(address), key);
+        return kernelRepo().getStorage(new AionAddress(address), key);
     }
 
     /**
@@ -140,9 +140,9 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         if (value == null || value.length == 0 || isZero(value)) {
-            kernelRepo().removeStorage(Address.wrap(address), key);
+            kernelRepo().removeStorage(new AionAddress(address), key);
         } else {
-            kernelRepo().putStorage(Address.wrap(address), key, value);
+            kernelRepo().putStorage(new AionAddress(address), key, value);
         }
     }
 
@@ -163,26 +163,26 @@ public class Callback {
      * @param beneficiary
      */
     public static void selfDestruct(byte[] owner, byte[] beneficiary) {
-        BigInteger balance = kernelRepo().getBalance(Address.wrap(owner));
+        BigInteger balance = kernelRepo().getBalance(new AionAddress(owner));
 
         // add internal transaction
         AionInternalTx internalTx =
                 newInternalTx(
-                        Address.wrap(owner),
-                        Address.wrap(beneficiary),
-                        kernelRepo().getNonce(Address.wrap(owner)),
+                        new AionAddress(owner),
+                        new AionAddress(beneficiary),
+                        kernelRepo().getNonce(new AionAddress(owner)),
                         new DataWordImpl(balance),
                         ByteUtil.EMPTY_BYTE_ARRAY,
                         "selfdestruct");
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer
-        kernelRepo().adjustBalance(Address.wrap(owner), balance.negate());
+        kernelRepo().adjustBalance(new AionAddress(owner), balance.negate());
         if (!Arrays.equals(owner, beneficiary)) {
-            kernelRepo().adjustBalance(Address.wrap(beneficiary), balance);
+            kernelRepo().adjustBalance(new AionAddress(beneficiary), balance);
         }
 
-        context().getSideEffects().addToDeletedAddresses(Address.wrap(owner));
+        context().getSideEffects().addToDeletedAddresses(new AionAddress(owner));
     }
 
     /**
@@ -200,7 +200,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().getSideEffects().addLog(new Log(Address.wrap(address), list, data));
+        context().getSideEffects().addLog(new Log(new AionAddress(address), list, data));
     }
 
     /**
@@ -261,7 +261,7 @@ public class Callback {
      */
     private static TransactionResult doCall(
             TransactionContext ctx, FastVM jit, ContractFactory factory) {
-        Address codeAddress = ctx.getDestinationAddress();
+        AionAddress codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
                 || ctx.getTransactionKind() == ExecutionContext.DELEGATECALL) {
             ctx.setDestinationAddress(context().getDestinationAddress());
@@ -339,8 +339,8 @@ public class Callback {
 
         // compute new address
         byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
-        Address newAddress =
-                Address.wrap(HashUtil.calcNewAddr(ctx.getSenderAddress().toBytes(), nonce));
+        AionAddress newAddress =
+                new AionAddress(HashUtil.calcNewAddr(ctx.getSenderAddress().toByteArray(), nonce));
         ctx.setDestinationAddress(newAddress);
 
         // add internal transaction
@@ -418,7 +418,7 @@ public class Callback {
             byte[] code = result.getReturnData();
             track.putCode(newAddress, code == null ? new byte[0] : code);
 
-            result.setReturnData(newAddress.toBytes());
+            result.setReturnData(newAddress.toByteArray());
 
             track.commit();
         }
@@ -440,10 +440,10 @@ public class Callback {
 
         byte[] txHash = prev.getTransactionHash();
 
-        byte[] address = new byte[Address.SIZE];
+        byte[] address = new byte[AionAddress.LENGTH];
         buffer.get(address);
-        Address origin = prev.getOriginAddress();
-        byte[] caller = new byte[Address.SIZE];
+        AionAddress origin = prev.getOriginAddress();
+        byte[] caller = new byte[AionAddress.LENGTH];
         buffer.get(caller);
 
         DataWord nrgPrice = new DataWordImpl(prev.getTransactionEnergyPrice());
@@ -458,7 +458,7 @@ public class Callback {
         int kind = buffer.getInt();
         int flags = buffer.getInt();
 
-        Address blockCoinbase = prev.getMinerAddress();
+        AionAddress blockCoinbase = prev.getMinerAddress();
         long blockNumber = prev.getBlockNumber();
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
@@ -468,9 +468,9 @@ public class Callback {
         return new ExecutionContext(
                 null,
                 txHash,
-                Address.wrap(address),
+                new AionAddress(address),
                 origin,
-                Address.wrap(caller),
+                new AionAddress(caller),
                 nrgPrice,
                 nrgLimit,
                 callValue,
@@ -487,7 +487,7 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-            Address from, Address to, BigInteger nonce, DataWord value, byte[] data, String note) {
+            AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data, String note) {
         byte[] parentHash = context().getTransactionHash();
         int depth = context().getTransactionStackDepth();
         int index = context().getSideEffects().getInternalTransactions().size();

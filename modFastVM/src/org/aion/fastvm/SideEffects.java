@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.aion.vm.api.types.Address;
+import org.aion.types.AionAddress;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
@@ -47,7 +47,7 @@ import org.aion.vm.api.interfaces.TransactionSideEffects;
  */
 public class SideEffects implements TransactionSideEffects {
 
-    private Set<Address> deleteAccounts = new HashSet<>();
+    private Set<AionAddress> deleteAccounts = new HashSet<>();
     private List<InternalTransactionInterface> internalTxs = new ArrayList<>();
     private List<IExecutionLog> logs = new ArrayList<>();
     private List<Call> calls = new ArrayList<>();
@@ -78,7 +78,7 @@ public class SideEffects implements TransactionSideEffects {
     }
 
     @Override
-    public void addToDeletedAddresses(Address address) {
+    public void addToDeletedAddresses(AionAddress address) {
         deleteAccounts.add(address);
     }
 
@@ -88,8 +88,8 @@ public class SideEffects implements TransactionSideEffects {
      * @param addresses The addressed to add to the set of deleted accounts.
      */
     @Override
-    public void addAllToDeletedAddresses(Collection<Address> addresses) {
-        for (Address addr : addresses) {
+    public void addAllToDeletedAddresses(Collection<AionAddress> addresses) {
+        for (AionAddress addr : addresses) {
             if (addr != null) {
                 deleteAccounts.add(addr);
             }
@@ -170,7 +170,7 @@ public class SideEffects implements TransactionSideEffects {
     }
 
     @Override
-    public List<Address> getAddressesToBeDeleted() {
+    public List<AionAddress> getAddressesToBeDeleted() {
         return new ArrayList<>(deleteAccounts);
     }
 

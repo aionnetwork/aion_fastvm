@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import java.util.Properties;
+import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
 import org.aion.fastvm.FastVmResultCode;
@@ -30,7 +31,6 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.Log;
-import org.aion.vm.api.types.Address;
 import org.aion.vm.api.types.ByteArrayWrapper;
 
 import org.aion.vm.api.interfaces.IExecutionLog;
@@ -895,7 +895,7 @@ public class TransactionExecutorUnitTest {
      * @param coinbase The block's coinbase account.
      * @return a new AionBlock.
      */
-    private AionBlock getNewAionBlock(long energyLimit, byte[] data, Address coinbase) {
+    private AionBlock getNewAionBlock(long energyLimit, byte[] data, AionAddress coinbase) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] parentHash = RandomUtils.nextBytes(arraySizes);
         byte[] logsBloom = RandomUtils.nextBytes(arraySizes);
@@ -949,8 +949,8 @@ public class TransactionExecutorUnitTest {
      * @param num The number of addresses to create.
      * @return the list of addresses.
      */
-    private List<Address> getNewAddresses(int num) {
-        List<Address> addresses = new ArrayList<>();
+    private List<AionAddress> getNewAddresses(int num) {
+        List<AionAddress> addresses = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             addresses.add(getNewAddress());
         }
@@ -962,8 +962,8 @@ public class TransactionExecutorUnitTest {
      *
      * @return a new random address.
      */
-    private Address getNewAddress() {
-        return new Address(RandomUtils.nextBytes(Address.SIZE));
+    private AionAddress getNewAddress() {
+        return new AionAddress(RandomUtils.nextBytes(AionAddress.LENGTH));
     }
 
     /**
@@ -1103,8 +1103,8 @@ public class TransactionExecutorUnitTest {
     private AionTransaction getNewAionTransaction(byte[] data, long nrgPrice) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
-        Address from = getNewAddress();
-        Address to = getNewAddress();
+        AionAddress from = getNewAddress();
+        AionAddress to = getNewAddress();
         byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         return new AionTransaction(nonce, from, to, value, data, 10000000L, nrgPrice);
     }
@@ -1119,7 +1119,7 @@ public class TransactionExecutorUnitTest {
     private AionTransaction getNewAionTransactionContractCreation(byte[] data, long nrgPrice) {
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
-        Address from = getNewAddress();
+        AionAddress from = getNewAddress();
         byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
         return new AionTransaction(nonce, from, null, value, data, 10000000L, nrgPrice);
     }
@@ -1248,7 +1248,7 @@ public class TransactionExecutorUnitTest {
      * @param coinbase The block's coinbase.
      * @return a mocked AionBlock.
      */
-    private AionBlock mockBlock(Address coinbase) {
+    private AionBlock mockBlock(AionAddress coinbase) {
         AionBlock block = mock(AionBlock.class);
         when(block.getDifficulty()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 100)));
         when(block.getCoinbase()).thenReturn(coinbase);
@@ -1304,7 +1304,7 @@ public class TransactionExecutorUnitTest {
      * @param nrgPrice The energy price.
      * @return a mocked AionTransaction.
      */
-    private AionTransaction mockTx(Address sender, byte[] nonce, long nrgPrice) {
+    private AionTransaction mockTx(AionAddress sender, byte[] nonce, long nrgPrice) {
         long txCost = RandomUtils.nextLong(2, 10_000);
         long nrgLimit = RandomUtils.nextLong(txCost, txCost + RandomUtils.nextLong(2, 10_000));
         long nrg = RandomUtils.nextLong(txCost, txCost + RandomUtils.nextLong(2, 10_000));
@@ -1346,10 +1346,10 @@ public class TransactionExecutorUnitTest {
      * @param numAccounts The number of accounts to add.
      * @return the list of newly added accounts.
      */
-    private List<Address> addAccountsToRepo(int numAccounts) {
-        List<Address> accounts = new ArrayList<>();
+    private List<AionAddress> addAccountsToRepo(int numAccounts) {
+        List<AionAddress> accounts = new ArrayList<>();
         for (int i = 0; i < numAccounts; i++) {
-            Address acc = getNewAddress();
+            AionAddress acc = getNewAddress();
             repo.createAccount(acc);
             accounts.add(acc);
         }
@@ -1840,8 +1840,8 @@ public class TransactionExecutorUnitTest {
     private void checkLogs(AionTxExecSummary summary, SideEffects helper) {
         List<IExecutionLog> summaryLogs = summary.getLogs();
         List<IExecutionLog> helperLogs = helper.getExecutionLogs();
-        List<Address> summaryAddrs = new ArrayList<>();
-        List<Address> helperAddrs = new ArrayList<>();
+        List<AionAddress> summaryAddrs = new ArrayList<>();
+        List<AionAddress> helperAddrs = new ArrayList<>();
         List<ByteArrayWrapper> summaryData = new ArrayList<>();
         List<ByteArrayWrapper> helperData = new ArrayList<>();
         List<ByteArrayWrapper> summaryTopics = new ArrayList<>();
@@ -1986,7 +1986,7 @@ public class TransactionExecutorUnitTest {
      * @param summary The finish method's summary.
      */
     private void checkRepoStateAfterFinish(
-            Address coinbase,
+            AionAddress coinbase,
             FastVmTransactionResult result,
             SideEffects helper,
             AionTransaction tx,
@@ -1998,7 +1998,7 @@ public class TransactionExecutorUnitTest {
             assertEquals(BigInteger.ZERO, repo.getBalance(tx.getSenderAddress()));
             // nrg consume??
             assertEquals(BigInteger.ZERO, repo.getBalance(coinbase));
-            for (Address address : helper.getAddressesToBeDeleted()) {
+            for (AionAddress address : helper.getAddressesToBeDeleted()) {
                 assertNotNull(repo.getAccountState(address));
             }
             return;
@@ -2018,7 +2018,7 @@ public class TransactionExecutorUnitTest {
         repo.addBalance(coinbase, summary.getFee().negate());
 
         if (result.getResultCode().equals(FastVmResultCode.SUCCESS)) {
-            for (Address address : helper.getAddressesToBeDeleted()) {
+            for (AionAddress address : helper.getAddressesToBeDeleted()) {
                 assertNull(repo.getAccountState(address));
             }
         }

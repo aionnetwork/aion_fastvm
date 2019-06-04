@@ -7,16 +7,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.vm.api.types.Address;
 import org.aion.mcf.vm.types.Log;
+import org.aion.util.types.AddressUtils;
 import org.junit.Test;
 
 public class LogTest {
 
     @Test
     public void testEncode() {
-        Address address = Address.ZERO_ADDRESS();
+        AionAddress address = AddressUtils.ZERO_ADDRESS;
         List<byte[]> topics = new ArrayList<byte[]>();
         topics.add(DataWordImpl.ZERO.getData());
         byte[] data = new byte[200];
