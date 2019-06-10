@@ -28,13 +28,12 @@ import java.nio.ByteOrder;
 
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.types.Address;
+import org.aion.vm.api.types.Address;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Execution context, including both transaction and block information.

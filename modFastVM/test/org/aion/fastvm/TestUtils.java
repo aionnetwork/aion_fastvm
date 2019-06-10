@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.types.Address;
+import org.aion.vm.api.types.Address;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;

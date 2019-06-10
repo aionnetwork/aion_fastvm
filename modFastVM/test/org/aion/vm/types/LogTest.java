@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.types.Address;
+import org.aion.vm.api.types.Address;
 import org.aion.mcf.vm.types.Log;
 import org.junit.Test;
 

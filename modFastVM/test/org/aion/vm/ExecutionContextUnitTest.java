@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import org.aion.interfaces.vm.DataWord;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.types.Address;
+import org.aion.vm.api.types.Address;
 import org.aion.fastvm.ExecutionContext;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;

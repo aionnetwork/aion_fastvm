@@ -26,12 +26,11 @@ import java.math.BigInteger;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.types.Address;
+import org.aion.vm.api.types.Address;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionResult;
-import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
