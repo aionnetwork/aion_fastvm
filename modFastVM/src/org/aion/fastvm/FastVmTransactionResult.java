@@ -2,9 +2,13 @@ package org.aion.fastvm;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+import org.aion.types.AionAddress;
+import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.ResultCode;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 
 public final class FastVmTransactionResult {
 
@@ -12,7 +16,9 @@ public final class FastVmTransactionResult {
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
-    private SideEffects sideEffects;
+    private List<IExecutionLog> logs;
+    private List<InternalTransactionInterface> internalTransactions;
+    private List<AionAddress> deletedAddresses;
 
     /**
      * Constructs a new {@code TransactionResult} with no side-effects, with zero energy remaining,
@@ -20,7 +26,10 @@ public final class FastVmTransactionResult {
      * code.
      */
     public FastVmTransactionResult() {
-        setKernelAndSideEffects();
+        this.kernel = null;
+        this.logs = new ArrayList<>();
+        this.internalTransactions = new ArrayList<>();
+        this.deletedAddresses = new ArrayList<>();
         this.code = FastVmResultCode.SUCCESS;
         this.output = new byte[0];
         this.energyRemaining = 0;
@@ -34,7 +43,10 @@ public final class FastVmTransactionResult {
      * @param energyRemaining The energy remaining after executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
-        setKernelAndSideEffects();
+        this.kernel = null;
+        this.logs = new ArrayList<>();
+        this.internalTransactions = new ArrayList<>();
+        this.deletedAddresses = new ArrayList<>();
         this.code = code;
         this.energyRemaining = energyRemaining;
         this.output = new byte[0];
@@ -49,15 +61,13 @@ public final class FastVmTransactionResult {
      * @param output The output of executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
-        setKernelAndSideEffects();
+        this.kernel = null;
+        this.logs = new ArrayList<>();
+        this.internalTransactions = new ArrayList<>();
+        this.deletedAddresses = new ArrayList<>();
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
         this.energyRemaining = energyRemaining;
-    }
-
-    private void setKernelAndSideEffects() {
-        this.kernel = null;
-        sideEffects = new SideEffects();
     }
 
     /**
@@ -154,6 +164,30 @@ public final class FastVmTransactionResult {
         return this.kernel;
     }
 
+    public void addLogs(List<IExecutionLog> logs) {
+        this.logs.addAll(logs);
+    }
+
+    public void addInternalTransactions(List<InternalTransactionInterface> internalTransactions) {
+        this.internalTransactions.addAll(internalTransactions);
+    }
+
+    public void addDeletedAddresses(List<AionAddress> deletedAddresses) {
+        this.deletedAddresses.addAll(deletedAddresses);
+    }
+
+    public List<IExecutionLog> getLogs() {
+        return this.logs;
+    }
+
+    public List<InternalTransactionInterface> getInternalTransactions() {
+        return this.internalTransactions;
+    }
+
+    public List<AionAddress> getDeletedAddresses() {
+        return this.deletedAddresses;
+    }
+
     @Override
     public String toString() {
         return "TransactionResult { code = "
@@ -162,10 +196,6 @@ public final class FastVmTransactionResult {
                 + this.energyRemaining
                 + "}";
         //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
-    }
-
-    public TransactionSideEffects getSideEffects() {
-        return sideEffects;
     }
 
     public String toStringWithSideEffects() {

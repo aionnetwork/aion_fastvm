@@ -280,11 +280,10 @@ public class TransactionExecutor {
         FastVmTransactionResult fvmResult = new FastVmTransactionResult();
 
         TransactionSideEffects precompiledSideEffects = precompiledResult.getSideEffects();
-        TransactionSideEffects fvmSideEffects = fvmResult.getSideEffects();
 
-        fvmSideEffects.addLogs(precompiledSideEffects.getExecutionLogs());
-        fvmSideEffects.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
-        fvmSideEffects.addAllToDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
+        fvmResult.addLogs(precompiledSideEffects.getExecutionLogs());
+        fvmResult.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
+        fvmResult.addDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
 
         fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
         fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
