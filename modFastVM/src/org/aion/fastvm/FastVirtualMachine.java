@@ -11,7 +11,6 @@ import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
-import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -36,7 +35,7 @@ public class FastVirtualMachine {
      * (any previous state changes by other transactions in this batch do belong to its history) and
      * are immediately available to be consumed by some other repository without any checks.
      */
-    public SimpleFuture<TransactionResult>[] run(
+    public SimpleFuture<FastVmTransactionResult>[] run(
             KernelInterface kernel, TransactionInterface[] transactions) {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
@@ -49,7 +48,7 @@ public class FastVirtualMachine {
 
         this.kernelSnapshot = kernel.makeChildKernelInterface();
 
-        FastVmSimpleFuture<TransactionResult>[] transactionResults =
+        FastVmSimpleFuture<FastVmTransactionResult>[] transactionResults =
                 new FastVmSimpleFuture[contexts.length];
 
         boolean fork040Enable = ((KernelInterfaceForFastVM) kernel).isFork040Enable();
@@ -75,10 +74,11 @@ public class FastVirtualMachine {
             fvmKernelRepo.flushCopiesTo(snapshotKernel.getRepositoryCache(), false);
 
             // Mock the updateRepo call
-            TransactionResult txResult = transactionResults[i].result;
+            FastVmTransactionResult txResult = transactionResults[i].result;
             AionTransaction transaction = (AionTransaction) contexts[i].getTransaction();
             AionAddress miner = contexts[i].getMinerAddress();
-            List<AionAddress> accountsToDelete = contexts[i].getSideEffects().getAddressesToBeDeleted();
+            List<AionAddress> accountsToDelete =
+                    contexts[i].getSideEffects().getAddressesToBeDeleted();
 
             updateSnapshot(txResult, transaction, miner, accountsToDelete);
             txResult.getSideEffects().merge(contexts[i].getSideEffects());
@@ -88,7 +88,7 @@ public class FastVirtualMachine {
     }
 
     private void updateSnapshot(
-            TransactionResult txResult,
+            FastVmTransactionResult txResult,
             AionTransaction tx,
             AionAddress coinbase,
             List<AionAddress> deleteAccounts) {
@@ -116,7 +116,7 @@ public class FastVirtualMachine {
         }
     }
 
-    private long computeEnergyUsed(long limit, TransactionResult result) {
+    private long computeEnergyUsed(long limit, FastVmTransactionResult result) {
         return limit - result.getEnergyRemaining();
     }
 
@@ -134,7 +134,7 @@ public class FastVirtualMachine {
     }
 
     private ExecutionContext constructTransactionContext(
-        TransactionInterface transaction, KernelInterface kernel) {
+            TransactionInterface transaction, KernelInterface kernel) {
         byte[] txHash = transaction.getTransactionHash();
         AionAddress address =
                 transaction.isContractCreationTransaction()
@@ -181,6 +181,7 @@ public class FastVirtualMachine {
     }
 
     private class FastVmSimpleFuture<R> implements SimpleFuture {
+
         private R result;
 
         private void setResult(R result) {

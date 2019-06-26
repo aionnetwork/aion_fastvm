@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import org.aion.precompiled.PrecompiledResultCode;
+import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -52,6 +54,7 @@ import org.mockito.Mockito;
 
 /** Unit tests for Callback class. */
 public class CallbackUnitTest {
+
     private AionRepositoryCache dummyRepo;
     private RepositoryConfig repoConfig;
 
@@ -366,7 +369,8 @@ public class CallbackUnitTest {
             byte[][] keys = unpackKeys(packsPerDepth.get(i));
             byte[][] values = unpackValues(packsPerDepth.get(i));
             for (int j = 0; j < addresses.length; j++) {
-                assertArrayEquals(values[j], Callback.getStorage(addresses[j].toByteArray(), keys[j]));
+                assertArrayEquals(
+                        values[j], Callback.getStorage(addresses[j].toByteArray(), keys[j]));
             }
             Callback.pop();
         }
@@ -512,7 +516,8 @@ public class CallbackUnitTest {
             byte[][] keys = unpackKeys(packsPerDepth.get(i));
             byte[][] values = unpackValues(packsPerDepth.get(i));
             for (int j = 0; j < addresses.length; j++) {
-                assertArrayEquals(values[j], Callback.getStorage(addresses[j].toByteArray(), keys[j]));
+                assertArrayEquals(
+                        values[j], Callback.getStorage(addresses[j].toByteArray(), keys[j]));
             }
             Callback.pop();
         }
@@ -523,7 +528,8 @@ public class CallbackUnitTest {
         BigInteger ownerBalance = new BigInteger("2385234");
         BigInteger ownerNonce = new BigInteger("353245");
         AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        AionAddress beneficiary = new AionAddress(Arrays.copyOf(owner.toByteArray(), AionAddress.LENGTH));
+        AionAddress beneficiary =
+                new AionAddress(Arrays.copyOf(owner.toByteArray(), AionAddress.LENGTH));
         SideEffects helper = new SideEffects();
         ExecutionContext ctx = mockContext();
         when(ctx.getSideEffects()).thenReturn(helper);
@@ -1494,11 +1500,14 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
+        long energy = RandomUtils.nextLong(0, 10_000);
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energy);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(mockedResult);
+
+        PrecompiledTransactionResult precompiledMockedResult =
+                new PrecompiledTransactionResult(PrecompiledResultCode.SUCCESS, energy);
+        ContractFactory factory = mockFactory(precompiledMockedResult);
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
@@ -1531,7 +1540,9 @@ public class CallbackUnitTest {
 
                 FastVmTransactionResult mockedResult = new FastVmTransactionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(mockedResult);
+                PrecompiledTransactionResult precompiledMockedResult =
+                        new PrecompiledTransactionResult(fvmToPrecompiledCode(code), 0);
+                ContractFactory factory = mockFactory(precompiledMockedResult);
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
@@ -1564,11 +1575,13 @@ public class CallbackUnitTest {
                         false,
                         nrgLimit);
 
+        long energy = RandomUtils.nextLong(0, 10_000);
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energy);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(mockedResult);
+        PrecompiledTransactionResult precompiledMockedResult =
+                new PrecompiledTransactionResult(PrecompiledResultCode.SUCCESS, energy);
+        ContractFactory factory = mockFactory(precompiledMockedResult);
 
         runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
@@ -1601,7 +1614,9 @@ public class CallbackUnitTest {
 
                 FastVmTransactionResult mockedResult = new FastVmTransactionResult(code, 0);
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(mockedResult);
+                PrecompiledTransactionResult precompiledMockedResult =
+                        new PrecompiledTransactionResult(fvmToPrecompiledCode(code), 0);
+                ContractFactory factory = mockFactory(precompiledMockedResult);
 
                 runPerformCallAndCheck(
                         context, vm, factory, mockedResult, false, kind, false, false, null);
@@ -2261,7 +2276,9 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            keys[i] = Arrays.copyOfRange(pack, AionAddress.LENGTH, AionAddress.LENGTH + DataWordImpl.BYTES);
+            keys[i] =
+                    Arrays.copyOfRange(
+                            pack, AionAddress.LENGTH, AionAddress.LENGTH + DataWordImpl.BYTES);
         }
         return keys;
     }
@@ -2280,7 +2297,8 @@ public class CallbackUnitTest {
         byte[] pack = new byte[AionAddress.LENGTH + (DataWordImpl.BYTES * 2)];
         System.arraycopy(address.toByteArray(), 0, pack, 0, AionAddress.LENGTH);
         System.arraycopy(key, 0, pack, AionAddress.LENGTH, DataWordImpl.BYTES);
-        System.arraycopy(value, 0, pack, AionAddress.LENGTH + DataWordImpl.BYTES, DataWordImpl.BYTES);
+        System.arraycopy(
+                value, 0, pack, AionAddress.LENGTH + DataWordImpl.BYTES, DataWordImpl.BYTES);
         return pack;
     }
 
@@ -2360,7 +2378,7 @@ public class CallbackUnitTest {
      * Unless result is null! In this case the mocked factory returns null, which tells Callback
      * that the transaction is not a precompiled contract.
      */
-    private ContractFactory mockFactory(FastVmTransactionResult result) {
+    private ContractFactory mockFactory(PrecompiledTransactionResult result) {
         PrecompiledContract contract = mock(PrecompiledContract.class);
         when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
         ContractFactory factory = mock(ContractFactory.class);
@@ -2521,7 +2539,8 @@ public class CallbackUnitTest {
         AionAddress caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
             AionAddress contract =
-                    new AionAddress(HashUtil.calcNewAddr(caller.toByteArray(), callerNonce.toByteArray()));
+                    new AionAddress(
+                            HashUtil.calcNewAddr(caller.toByteArray(), callerNonce.toByteArray()));
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }
@@ -2778,5 +2797,44 @@ public class CallbackUnitTest {
     private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
         return new KernelInterfaceForFastVM(
                 cache, true, false, new DataWordImpl(), 0L, 0L, 0L, AddressUtils.ZERO_ADDRESS);
+    }
+
+    private static PrecompiledResultCode fvmToPrecompiledCode(FastVmResultCode fvmCode) {
+        switch (fvmCode) {
+            case INSUFFICIENT_BALANCE:
+                return PrecompiledResultCode.INSUFFICIENT_BALANCE;
+            case BAD_JUMP_DESTINATION:
+                return PrecompiledResultCode.BAD_JUMP_DESTINATION;
+            case VM_INTERNAL_ERROR:
+                return PrecompiledResultCode.VM_INTERNAL_ERROR;
+            case STATIC_MODE_ERROR:
+                return PrecompiledResultCode.STATIC_MODE_ERROR;
+            case INVALID_NRG_LIMIT:
+                return PrecompiledResultCode.INVALID_NRG_LIMIT;
+            case STACK_UNDERFLOW:
+                return PrecompiledResultCode.STACK_UNDERFLOW;
+            case BAD_INSTRUCTION:
+                return PrecompiledResultCode.BAD_INSTRUCTION;
+            case STACK_OVERFLOW:
+                return PrecompiledResultCode.STACK_OVERFLOW;
+            case INVALID_NONCE:
+                return PrecompiledResultCode.INVALID_NONCE;
+            case VM_REJECTED:
+                return PrecompiledResultCode.VM_REJECTED;
+            case OUT_OF_NRG:
+                return PrecompiledResultCode.OUT_OF_NRG;
+            case SUCCESS:
+                return PrecompiledResultCode.SUCCESS;
+            case FAILURE:
+                return PrecompiledResultCode.FAILURE;
+            case REVERT:
+                return PrecompiledResultCode.REVERT;
+            case ABORT:
+                return PrecompiledResultCode.ABORT;
+            case INCOMPATIBLE_CONTRACT_CALL:
+                return PrecompiledResultCode.INCOMPATIBLE_CONTRACT_CALL;
+            default:
+                throw new IllegalArgumentException("Unknown code: " + fvmCode);
+        }
     }
 }

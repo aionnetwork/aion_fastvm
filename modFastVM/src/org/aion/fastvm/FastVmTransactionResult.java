@@ -4,10 +4,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.ResultCode;
-import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 
-public final class FastVmTransactionResult implements TransactionResult {
+public final class FastVmTransactionResult {
+
     private KernelInterface kernel;
     private FastVmResultCode code;
     private byte[] output;
@@ -16,7 +16,8 @@ public final class FastVmTransactionResult implements TransactionResult {
 
     /**
      * Constructs a new {@code TransactionResult} with no side-effects, with zero energy remaining,
-     * with an empty byte array as its output and {@link FastVmResultCode#SUCCESS} as its result code.
+     * with an empty byte array as its output and {@link FastVmResultCode#SUCCESS} as its result
+     * code.
      */
     public FastVmTransactionResult() {
         setKernelAndSideEffects();
@@ -62,8 +63,8 @@ public final class FastVmTransactionResult implements TransactionResult {
     /**
      * Returns a <i>partial</i> byte array representation of this {@code TransactionResult}.
      *
-     * <p>The representation is partial because it only represents the {@link FastVmResultCode}, the amount
-     * of energy remaining, and the output.
+     * <p>The representation is partial because it only represents the {@link FastVmResultCode}, the
+     * amount of energy remaining, and the output.
      *
      * <p>In particular, the {@link KernelInterface} is not included in this representation, meaning
      * these components of this object will be lost when the byte array representation is
@@ -71,9 +72,10 @@ public final class FastVmTransactionResult implements TransactionResult {
      *
      * @return A partial byte array representation of this object.
      */
-    @Override
     public byte[] toBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + Long.BYTES + Integer.BYTES + this.output.length);
+        ByteBuffer buffer =
+                ByteBuffer.allocate(
+                        Integer.BYTES + Long.BYTES + Integer.BYTES + this.output.length);
         buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.putInt(this.code.toInt());
         buffer.putLong(this.energyRemaining);
@@ -82,7 +84,8 @@ public final class FastVmTransactionResult implements TransactionResult {
         return buffer.array();
     }
 
-    //TODO: document exception / maybe catch it and throw something more informative
+    // TODO: document exception / maybe catch it and throw something more informative
+
     /**
      * Returns a {@code TransactionResult} object from a partial byte array representation obtained
      * via the {@code toBytes()} method.
@@ -112,68 +115,65 @@ public final class FastVmTransactionResult implements TransactionResult {
         this.energyRemaining = energyRemaining;
     }
 
-    @Override
     public void setResultCode(ResultCode code) {
         if (code == null) {
             throw new NullPointerException("Cannot set null result code.");
         }
         if (!(code instanceof FastVmResultCode)) {
-            throw new IllegalArgumentException("Type of code must be FastVmResultCode for FastVmTransactionResult.");
+            throw new IllegalArgumentException(
+                    "Type of code must be FastVmResultCode for FastVmTransactionResult.");
         }
         this.code = (FastVmResultCode) code;
     }
 
-    @Override
     public void setKernelInterface(KernelInterface kernel) {
         this.kernel = kernel;
     }
 
-    @Override
     public void setReturnData(byte[] output) {
         this.output = (output == null) ? new byte[0] : output;
     }
 
-    @Override
     public void setEnergyRemaining(long energyRemaining) {
         this.energyRemaining = energyRemaining;
     }
 
-    @Override
     public FastVmResultCode getResultCode() {
         return this.code;
     }
 
-    @Override
     public byte[] getReturnData() {
         return this.output;
     }
 
-    @Override
     public long getEnergyRemaining() {
         return this.energyRemaining;
     }
 
-    @Override
     public KernelInterface getKernelInterface() {
         return this.kernel;
     }
 
     @Override
     public String toString() {
-        return "TransactionResult { code = " + this.code
-            + ", energy remaining = " + this.energyRemaining + "}";
-//            + ", output = " + ByteUtil.toHexString(this.output) + " }";
+        return "TransactionResult { code = "
+                + this.code
+                + ", energy remaining = "
+                + this.energyRemaining
+                + "}";
+        //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
     }
 
-    @Override
     public TransactionSideEffects getSideEffects() {
         return sideEffects;
     }
 
     public String toStringWithSideEffects() {
-        return "TransactionResult { code = " + this.code
-            + ", energy remaining = " + this.energyRemaining + "}";
-//            + ", output = " + ByteUtil.toHexString(this.output) + " }";
+        return "TransactionResult { code = "
+                + this.code
+                + ", energy remaining = "
+                + this.energyRemaining
+                + "}";
+        //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
     }
-
 }

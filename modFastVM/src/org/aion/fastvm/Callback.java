@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aion.precompiled.PrecompiledResultCode;
+import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
@@ -19,7 +21,7 @@ import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionResult;
+import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,11 +39,7 @@ public class Callback {
     private static LinkedList<Pair<TransactionContext, KernelInterfaceForFastVM>> stack =
             new LinkedList<>();
 
-    /**
-     * Pushes a pair of context and repository into the callback stack.
-     *
-     * @param pair
-     */
+    /** Pushes a pair of context and repository into the callback stack. */
     public static void push(Pair<TransactionContext, KernelInterfaceForFastVM> pair) {
         stack.push(pair);
     }
@@ -51,74 +49,40 @@ public class Callback {
         stack.pop();
     }
 
-    /**
-     * Returns the current context.
-     *
-     * @return
-     */
+    /** Returns the current context. */
     public static TransactionContext context() {
         return stack.peek().getLeft();
     }
 
-    /**
-     * Returns the current repository.
-     *
-     * @return
-     */
+    /** Returns the current repository. */
     public static KernelInterfaceForFastVM kernelRepo() {
         return stack.peek().getRight();
     }
 
-    /**
-     * Returns the hash of the given block.
-     *
-     * @param number
-     * @return
-     */
+    /** Returns the hash of the given block. */
     public static byte[] getBlockHash(long number) {
         byte[] hash = kernelRepo().getBlockHashByNumber(number);
         return hash == null ? new byte[32] : hash;
     }
 
-    /**
-     * Returns the code of a contract.
-     *
-     * @param address
-     * @return
-     */
+    /** Returns the code of a contract. */
     public static byte[] getCode(byte[] address) {
         byte[] code = kernelRepo().getCode(new AionAddress(address));
         return code == null ? new byte[0] : code;
     }
 
-    /**
-     * Returns the balance of an account.
-     *
-     * @param address
-     * @return
-     */
+    /** Returns the balance of an account. */
     public static byte[] getBalance(byte[] address) {
         BigInteger balance = kernelRepo().getBalance(new AionAddress(address));
         return balance == null ? DataWordImpl.ZERO.getData() : new DataWordImpl(balance).getData();
     }
 
-    /**
-     * Returns whether an account exists.
-     *
-     * @param address
-     * @return
-     */
+    /** Returns whether an account exists. */
     public static boolean exists(byte[] address) {
         return kernelRepo().hasAccountState(new AionAddress(address));
     }
 
-    /**
-     * Returns the value that is mapped to the given key.
-     *
-     * @param address
-     * @param key
-     * @return
-     */
+    /** Returns the value that is mapped to the given key. */
     public static byte[] getStorage(byte[] address, byte[] key) {
         // System.err.println("GET_STORAGE: address = " + Hex.toHexString(address) + ", key = " +
         // Hex.toHexString(key) + ", value = " + (value == null ?
@@ -127,13 +91,7 @@ public class Callback {
         return kernelRepo().getStorage(new AionAddress(address), key);
     }
 
-    /**
-     * Sets the value that is mapped to the given key.
-     *
-     * @param address
-     * @param key
-     * @param value
-     */
+    /** Sets the value that is mapped to the given key. */
     public static void putStorage(byte[] address, byte[] key, byte[] value) {
 
         // System.err.println("PUT_STORAGE: address = " + Hex.toHexString(address) + ", key = " +
@@ -156,12 +114,7 @@ public class Callback {
         return true;
     }
 
-    /**
-     * Processes SELFDESTRUCT opcode.
-     *
-     * @param owner
-     * @param beneficiary
-     */
+    /** Processes SELFDESTRUCT opcode. */
     public static void selfDestruct(byte[] owner, byte[] beneficiary) {
         BigInteger balance = kernelRepo().getBalance(new AionAddress(owner));
 
@@ -185,13 +138,7 @@ public class Callback {
         context().getSideEffects().addToDeletedAddresses(new AionAddress(owner));
     }
 
-    /**
-     * Processes LOG opcode.
-     *
-     * @param address
-     * @param topics
-     * @param data
-     */
+    /** Processes LOG opcode. */
     public static void log(byte[] address, byte[] topics, byte[] data) {
         List<byte[]> list = new ArrayList<>();
 
@@ -224,7 +171,7 @@ public class Callback {
         }
 
         // call sub-routine
-        TransactionResult result;
+        FastVmTransactionResult result;
         if (ctx.getTransactionKind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
@@ -243,23 +190,13 @@ public class Callback {
         return result.toBytes();
     }
 
-    /**
-     * Process CALL/CALLCODE/DELEGATECALL/CREATE opcode.
-     *
-     * @param message
-     * @return
-     */
+    /** Process CALL/CALLCODE/DELEGATECALL/CREATE opcode. */
     public static byte[] call(byte[] message) {
         return performCall(message, new FastVM(), new ContractFactory());
     }
 
-    /**
-     * The method handles the CALL/CALLCODE/DELEGATECALL opcode.
-     *
-     * @param ctx
-     * @return
-     */
-    private static TransactionResult doCall(
+    /** The method handles the CALL/CALLCODE/DELEGATECALL opcode. */
+    private static FastVmTransactionResult doCall(
             TransactionContext ctx, FastVM jit, ContractFactory factory) {
         AionAddress codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
@@ -274,7 +211,7 @@ public class Callback {
         }
 
         KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
-        TransactionResult result =
+        FastVmTransactionResult result =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // add internal transaction
@@ -299,7 +236,9 @@ public class Callback {
 
         PrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
         if (pc != null) {
-            result = pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy());
+            result =
+                    precompiledToFvmResult(
+                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()));
         } else {
             // get the code
             byte[] code =
@@ -330,7 +269,6 @@ public class Callback {
      * This method handles the CREATE opcode.
      *
      * @param ctx execution context
-     * @return
      */
     private static FastVmTransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
         KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
@@ -426,12 +364,7 @@ public class Callback {
         return result;
     }
 
-    /**
-     * Parses the execution context from encoded message.
-     *
-     * @param message
-     * @return
-     */
+    /** Parses the execution context from encoded message. */
     protected static ExecutionContext parseMessage(byte[] message) {
         TransactionContext prev = context();
 
@@ -487,7 +420,12 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-            AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data, String note) {
+            AionAddress from,
+            AionAddress to,
+            BigInteger nonce,
+            DataWord value,
+            byte[] data,
+            String note) {
         byte[] parentHash = context().getTransactionHash();
         int depth = context().getTransactionStackDepth();
         int index = context().getSideEffects().getInternalTransactions().size();
@@ -502,5 +440,64 @@ public class Callback {
                 value.getData(),
                 data,
                 note);
+    }
+
+    private static FastVmTransactionResult precompiledToFvmResult(
+            PrecompiledTransactionResult precompiledResult) {
+        FastVmTransactionResult fvmResult = new FastVmTransactionResult();
+
+        TransactionSideEffects precompiledSideEffects = precompiledResult.getSideEffects();
+        TransactionSideEffects fvmSideEffects = fvmResult.getSideEffects();
+
+        fvmSideEffects.addLogs(precompiledSideEffects.getExecutionLogs());
+        fvmSideEffects.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
+        fvmSideEffects.addAllToDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
+
+        fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
+        fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
+        fvmResult.setReturnData(precompiledResult.getReturnData());
+        fvmResult.setKernelInterface(precompiledResult.getKernelInterface());
+
+        return fvmResult;
+    }
+
+    private static FastVmResultCode precompiledToFvmResultCode(
+            PrecompiledResultCode precompiledResultCode) {
+        switch (precompiledResultCode) {
+            case BAD_JUMP_DESTINATION:
+                return FastVmResultCode.BAD_JUMP_DESTINATION;
+            case VM_INTERNAL_ERROR:
+                return FastVmResultCode.VM_INTERNAL_ERROR;
+            case STATIC_MODE_ERROR:
+                return FastVmResultCode.STATIC_MODE_ERROR;
+            case INVALID_NRG_LIMIT:
+                return FastVmResultCode.INVALID_NRG_LIMIT;
+            case STACK_UNDERFLOW:
+                return FastVmResultCode.STACK_UNDERFLOW;
+            case BAD_INSTRUCTION:
+                return FastVmResultCode.BAD_INSTRUCTION;
+            case STACK_OVERFLOW:
+                return FastVmResultCode.STACK_OVERFLOW;
+            case INVALID_NONCE:
+                return FastVmResultCode.INVALID_NONCE;
+            case VM_REJECTED:
+                return FastVmResultCode.VM_REJECTED;
+            case OUT_OF_NRG:
+                return FastVmResultCode.OUT_OF_NRG;
+            case SUCCESS:
+                return FastVmResultCode.SUCCESS;
+            case FAILURE:
+                return FastVmResultCode.FAILURE;
+            case REVERT:
+                return FastVmResultCode.REVERT;
+            case ABORT:
+                return FastVmResultCode.ABORT;
+            case INSUFFICIENT_BALANCE:
+                return FastVmResultCode.INSUFFICIENT_BALANCE;
+            case INCOMPATIBLE_CONTRACT_CALL:
+                return FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL;
+            default:
+                throw new IllegalStateException("Unknown code: " + precompiledResultCode);
+        }
     }
 }

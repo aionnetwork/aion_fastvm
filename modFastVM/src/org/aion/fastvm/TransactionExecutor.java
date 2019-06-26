@@ -23,6 +23,8 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import org.aion.precompiled.PrecompiledResultCode;
+import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
@@ -30,7 +32,7 @@ import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionResult;
+import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -40,13 +42,14 @@ import org.apache.commons.lang3.ArrayUtils;
  * @author yulong
  */
 public class TransactionExecutor {
+
     private static Object LOCK = new Object();
 
     private KernelInterface kernel;
     private KernelInterface kernelChild;
     private KernelInterface kernelGrandChild;
 
-    private TransactionResult transactionResult;
+    private FastVmTransactionResult transactionResult;
     private TransactionContext context;
     private Transaction transaction;
 
@@ -78,18 +81,18 @@ public class TransactionExecutor {
     }
 
     /**
-     * Executes the transaction and returns a {@link TransactionResult}.
+     * Executes the transaction and returns a transaction result.
      *
-     * <p>Guarantee: the {@link TransactionResult} that this method returns contains a {@link
+     * <p>Guarantee: the transaction result that this method returns contains a {@link
      * KernelInterface} that consists of ALL valid state changes pertaining to this transaction.
      * Therefore, the recipient of this result can flush directly from this returned {@link
      * KernelInterface} without any checks or conditional logic to satisfy.
      */
-    public TransactionResult execute() {
+    public FastVmTransactionResult execute() {
         return performChecksAndExecute();
     }
 
-    private TransactionResult performChecksAndExecute() {
+    private FastVmTransactionResult performChecksAndExecute() {
         synchronized (LOCK) {
             // prepare, preliminary check
             if (performChecks()) {
@@ -193,7 +196,9 @@ public class TransactionExecutor {
         PrecompiledContract pc =
                 precompiledFactory.getPrecompiledContract(this.context, this.kernelGrandChild);
         if (pc != null) {
-            transactionResult = pc.execute(transaction.getData(), context.getTransactionEnergy());
+            transactionResult =
+                    precompiledToFvmResult(
+                            pc.execute(transaction.getData(), context.getTransactionEnergy()));
         } else {
             // execute code
             byte[] code = this.kernelGrandChild.getCode(transaction.getDestinationAddress());
@@ -268,5 +273,64 @@ public class TransactionExecutor {
 
     public void enableFork040() {
         fork040Enable = true;
+    }
+
+    private static FastVmTransactionResult precompiledToFvmResult(
+            PrecompiledTransactionResult precompiledResult) {
+        FastVmTransactionResult fvmResult = new FastVmTransactionResult();
+
+        TransactionSideEffects precompiledSideEffects = precompiledResult.getSideEffects();
+        TransactionSideEffects fvmSideEffects = fvmResult.getSideEffects();
+
+        fvmSideEffects.addLogs(precompiledSideEffects.getExecutionLogs());
+        fvmSideEffects.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
+        fvmSideEffects.addAllToDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
+
+        fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
+        fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
+        fvmResult.setReturnData(precompiledResult.getReturnData());
+        fvmResult.setKernelInterface(precompiledResult.getKernelInterface());
+
+        return fvmResult;
+    }
+
+    private static FastVmResultCode precompiledToFvmResultCode(
+            PrecompiledResultCode precompiledResultCode) {
+        switch (precompiledResultCode) {
+            case BAD_JUMP_DESTINATION:
+                return FastVmResultCode.BAD_JUMP_DESTINATION;
+            case VM_INTERNAL_ERROR:
+                return FastVmResultCode.VM_INTERNAL_ERROR;
+            case STATIC_MODE_ERROR:
+                return FastVmResultCode.STATIC_MODE_ERROR;
+            case INVALID_NRG_LIMIT:
+                return FastVmResultCode.INVALID_NRG_LIMIT;
+            case STACK_UNDERFLOW:
+                return FastVmResultCode.STACK_UNDERFLOW;
+            case BAD_INSTRUCTION:
+                return FastVmResultCode.BAD_INSTRUCTION;
+            case STACK_OVERFLOW:
+                return FastVmResultCode.STACK_OVERFLOW;
+            case INVALID_NONCE:
+                return FastVmResultCode.INVALID_NONCE;
+            case VM_REJECTED:
+                return FastVmResultCode.VM_REJECTED;
+            case OUT_OF_NRG:
+                return FastVmResultCode.OUT_OF_NRG;
+            case SUCCESS:
+                return FastVmResultCode.SUCCESS;
+            case FAILURE:
+                return FastVmResultCode.FAILURE;
+            case REVERT:
+                return FastVmResultCode.REVERT;
+            case ABORT:
+                return FastVmResultCode.ABORT;
+            case INSUFFICIENT_BALANCE:
+                return FastVmResultCode.INSUFFICIENT_BALANCE;
+            case INCOMPATIBLE_CONTRACT_CALL:
+                return FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL;
+            default:
+                throw new IllegalStateException("Unknown code: " + precompiledResultCode);
+        }
     }
 }
