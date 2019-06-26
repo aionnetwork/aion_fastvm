@@ -12,23 +12,20 @@ import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
-import org.aion.vm.api.interfaces.VirtualMachine;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class FastVirtualMachine implements VirtualMachine {
+public class FastVirtualMachine {
 
     // All state updates for any transactions run in bulk here are parented by this snapshot, which
     // is never released to the above caller, so that the caller recieves the correct historical
     // updates in each separately returned KernelInterface and must flushTo its intended repository.
     private KernelInterface kernelSnapshot;
 
-    @Override
     public void start() {
         throw new UnsupportedOperationException("The FastVirtualMachine is not long-lived.");
     }
 
-    @Override
     public void shutdown() {
         throw new UnsupportedOperationException("The FastVirtualMachine is not long-lived.");
     }
@@ -39,7 +36,6 @@ public class FastVirtualMachine implements VirtualMachine {
      * (any previous state changes by other transactions in this batch do belong to its history) and
      * are immediately available to be consumed by some other repository without any checks.
      */
-    @Override
     public SimpleFuture<TransactionResult>[] run(
             KernelInterface kernel, TransactionInterface[] transactions) {
         if (kernel == null) {
