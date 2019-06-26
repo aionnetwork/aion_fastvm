@@ -21,7 +21,6 @@ import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -446,11 +445,9 @@ public class Callback {
             PrecompiledTransactionResult precompiledResult) {
         FastVmTransactionResult fvmResult = new FastVmTransactionResult();
 
-        TransactionSideEffects precompiledSideEffects = precompiledResult.getSideEffects();
-
-        fvmResult.addLogs(precompiledSideEffects.getExecutionLogs());
-        fvmResult.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
-        fvmResult.addDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
+        fvmResult.addLogs(precompiledResult.getLogs());
+        fvmResult.addInternalTransactions(precompiledResult.getInternalTransactions());
+        fvmResult.addDeletedAddresses(precompiledResult.getDeletedAddresses());
 
         fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
         fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));

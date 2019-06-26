@@ -32,7 +32,6 @@ import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.TransactionContext;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -279,11 +278,9 @@ public class TransactionExecutor {
             PrecompiledTransactionResult precompiledResult) {
         FastVmTransactionResult fvmResult = new FastVmTransactionResult();
 
-        TransactionSideEffects precompiledSideEffects = precompiledResult.getSideEffects();
-
-        fvmResult.addLogs(precompiledSideEffects.getExecutionLogs());
-        fvmResult.addInternalTransactions(precompiledSideEffects.getInternalTransactions());
-        fvmResult.addDeletedAddresses(precompiledSideEffects.getAddressesToBeDeleted());
+        fvmResult.addLogs(precompiledResult.getLogs());
+        fvmResult.addInternalTransactions(precompiledResult.getInternalTransactions());
+        fvmResult.addDeletedAddresses(precompiledResult.getDeletedAddresses());
 
         fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
         fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
