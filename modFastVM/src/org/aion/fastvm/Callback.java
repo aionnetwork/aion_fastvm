@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
+import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
@@ -233,7 +234,8 @@ public class Callback {
             track.adjustBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
-        PrecompiledContract pc = factory.getPrecompiledContract(ctx, track);
+        PrecompiledContract pc =
+                factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), track);
         if (pc != null) {
             result =
                     precompiledToFvmResult(
@@ -495,5 +497,19 @@ public class Callback {
             default:
                 throw new IllegalStateException("Unknown code: " + precompiledResultCode);
         }
+    }
+
+    private static PrecompiledTransactionContext toPrecompiledTransactionContext(
+            TransactionContext context) {
+        return new PrecompiledTransactionContext(
+                context.getDestinationAddress(),
+                context.getOriginAddress(),
+                context.getSenderAddress(),
+                context.getSideEffects(),
+                context.getHashOfOriginTransaction(),
+                context.getTransactionHash(),
+                context.getBlockNumber(),
+                context.getTransactionEnergy(),
+                context.getTransactionStackDepth());
     }
 }

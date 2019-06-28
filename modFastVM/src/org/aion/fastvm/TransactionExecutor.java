@@ -25,6 +25,7 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
+import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
@@ -193,7 +194,8 @@ public class TransactionExecutor {
     private void executeNonContractCreationTransaction() {
         ContractFactory precompiledFactory = new ContractFactory();
         PrecompiledContract pc =
-                precompiledFactory.getPrecompiledContract(this.context, this.kernelGrandChild);
+                precompiledFactory.getPrecompiledContract(
+                        toPrecompiledTransactionContext(this.context), this.kernelGrandChild);
         if (pc != null) {
             transactionResult =
                     precompiledToFvmResult(
@@ -328,5 +330,19 @@ public class TransactionExecutor {
             default:
                 throw new IllegalStateException("Unknown code: " + precompiledResultCode);
         }
+    }
+
+    private static PrecompiledTransactionContext toPrecompiledTransactionContext(
+            TransactionContext context) {
+        return new PrecompiledTransactionContext(
+                context.getDestinationAddress(),
+                context.getOriginAddress(),
+                context.getSenderAddress(),
+                context.getSideEffects(),
+                context.getHashOfOriginTransaction(),
+                context.getTransactionHash(),
+                context.getBlockNumber(),
+                context.getTransactionEnergy(),
+                context.getTransactionStackDepth());
     }
 }
