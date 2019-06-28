@@ -30,10 +30,10 @@ import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.Bloom;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.mcf.vm.types.Log;
+import org.aion.types.Log;
+import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.types.ByteArrayWrapper;
 
-import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryCache;
@@ -66,30 +66,30 @@ public class TransactionExecutorUnitTest {
     @Before
     public void setup() {
         RepositoryConfig repoConfig =
-            new RepositoryConfig() {
-                @Override
-                public String getDbPath() {
-                    return "";
-                }
+                new RepositoryConfig() {
+                    @Override
+                    public String getDbPath() {
+                        return "";
+                    }
 
-                @Override
-                public PruneConfig getPruneConfig() {
-                    return new CfgPrune(false);
-                }
+                    @Override
+                    public PruneConfig getPruneConfig() {
+                        return new CfgPrune(false);
+                    }
 
-                @Override
-                public ContractDetails contractDetailsImpl() {
-                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                }
+                    @Override
+                    public ContractDetails contractDetailsImpl() {
+                        return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                    }
 
-                @Override
-                public Properties getDatabaseConfig(String db_name) {
-                    Properties props = new Properties();
-                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                    return props;
-                }
-            };
+                    @Override
+                    public Properties getDatabaseConfig(String db_name) {
+                        Properties props = new Properties();
+                        props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                        props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                        return props;
+                    }
+                };
         repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
 
@@ -990,8 +990,8 @@ public class TransactionExecutorUnitTest {
         int numTopics = RandomUtils.nextInt(0, 50);
         int topicSize = RandomUtils.nextInt(0, 100);
         int dataSize = RandomUtils.nextInt(0, 100);
-        return new Log(
-                getNewAddress(),
+        return Log.topicsAndData(
+                getNewAddress().toByteArray(),
                 generateTopics(numTopics, topicSize),
                 RandomUtils.nextBytes(dataSize));
     }
@@ -1143,21 +1143,6 @@ public class TransactionExecutorUnitTest {
                 + Constants.NRG_TRANSACTION_MIN
                 + (numZeroes * Constants.NRG_TX_DATA_ZERO)
                 + (numNonZeroes * Constants.NRG_TX_DATA_NONZERO);
-    }
-
-    /**
-     * Returns the logical-OR of all of the bloom filters contained in each log in logs as a bloom
-     * filter itself.
-     *
-     * @param logs The logs.
-     * @return a bloom filter that is the OR of all the filters in logs.
-     */
-    private Bloom getOrOfBlooms(List<Log> logs) {
-        Bloom bloom = new Bloom();
-        for (Log log : logs) {
-            bloom.or(log.getBloomFilterForLog());
-        }
-        return bloom;
     }
 
     /**
@@ -1782,8 +1767,8 @@ public class TransactionExecutorUnitTest {
         return helper;
     }
 
-    private Collection<IExecutionLog> newLogs(int num) {
-        Collection<IExecutionLog> logs = new ArrayList<>();
+    private Collection<Log> newLogs(int num) {
+        Collection<Log> logs = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             logs.add(newLog());
         }
@@ -1791,8 +1776,10 @@ public class TransactionExecutorUnitTest {
     }
 
     private Log newLog() {
-        return new Log(
-                getNewAddress(), newTopics(RandomUtils.nextInt(2, 8)), RandomUtils.nextBytes(10));
+        return Log.topicsAndData(
+                getNewAddress().toByteArray(),
+                newTopics(RandomUtils.nextInt(2, 8)),
+                RandomUtils.nextBytes(10));
     }
 
     private List<byte[]> newTopics(int num) {
@@ -1838,8 +1825,8 @@ public class TransactionExecutorUnitTest {
      * @param helper An execution helper.
      */
     private void checkLogs(AionTxExecSummary summary, SideEffects helper) {
-        List<IExecutionLog> summaryLogs = summary.getLogs();
-        List<IExecutionLog> helperLogs = helper.getExecutionLogs();
+        List<Log> summaryLogs = toAionTypesLogs(summary.getLogs());
+        List<Log> helperLogs = helper.getExecutionLogs();
         List<AionAddress> summaryAddrs = new ArrayList<>();
         List<AionAddress> helperAddrs = new ArrayList<>();
         List<ByteArrayWrapper> summaryData = new ArrayList<>();
@@ -1847,15 +1834,15 @@ public class TransactionExecutorUnitTest {
         List<ByteArrayWrapper> summaryTopics = new ArrayList<>();
         List<ByteArrayWrapper> helperTopics = new ArrayList<>();
 
-        for (IExecutionLog log : summaryLogs) {
-            summaryAddrs.add(log.getSourceAddress());
-            summaryData.add(new ByteArrayWrapper(log.getData()));
-            summaryTopics.addAll(wrapTopics(log.getTopics()));
+        for (Log log : summaryLogs) {
+            summaryAddrs.add(new AionAddress(log.copyOfAddress()));
+            summaryData.add(new ByteArrayWrapper(log.copyOfData()));
+            summaryTopics.addAll(wrapTopics(log.copyOfTopics()));
         }
-        for (IExecutionLog log : helperLogs) {
-            helperAddrs.add(log.getSourceAddress());
-            helperData.add(new ByteArrayWrapper(log.getData()));
-            helperTopics.addAll(wrapTopics(log.getTopics()));
+        for (Log log : helperLogs) {
+            helperAddrs.add(new AionAddress(log.copyOfAddress()));
+            helperData.add(new ByteArrayWrapper(log.copyOfData()));
+            helperTopics.addAll(wrapTopics(log.copyOfTopics()));
         }
 
         assertEquals(helperAddrs, summaryAddrs);
@@ -2039,4 +2026,14 @@ public class TransactionExecutorUnitTest {
     // RepositoryCache repo) {
     //        return getNewExecutor(tx, block, repo, false);
     //    }
+
+    private static List<Log> toAionTypesLogs(List<IExecutionLog> logs) {
+        List<Log> aionTypesLogs = new ArrayList<>();
+        for (IExecutionLog log : logs) {
+            aionTypesLogs.add(
+                    Log.topicsAndData(
+                            log.getSourceAddress().toByteArray(), log.getTopics(), log.getData()));
+        }
+        return aionTypesLogs;
+    }
 }

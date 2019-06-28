@@ -13,12 +13,12 @@ import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.zero.types.AionInternalTx;
@@ -146,7 +146,7 @@ public class Callback {
             list.add(t);
         }
 
-        context().getSideEffects().addLog(new Log(new AionAddress(address), list, data));
+        context().getSideEffects().addLog(Log.topicsAndData(address, list, data));
     }
 
     /**

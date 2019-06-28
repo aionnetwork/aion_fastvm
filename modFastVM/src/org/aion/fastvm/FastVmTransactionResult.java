@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import org.aion.types.AionAddress;
-import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.types.Log;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.ResultCode;
@@ -16,7 +16,7 @@ public final class FastVmTransactionResult {
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
-    private List<IExecutionLog> logs;
+    private List<Log> logs;
     private List<InternalTransactionInterface> internalTransactions;
     private List<AionAddress> deletedAddresses;
 
@@ -164,7 +164,7 @@ public final class FastVmTransactionResult {
         return this.kernel;
     }
 
-    public void addLogs(List<IExecutionLog> logs) {
+    public void addLogs(List<Log> logs) {
         this.logs.addAll(logs);
     }
 
@@ -176,7 +176,7 @@ public final class FastVmTransactionResult {
         this.deletedAddresses.addAll(deletedAddresses);
     }
 
-    public List<IExecutionLog> getLogs() {
+    public List<Log> getLogs() {
         return this.logs;
     }
 

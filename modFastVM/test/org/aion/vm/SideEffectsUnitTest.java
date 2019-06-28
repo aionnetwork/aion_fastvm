@@ -13,8 +13,7 @@ import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
-import org.aion.mcf.vm.types.Log;
-import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.types.Log;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
@@ -117,8 +116,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddLogBulk() {
-        Collection<IExecutionLog> logs = getNewLogs(29);
-        for (IExecutionLog log : logs) {
+        Collection<Log> logs = getNewLogs(29);
+        for (Log log : logs) {
             sideEffects.addLog(log);
         }
         assertEquals(logs, sideEffects.getExecutionLogs());
@@ -126,20 +125,20 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddLogBulkSomeDuplicates() {
-        Collection<IExecutionLog> logs = getNewLogs(22);
-        for (IExecutionLog log : logs) {
+        Collection<Log> logs = getNewLogs(22);
+        for (Log log : logs) {
             sideEffects.addLog(log);
             sideEffects.addLog(log);
         }
         assertEquals(logs.size() * 2, sideEffects.getExecutionLogs().size());
-        for (IExecutionLog log : sideEffects.getExecutionLogs()) {
+        for (Log log : sideEffects.getExecutionLogs()) {
             assertTrue(logs.contains(log));
         }
     }
 
     @Test
     public void testAddLogsBulk() {
-        Collection<IExecutionLog> logs = getNewLogs(38);
+        Collection<Log> logs = getNewLogs(38);
         sideEffects.addLogs(logs);
         assertEquals(logs, sideEffects.getExecutionLogs());
     }
@@ -147,24 +146,24 @@ public class SideEffectsUnitTest {
     @Test
     public void testAddLogsSomeNull() {
         int numLogs = 33;
-        Collection<IExecutionLog> logs = getNewLogs(numLogs);
+        Collection<Log> logs = getNewLogs(numLogs);
         for (int i = 0; i < 8; i++) {
             logs.add(null);
         }
         sideEffects.addLogs(logs);
         assertEquals(numLogs, sideEffects.getExecutionLogs().size());
-        for (IExecutionLog log : logs) {
+        for (Log log : logs) {
             assertTrue(logs.contains(log));
         }
     }
 
     @Test
     public void testAddLogsSomeDuplicates() {
-        Collection<IExecutionLog> logs = getNewLogs(29);
+        Collection<Log> logs = getNewLogs(29);
         sideEffects.addLogs(logs);
         sideEffects.addLogs(logs);
         assertEquals(logs.size() * 2, sideEffects.getExecutionLogs().size());
-        for (IExecutionLog log : logs) {
+        for (Log log : logs) {
             assertTrue(logs.contains(log));
         }
     }
@@ -309,8 +308,8 @@ public class SideEffectsUnitTest {
      * @param num The number of logs to produce.
      * @return the collection of new logs.
      */
-    private Collection<IExecutionLog> getNewLogs(int num) {
-        Collection<IExecutionLog> logs = new ArrayList<>();
+    private Collection<Log> getNewLogs(int num) {
+        Collection<Log> logs = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             logs.add(getNewLog());
         }
@@ -327,8 +326,8 @@ public class SideEffectsUnitTest {
         int numTopics = RandomUtils.nextInt(0, 50);
         int topicSize = RandomUtils.nextInt(0, 100);
         int dataSize = RandomUtils.nextInt(0, 100);
-        return new Log(
-                getNewAddress(),
+        return Log.topicsAndData(
+                getNewAddress().toByteArray(),
                 generateTopics(numTopics, topicSize),
                 RandomUtils.nextBytes(dataSize));
     }

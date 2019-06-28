@@ -16,11 +16,11 @@ import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -53,7 +53,6 @@ public class ContractTest {
 
     private AionRepositoryCache repo;
 
-
     public ContractTest() {}
 
     @Before
@@ -64,30 +63,30 @@ public class ContractTest {
         callData = new byte[0];
 
         RepositoryConfig repoConfig =
-            new RepositoryConfig() {
-                @Override
-                public String getDbPath() {
-                    return "";
-                }
+                new RepositoryConfig() {
+                    @Override
+                    public String getDbPath() {
+                        return "";
+                    }
 
-                @Override
-                public PruneConfig getPruneConfig() {
-                    return new CfgPrune(false);
-                }
+                    @Override
+                    public PruneConfig getPruneConfig() {
+                        return new CfgPrune(false);
+                    }
 
-                @Override
-                public ContractDetails contractDetailsImpl() {
-                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                }
+                    @Override
+                    public ContractDetails contractDetailsImpl() {
+                        return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
+                    }
 
-                @Override
-                public Properties getDatabaseConfig(String db_name) {
-                    Properties props = new Properties();
-                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                    return props;
-                }
-            };
+                    @Override
+                    public Properties getDatabaseConfig(String db_name) {
+                        Properties props = new Properties();
+                        props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
+                        props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
+                        return props;
+                    }
+                };
 
         repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
     }
@@ -182,7 +181,9 @@ public class ContractTest {
         int n = 10;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toByteArray(), new DataWordImpl(n).getData());
+                        Hex.decode("2d7df21a"),
+                        address.toByteArray(),
+                        new DataWordImpl(n).getData());
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -201,9 +202,9 @@ public class ContractTest {
         }
 
         // verify logs
-        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
+        List<Log> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
-        for (IExecutionLog log : logs) {
+        for (Log log : logs) {
             System.out.println(log);
         }
     }
@@ -217,7 +218,9 @@ public class ContractTest {
         int n = 128;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toByteArray(), new DataWordImpl(n).getData());
+                        Hex.decode("2d7df21a"),
+                        address.toByteArray(),
+                        new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -233,7 +236,7 @@ public class ContractTest {
         assertEquals(n - 1, txs.size());
 
         // verify logs
-        List<IExecutionLog> logs = ctx.getSideEffects().getExecutionLogs();
+        List<Log> logs = ctx.getSideEffects().getExecutionLogs();
         assertEquals(n, logs.size());
     }
 
@@ -246,7 +249,9 @@ public class ContractTest {
         int n = 1000;
         callData =
                 ByteUtil.merge(
-                        Hex.decode("2d7df21a"), address.toByteArray(), new DataWordImpl(n).getData());
+                        Hex.decode("2d7df21a"),
+                        address.toByteArray(),
+                        new DataWordImpl(n).getData());
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();

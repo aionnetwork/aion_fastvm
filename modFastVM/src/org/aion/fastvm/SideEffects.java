@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.aion.types.AionAddress;
-import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.types.Log;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 
 /**
@@ -48,7 +48,7 @@ public class SideEffects {
 
     private Set<AionAddress> deleteAccounts = new HashSet<>();
     private List<InternalTransactionInterface> internalTxs = new ArrayList<>();
-    private List<IExecutionLog> logs = new ArrayList<>();
+    private List<Log> logs = new ArrayList<>();
     private List<Call> calls = new ArrayList<>();
 
     public static class Call {
@@ -98,7 +98,7 @@ public class SideEffects {
      *
      * @param log The log to add to the execution logs.
      */
-    public void addLog(IExecutionLog log) {
+    public void addLog(Log log) {
         logs.add(log);
     }
 
@@ -107,8 +107,8 @@ public class SideEffects {
      *
      * @param logs The collection of logs to add to the execution logs.
      */
-    public void addLogs(Collection<IExecutionLog> logs) {
-        for (IExecutionLog log : logs) {
+    public void addLogs(Collection<Log> logs) {
+        for (Log log : logs) {
             if (log != null) {
                 this.logs.add(log);
             }
@@ -164,7 +164,7 @@ public class SideEffects {
         return new ArrayList<>(deleteAccounts);
     }
 
-    public List<IExecutionLog> getExecutionLogs() {
+    public List<Log> getExecutionLogs() {
         return logs;
     }
 

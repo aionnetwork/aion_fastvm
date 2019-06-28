@@ -29,6 +29,7 @@ import org.aion.interfaces.db.RepositoryCache;
 import org.aion.interfaces.db.RepositoryConfig;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.Log;
 import org.aion.vm.api.types.ByteArrayWrapper;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.crypto.HashUtil;
@@ -39,7 +40,6 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
-import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -2177,10 +2177,10 @@ public class CallbackUnitTest {
     private void checkLog(AionAddress address, byte[] topics, byte[] data) {
         SideEffects helper = Callback.context().getSideEffects();
         assertEquals(1, helper.getExecutionLogs().size());
-        IExecutionLog log = helper.getExecutionLogs().get(0);
-        assertEquals(address, log.getSourceAddress());
-        assertArrayEquals(data, log.getData());
-        List<byte[]> logTopics = log.getTopics();
+        Log log = helper.getExecutionLogs().get(0);
+        assertEquals(address, new AionAddress(log.copyOfAddress()));
+        assertArrayEquals(data, log.copyOfData());
+        List<byte[]> logTopics = log.copyOfTopics();
         int index = 0;
         for (byte[] topic : logTopics) {
             assertArrayEquals(topic, Arrays.copyOfRange(topics, index, index + 32));
