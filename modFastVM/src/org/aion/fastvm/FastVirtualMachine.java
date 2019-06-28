@@ -10,7 +10,6 @@ import org.aion.types.AionAddress;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
 import org.aion.vm.api.interfaces.TransactionInterface;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -82,7 +81,7 @@ public class FastVirtualMachine {
 
             updateSnapshot(txResult, transaction, miner, accountsToDelete);
 
-            TransactionSideEffects sideEffects = contexts[i].getSideEffects();
+            SideEffects sideEffects = contexts[i].getSideEffects();
             txResult.addLogs(sideEffects.getExecutionLogs());
             txResult.addInternalTransactions(sideEffects.getInternalTransactions());
             txResult.addDeletedAddresses(sideEffects.getAddressesToBeDeleted());

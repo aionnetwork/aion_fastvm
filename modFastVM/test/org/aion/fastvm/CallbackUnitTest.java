@@ -41,7 +41,6 @@ import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -2148,7 +2147,7 @@ public class CallbackUnitTest {
 
         RepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
         ExecutionContext ctx = Callback.context();
-        TransactionSideEffects helper = ctx.getSideEffects();
+        SideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
         if (!owner.equals(beneficiary)) {
             assertEquals(beneficiaryOldBalance.add(ownerBalance), repo.getBalance(beneficiary));
@@ -2176,7 +2175,7 @@ public class CallbackUnitTest {
      * @param data The data passed into log.
      */
     private void checkLog(AionAddress address, byte[] topics, byte[] data) {
-        TransactionSideEffects helper = Callback.context().getSideEffects();
+        SideEffects helper = Callback.context().getSideEffects();
         assertEquals(1, helper.getExecutionLogs().size());
         IExecutionLog log = helper.getExecutionLogs().get(0);
         assertEquals(address, log.getSourceAddress());
@@ -2570,7 +2569,7 @@ public class CallbackUnitTest {
     }
 
     /** Asserts that all of the internal transactions in helper have been rejected. */
-    private void checkHelperForRejections(TransactionSideEffects helper) {
+    private void checkHelperForRejections(SideEffects helper) {
         for (InternalTransactionInterface tx : helper.getInternalTransactions()) {
             assertTrue(tx.isRejected());
         }

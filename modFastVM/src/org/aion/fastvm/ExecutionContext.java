@@ -32,7 +32,6 @@ import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.vm.api.interfaces.TransactionInterface;
-import org.aion.vm.api.interfaces.TransactionSideEffects;
 
 /**
  * Execution context, including both transaction and block information.
@@ -271,7 +270,7 @@ public class ExecutionContext {
     }
 
     /** @return the transaction helper. */
-    public TransactionSideEffects getSideEffects() {
+    public SideEffects getSideEffects() {
         return sideEffects;
     }
 
