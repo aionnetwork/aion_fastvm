@@ -41,7 +41,6 @@ import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
 import org.aion.vm.api.interfaces.IExecutionLog;
 import org.aion.vm.api.interfaces.InternalTransactionInterface;
-import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -123,7 +122,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         Callback.push(pair);
-        TransactionContext stackContext = Callback.context();
+        ExecutionContext stackContext = Callback.context();
         compareMockContexts(context, stackContext);
     }
 
@@ -163,7 +162,7 @@ public class CallbackUnitTest {
         for (int i = 0; i < reps; i++) {
             ExecutionContext ctx = mockContext();
             KernelInterfaceForFastVM repo = mockKernelRepo();
-            Pair<TransactionContext, KernelInterfaceForFastVM> mockedPair = mockEmptyPair();
+            Pair<ExecutionContext, KernelInterfaceForFastVM> mockedPair = mockEmptyPair();
             when(mockedPair.getLeft()).thenReturn(ctx);
             when(mockedPair.getRight()).thenReturn(repo);
             pairs[i] = mockedPair;
@@ -677,7 +676,7 @@ public class CallbackUnitTest {
                         ctx.getTransactionKind(),
                         ctx.getFlags());
 
-        TransactionContext expectedContext = makeExpectedContext(context, ctx);
+        ExecutionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
     }
 
@@ -724,7 +723,7 @@ public class CallbackUnitTest {
                             ctx.getTransactionStackDepth(),
                             ctx.getTransactionKind(),
                             ctx.getFlags());
-            TransactionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
+            ExecutionContext expectedContext = makeExpectedContext(Callback.context(), ctx);
             compareContexts(expectedContext, Callback.parseMessage(message));
             Callback.pop();
         }
@@ -768,7 +767,7 @@ public class CallbackUnitTest {
                         ctx.getTransactionKind(),
                         ctx.getFlags());
 
-        TransactionContext expectedContext = makeExpectedContext(context, ctx);
+        ExecutionContext expectedContext = makeExpectedContext(context, ctx);
         compareContexts(expectedContext, Callback.parseMessage(message));
     }
 
@@ -1931,7 +1930,7 @@ public class CallbackUnitTest {
 
     // <---------------------------------------HELPERS BELOW--------------------------------------->
 
-    private Pair<TransactionContext, KernelInterfaceForFastVM> mockEmptyPair() {
+    private Pair<ExecutionContext, KernelInterfaceForFastVM> mockEmptyPair() {
         return mock(Pair.class);
     }
 
@@ -1939,7 +1938,7 @@ public class CallbackUnitTest {
      * Returns a mocked pair whose left entry is a mocked context that returns a new helper when
      * helper is called and whose right entry is a new DummyRepository.
      */
-    private Pair<TransactionContext, KernelInterfaceForFastVM> mockPair() {
+    private Pair<ExecutionContext, KernelInterfaceForFastVM> mockPair() {
         ExecutionContext context = mockContext();
         SideEffects helper = new SideEffects();
         when(context.getSideEffects()).thenReturn(helper);
@@ -2064,7 +2063,7 @@ public class CallbackUnitTest {
         return buffer.array();
     }
 
-    private void compareContexts(TransactionContext context, TransactionContext other) {
+    private void compareContexts(ExecutionContext context, ExecutionContext other) {
         assertEquals(context.getDestinationAddress(), other.getDestinationAddress());
         assertEquals(context.getOriginAddress(), other.getOriginAddress());
         assertEquals(context.getSenderAddress(), other.getSenderAddress());
@@ -2092,7 +2091,7 @@ public class CallbackUnitTest {
         return kernel;
     }
 
-    private void compareMockContexts(TransactionContext context, TransactionContext other) {
+    private void compareMockContexts(ExecutionContext context, ExecutionContext other) {
         assertEquals(context.getBlockNumber(), other.getBlockNumber());
         assertEquals(context.getSenderAddress(), other.getSenderAddress());
         assertArrayEquals(context.getTransactionData(), other.getTransactionData());
@@ -2148,7 +2147,7 @@ public class CallbackUnitTest {
             BigInteger beneficiaryOldBalance) {
 
         RepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
-        TransactionContext ctx = Callback.context();
+        ExecutionContext ctx = Callback.context();
         TransactionSideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
         if (!owner.equals(beneficiary)) {
@@ -2198,8 +2197,8 @@ public class CallbackUnitTest {
      * the context at the top of the stack when the fields in context are used to generate the
      * message given to the parseMessage method.
      */
-    private TransactionContext makeExpectedContext(
-            TransactionContext previous, TransactionContext context) {
+    private ExecutionContext makeExpectedContext(
+            ExecutionContext previous, ExecutionContext context) {
         return new ExecutionContext(
                 null,
                 previous.getTransactionHash(),
@@ -2430,7 +2429,7 @@ public class CallbackUnitTest {
             int kind,
             FastVmResultCode resultCode) {
 
-        TransactionContext ctx = Callback.context();
+        ExecutionContext ctx = Callback.context();
         checkInternalTransaction(
                 context,
                 ctx.getSideEffects().getInternalTransactions().get(0),
@@ -2636,7 +2635,7 @@ public class CallbackUnitTest {
      * context was the context used to set up the performCall test.
      */
     private void checkInternalTransaction(
-            TransactionContext context,
+            ExecutionContext context,
             InternalTransactionInterface tx,
             boolean isCreateContract,
             boolean wasSuccess) {
@@ -2721,7 +2720,7 @@ public class CallbackUnitTest {
      * after a call using the CREATE opcode.
      */
     private void checkInternalTransactionsAfterCreate(boolean wasSuccess) {
-        TransactionContext context = Callback.context();
+        ExecutionContext context = Callback.context();
         List<InternalTransactionInterface> internalTxs =
                 context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
@@ -2734,7 +2733,7 @@ public class CallbackUnitTest {
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
     private void checkSecondInteralTransaction(
-            TransactionContext context, InternalTransactionInterface tx) {
+            ExecutionContext context, InternalTransactionInterface tx) {
         AionAddress caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (tx.isRejected()) {

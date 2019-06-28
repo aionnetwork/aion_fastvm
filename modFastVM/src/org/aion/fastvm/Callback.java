@@ -21,7 +21,6 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.mcf.vm.types.Log;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,11 +35,11 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class Callback {
 
-    private static LinkedList<Pair<TransactionContext, KernelInterfaceForFastVM>> stack =
+    private static LinkedList<Pair<ExecutionContext, KernelInterfaceForFastVM>> stack =
             new LinkedList<>();
 
     /** Pushes a pair of context and repository into the callback stack. */
-    public static void push(Pair<TransactionContext, KernelInterfaceForFastVM> pair) {
+    public static void push(Pair<ExecutionContext, KernelInterfaceForFastVM> pair) {
         stack.push(pair);
     }
 
@@ -50,7 +49,7 @@ public class Callback {
     }
 
     /** Returns the current context. */
-    public static TransactionContext context() {
+    public static ExecutionContext context() {
         return stack.peek().getLeft();
     }
 
@@ -197,7 +196,7 @@ public class Callback {
 
     /** The method handles the CALL/CALLCODE/DELEGATECALL opcode. */
     private static FastVmTransactionResult doCall(
-            TransactionContext ctx, FastVM jit, ContractFactory factory) {
+            ExecutionContext ctx, FastVM jit, ContractFactory factory) {
         AionAddress codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
                 || ctx.getTransactionKind() == ExecutionContext.DELEGATECALL) {
@@ -367,7 +366,7 @@ public class Callback {
 
     /** Parses the execution context from encoded message. */
     protected static ExecutionContext parseMessage(byte[] message) {
-        TransactionContext prev = context();
+        ExecutionContext prev = context();
 
         ByteBuffer buffer = ByteBuffer.wrap(message);
         buffer.order(ByteOrder.BIG_ENDIAN);
@@ -500,7 +499,7 @@ public class Callback {
     }
 
     private static PrecompiledTransactionContext toPrecompiledTransactionContext(
-            TransactionContext context) {
+            ExecutionContext context) {
         return new PrecompiledTransactionContext(
                 context.getDestinationAddress(),
                 context.getOriginAddress(),

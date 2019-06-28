@@ -32,7 +32,6 @@ import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.vm.api.interfaces.KernelInterface;
-import org.aion.vm.api.interfaces.TransactionContext;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -50,20 +49,20 @@ public class TransactionExecutor {
     private KernelInterface kernelGrandChild;
 
     private FastVmTransactionResult transactionResult;
-    private TransactionContext context;
+    private ExecutionContext context;
     private Transaction transaction;
 
     private boolean fork040Enable;
 
     public TransactionExecutor(
-            Transaction transaction, TransactionContext context, KernelInterface kernel) {
+            Transaction transaction, ExecutionContext context, KernelInterface kernel) {
 
         this(transaction, context, kernel, false);
     }
 
     public TransactionExecutor(
             Transaction transaction,
-            TransactionContext context,
+            ExecutionContext context,
             KernelInterface kernel,
             boolean fork040Enable) {
 
@@ -333,7 +332,7 @@ public class TransactionExecutor {
     }
 
     private static PrecompiledTransactionContext toPrecompiledTransactionContext(
-            TransactionContext context) {
+            ExecutionContext context) {
         return new PrecompiledTransactionContext(
                 context.getDestinationAddress(),
                 context.getOriginAddress(),

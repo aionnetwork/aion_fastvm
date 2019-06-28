@@ -31,7 +31,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 
@@ -40,9 +39,12 @@ import org.aion.vm.api.interfaces.TransactionSideEffects;
  *
  * @author yulong
  */
-public class ExecutionContext implements TransactionContext {
+public class ExecutionContext {
     private static final int ENCODE_BASE_LEN =
-            (AionAddress.LENGTH * 4) + (DataWordImpl.BYTES * 3) + (Long.BYTES * 4) + (Integer.BYTES * 4);
+            (AionAddress.LENGTH * 4)
+                    + (DataWordImpl.BYTES * 3)
+                    + (Long.BYTES * 4)
+                    + (Integer.BYTES * 4);
     public static int CALL = 0;
     public static int DELEGATECALL = 1;
     public static int CALLCODE = 2;
@@ -144,7 +146,6 @@ public class ExecutionContext implements TransactionContext {
      *
      * @return a binary encoding of this ExecutionContext.
      */
-    @Override
     public byte[] toBytes() {
 
         // If this is a CREATE then we do not want to serialize the callData.
@@ -174,12 +175,10 @@ public class ExecutionContext implements TransactionContext {
     }
 
     /** @return the transaction hash. */
-    @Override
     public byte[] getTransactionHash() {
         return txHash;
     }
 
-    @Override
     public void setDestinationAddress(AionAddress address) {
         this.address = address;
     }
@@ -189,25 +188,21 @@ public class ExecutionContext implements TransactionContext {
     }
 
     /** @return the transaction address. */
-    @Override
     public AionAddress getDestinationAddress() {
         return address;
     }
 
     /** @return the origination address, which is the sender of original transaction. */
-    @Override
     public AionAddress getOriginAddress() {
         return origin;
     }
 
     /** @return the transaction caller. */
-    @Override
     public AionAddress getSenderAddress() {
         return sender;
     }
 
     /** @return the nrg price in current environment. */
-    @Override
     public long getTransactionEnergyPrice() {
         if (this.nrgPrice instanceof DataWordImpl) {
             return ((DataWordImpl) this.nrgPrice).longValue();
@@ -222,61 +217,51 @@ public class ExecutionContext implements TransactionContext {
     }
 
     /** @return the deposited value by instruction/transaction. */
-    @Override
     public BigInteger getTransferValue() {
         return callValue.value();
     }
 
     /** @return the call data. */
-    @Override
     public byte[] getTransactionData() {
         return callData;
     }
 
     /** @return the execution stack depth. */
-    @Override
     public int getTransactionStackDepth() {
         return depth;
     }
 
     /** @return the transaction kind. */
-    @Override
     public int getTransactionKind() {
         return kind;
     }
 
     /** @return the transaction flags. */
-    @Override
     public int getFlags() {
         return flags;
     }
 
     /** @return the block's beneficiary. */
-    @Override
     public AionAddress getMinerAddress() {
         return blockCoinbase;
     }
 
     /** @return the block number. */
-    @Override
     public long getBlockNumber() {
         return blockNumber;
     }
 
     /** @return the block timestamp. */
-    @Override
     public long getBlockTimestamp() {
         return blockTimestamp;
     }
 
     /** @return the block energy limit. */
-    @Override
     public long getBlockEnergyLimit() {
         return blockNrgLimit;
     }
 
     /** @return the block difficulty. */
-    @Override
     public long getBlockDifficulty() {
         if (blockDifficulty instanceof DataWordImpl) {
             return ((DataWordImpl) blockDifficulty).longValue();
@@ -286,7 +271,6 @@ public class ExecutionContext implements TransactionContext {
     }
 
     /** @return the transaction helper. */
-    @Override
     public TransactionSideEffects getSideEffects() {
         return sideEffects;
     }
@@ -296,7 +280,6 @@ public class ExecutionContext implements TransactionContext {
      *
      * @param txHash The new transaction hash.
      */
-    @Override
     public void setTransactionHash(byte[] txHash) {
         this.txHash = txHash;
     }
@@ -311,12 +294,10 @@ public class ExecutionContext implements TransactionContext {
     }
 
     /** @return the original transaction hash. */
-    @Override
     public byte[] getHashOfOriginTransaction() {
         return originalTxHash;
     }
 
-    @Override
     public TransactionInterface getTransaction() {
         return this.transaction;
     }

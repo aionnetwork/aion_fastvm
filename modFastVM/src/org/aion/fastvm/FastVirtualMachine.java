@@ -9,7 +9,6 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.types.AionAddress;
 import org.aion.vm.api.interfaces.KernelInterface;
 import org.aion.vm.api.interfaces.SimpleFuture;
-import org.aion.vm.api.interfaces.TransactionContext;
 import org.aion.vm.api.interfaces.TransactionInterface;
 import org.aion.vm.api.interfaces.TransactionSideEffects;
 import org.aion.zero.types.AionTransaction;
@@ -42,7 +41,7 @@ public class FastVirtualMachine {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
 
-        TransactionContext[] contexts = new TransactionContext[transactions.length];
+        ExecutionContext[] contexts = new ExecutionContext[transactions.length];
         for (int i = 0; i < transactions.length; i++) {
             contexts[i] = constructTransactionContext(transactions[i], kernel);
         }
