@@ -40,10 +40,10 @@ import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
-import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
+import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
@@ -2155,7 +2155,7 @@ public class CallbackUnitTest {
         assertEquals(1, helper.getAddressesToBeDeleted().size());
         assertEquals(helper.getAddressesToBeDeleted().get(0), owner);
         assertEquals(1, helper.getInternalTransactions().size());
-        InternalTransactionInterface tx = helper.getInternalTransactions().get(0);
+        AionInternalTx tx = helper.getInternalTransactions().get(0);
         assertEquals(owner, tx.getSenderAddress());
         assertEquals(beneficiary, tx.getDestinationAddress());
         assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
@@ -2570,7 +2570,7 @@ public class CallbackUnitTest {
 
     /** Asserts that all of the internal transactions in helper have been rejected. */
     private void checkHelperForRejections(SideEffects helper) {
-        for (InternalTransactionInterface tx : helper.getInternalTransactions()) {
+        for (AionInternalTx tx : helper.getInternalTransactions()) {
             assertTrue(tx.isRejected());
         }
     }
@@ -2635,7 +2635,7 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransaction(
             ExecutionContext context,
-            InternalTransactionInterface tx,
+            AionInternalTx tx,
             boolean isCreateContract,
             boolean wasSuccess) {
 
@@ -2720,8 +2720,8 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransactionsAfterCreate(boolean wasSuccess) {
         ExecutionContext context = Callback.context();
-        List<InternalTransactionInterface> internalTxs =
-                context.getSideEffects().getInternalTransactions();
+        List<AionInternalTx> internalTxs =
+            context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
         checkInternalTransaction(context, internalTxs.get(0), true, wasSuccess);
         checkSecondInteralTransaction(context, internalTxs.get(1));
@@ -2732,7 +2732,7 @@ public class CallbackUnitTest {
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
     private void checkSecondInteralTransaction(
-            ExecutionContext context, InternalTransactionInterface tx) {
+        ExecutionContext context, AionInternalTx tx) {
         AionAddress caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (tx.isRejected()) {
@@ -2800,6 +2800,8 @@ public class CallbackUnitTest {
 
     private static PrecompiledResultCode fvmToPrecompiledCode(FastVmResultCode fvmCode) {
         switch (fvmCode) {
+            case INCOMPATIBLE_CONTRACT_CALL:
+                return PrecompiledResultCode.INCOMPATIBLE_CONTRACT_CALL;
             case INSUFFICIENT_BALANCE:
                 return PrecompiledResultCode.INSUFFICIENT_BALANCE;
             case BAD_JUMP_DESTINATION:
@@ -2830,8 +2832,6 @@ public class CallbackUnitTest {
                 return PrecompiledResultCode.REVERT;
             case ABORT:
                 return PrecompiledResultCode.ABORT;
-            case INCOMPATIBLE_CONTRACT_CALL:
-                return PrecompiledResultCode.INCOMPATIBLE_CONTRACT_CALL;
             default:
                 throw new IllegalArgumentException("Unknown code: " + fvmCode);
         }

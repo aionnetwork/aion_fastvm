@@ -420,26 +420,16 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-            AionAddress from,
-            AionAddress to,
-            BigInteger nonce,
-            DataWord value,
-            byte[] data,
-            String note) {
-        byte[] parentHash = context().getTransactionHash();
-        int depth = context().getTransactionStackDepth();
-        int index = context().getSideEffects().getInternalTransactions().size();
+        AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data,
+        String note) {
 
         return new AionInternalTx(
-                parentHash,
-                depth,
-                index,
-                new DataWordImpl(nonce).getData(),
-                from,
-                to,
-                value.getData(),
-                data,
-                note);
+            new DataWordImpl(nonce).getData(),
+            from,
+            to,
+            value.getData(),
+            data,
+            note);
     }
 
     private static FastVmTransactionResult precompiledToFvmResult(

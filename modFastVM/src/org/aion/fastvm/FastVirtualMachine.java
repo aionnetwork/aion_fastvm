@@ -3,7 +3,6 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.util.List;
 import org.aion.base.Transaction;
-import org.aion.base.TransactionInterface;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
@@ -34,7 +33,7 @@ public class FastVirtualMachine {
      * are immediately available to be consumed by some other repository without any checks.
      */
     public SimpleFuture<FastVmTransactionResult>[] run(
-            KernelInterface kernel, TransactionInterface[] transactions) {
+            KernelInterface kernel, Transaction[] transactions) {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
@@ -136,7 +135,7 @@ public class FastVirtualMachine {
     }
 
     private ExecutionContext constructTransactionContext(
-            TransactionInterface transaction, KernelInterface kernel) {
+            Transaction transaction, KernelInterface kernel) {
         byte[] txHash = transaction.getTransactionHash();
         AionAddress address =
                 transaction.isContractCreationTransaction()

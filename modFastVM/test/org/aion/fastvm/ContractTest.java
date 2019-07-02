@@ -21,10 +21,10 @@ import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
+import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -195,9 +195,9 @@ public class ContractTest {
         assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
-        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
-        for (InternalTransactionInterface tx : txs) {
+        for (AionInternalTx tx : txs) {
             System.out.println(tx);
         }
 
@@ -232,7 +232,7 @@ public class ContractTest {
         assertEquals(new DataWordImpl(n).toString(), Hex.toHexString(result.getReturnData()));
 
         // verify internal transactions
-        List<InternalTransactionInterface> txs = ctx.getSideEffects().getInternalTransactions();
+        List<AionInternalTx> txs = ctx.getSideEffects().getInternalTransactions();
         assertEquals(n - 1, txs.size());
 
         // verify logs

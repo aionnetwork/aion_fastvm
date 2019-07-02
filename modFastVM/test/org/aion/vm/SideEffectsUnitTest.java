@@ -14,7 +14,6 @@ import org.aion.types.AionAddress;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
 import org.aion.types.Log;
-import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -181,8 +180,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxBulk() {
-        Collection<InternalTransactionInterface> txs = getNewInternalTxs(22);
-        for (InternalTransactionInterface tx : txs) {
+        Collection<AionInternalTx> txs = getNewInternalTxs(22);
+        for (AionInternalTx tx : txs) {
             sideEffects.addInternalTransaction(tx);
         }
         assertEquals(txs, sideEffects.getInternalTransactions());
@@ -190,8 +189,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxBulkSomeDuplicates() {
-        Collection<InternalTransactionInterface> txs = getNewInternalTxs(17);
-        for (InternalTransactionInterface tx : txs) {
+        Collection<AionInternalTx> txs = getNewInternalTxs(17);
+        for (AionInternalTx tx : txs) {
             sideEffects.addInternalTransaction(tx);
             sideEffects.addInternalTransaction(tx);
         }
@@ -200,15 +199,15 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxs() {
-        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
+        List<AionInternalTx> txs = getNewInternalTxs(26);
         sideEffects.addInternalTransactions(txs);
         assertEquals(txs.size(), sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testAddTxsSomeNull() {
-        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
-        List<InternalTransactionInterface> txsWithNulls = new ArrayList<>(txs);
+        List<AionInternalTx> txs = getNewInternalTxs(26);
+        List<AionInternalTx> txsWithNulls = new ArrayList<>(txs);
         for (int i = 0; i < 19; i++) {
             txsWithNulls.add(null);
         }
@@ -218,7 +217,7 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxsSomeDuplicates() {
-        List<InternalTransactionInterface> txs = getNewInternalTxs(26);
+        List<AionInternalTx> txs = getNewInternalTxs(26);
         sideEffects.addInternalTransactions(txs);
         sideEffects.addInternalTransactions(txs);
         assertEquals(txs.size() * 2, sideEffects.getInternalTransactions().size());
@@ -232,11 +231,11 @@ public class SideEffectsUnitTest {
     @Test
     public void testRejectNonEmptyTxList() {
         sideEffects.addInternalTransactions(getNewInternalTxs(33));
-        for (InternalTransactionInterface tx : sideEffects.getInternalTransactions()) {
+        for (AionInternalTx tx : sideEffects.getInternalTransactions()) {
             assertFalse(tx.isRejected());
         }
         sideEffects.markAllInternalTransactionsAsRejected();
-        for (InternalTransactionInterface tx : sideEffects.getInternalTransactions()) {
+        for (AionInternalTx tx : sideEffects.getInternalTransactions()) {
             assertTrue(tx.isRejected());
         }
     }
@@ -353,8 +352,8 @@ public class SideEffectsUnitTest {
      * @param num The number of internal transactions in the collection.
      * @return the collection of internal transactions.
      */
-    private List<InternalTransactionInterface> getNewInternalTxs(int num) {
-        List<InternalTransactionInterface> internals = new ArrayList<>();
+    private List<AionInternalTx> getNewInternalTxs(int num) {
+        List<AionInternalTx> internals = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             internals.add(getNewInternalTx());
         }
@@ -371,14 +370,10 @@ public class SideEffectsUnitTest {
         AionAddress recipient = getNewAddress();
         String note = "";
         int arraySizes = RandomUtils.nextInt(0, 50);
-        byte[] parentHash = RandomUtils.nextBytes(arraySizes);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         byte[] value = RandomUtils.nextBytes(arraySizes);
         byte[] data = RandomUtils.nextBytes(arraySizes);
-        int deep = RandomUtils.nextInt(0, 1000);
-        int index = RandomUtils.nextInt(0, 1000);
-        return new AionInternalTx(
-                parentHash, deep, index, nonce, sender, recipient, value, data, note);
+        return new AionInternalTx(nonce, sender, recipient, value, data, note);
     }
 
     /**

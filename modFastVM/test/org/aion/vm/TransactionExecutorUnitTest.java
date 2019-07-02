@@ -32,8 +32,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
 import org.aion.mcf.types.IExecutionLog;
 import org.aion.util.types.ByteArrayWrapper;
-
-import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.fastvm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -1789,8 +1787,8 @@ public class TransactionExecutorUnitTest {
         return topics;
     }
 
-    private List<InternalTransactionInterface> newInternalTxs(int num) {
-        List<InternalTransactionInterface> txs = new ArrayList<>();
+    private List<AionInternalTx> newInternalTxs(int num) {
+        List<AionInternalTx> txs = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             txs.add(newInternalTx());
         }
@@ -1799,15 +1797,10 @@ public class TransactionExecutorUnitTest {
 
     private AionInternalTx newInternalTx() {
         String note = "";
-        byte[] parentHash = RandomUtils.nextBytes(32);
         byte[] nonce = RandomUtils.nextBytes(10);
         byte[] value = RandomUtils.nextBytes(10);
         byte[] data = RandomUtils.nextBytes(10);
-        int deep = 0, index = 0;
         return new AionInternalTx(
-                parentHash,
-                deep,
-                index,
                 nonce,
                 getNewAddress(),
                 getNewAddress(),

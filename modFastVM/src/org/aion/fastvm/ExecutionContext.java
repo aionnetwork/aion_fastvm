@@ -25,8 +25,7 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import org.aion.base.TransactionInterface;
+import org.aion.base.Transaction;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
@@ -53,7 +52,7 @@ public class ExecutionContext {
     private AionAddress origin;
     private byte[] originalTxHash;
 
-    private TransactionInterface transaction;
+    private Transaction transaction;
 
     public AionAddress address;
     public AionAddress sender;
@@ -94,7 +93,7 @@ public class ExecutionContext {
      *     length 32.
      */
     public ExecutionContext(
-            TransactionInterface transaction,
+        Transaction transaction,
             byte[] txHash,
             AionAddress destination,
             AionAddress origin,
@@ -297,7 +296,7 @@ public class ExecutionContext {
         return originalTxHash;
     }
 
-    public TransactionInterface getTransaction() {
+    public Transaction getTransaction() {
         return this.transaction;
     }
 }

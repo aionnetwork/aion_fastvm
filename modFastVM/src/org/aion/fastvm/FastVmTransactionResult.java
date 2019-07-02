@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.mcf.types.KernelInterface;
 import org.aion.mcf.types.ResultCode;
+import org.aion.zero.types.AionInternalTx;
 
 public final class FastVmTransactionResult {
 
@@ -16,9 +16,9 @@ public final class FastVmTransactionResult {
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
-    private List<Log> logs;
-    private List<InternalTransactionInterface> internalTransactions;
-    private List<AionAddress> deletedAddresses;
+    private List<Log> logs = new ArrayList<>();
+    private List<AionInternalTx> internalTransactions = new ArrayList<>();
+    private List<AionAddress> deletedAddresses = new ArrayList<>();
 
     /**
      * Constructs a new {@code TransactionResult} with no side-effects, with zero energy remaining,
@@ -27,9 +27,6 @@ public final class FastVmTransactionResult {
      */
     public FastVmTransactionResult() {
         this.kernel = null;
-        this.logs = new ArrayList<>();
-        this.internalTransactions = new ArrayList<>();
-        this.deletedAddresses = new ArrayList<>();
         this.code = FastVmResultCode.SUCCESS;
         this.output = new byte[0];
         this.energyRemaining = 0;
@@ -44,9 +41,6 @@ public final class FastVmTransactionResult {
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
         this.kernel = null;
-        this.logs = new ArrayList<>();
-        this.internalTransactions = new ArrayList<>();
-        this.deletedAddresses = new ArrayList<>();
         this.code = code;
         this.energyRemaining = energyRemaining;
         this.output = new byte[0];
@@ -62,9 +56,6 @@ public final class FastVmTransactionResult {
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
         this.kernel = null;
-        this.logs = new ArrayList<>();
-        this.internalTransactions = new ArrayList<>();
-        this.deletedAddresses = new ArrayList<>();
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
         this.energyRemaining = energyRemaining;
@@ -129,11 +120,7 @@ public final class FastVmTransactionResult {
         if (code == null) {
             throw new NullPointerException("Cannot set null result code.");
         }
-        if (!(code instanceof FastVmResultCode)) {
-            throw new IllegalArgumentException(
-                    "Type of code must be FastVmResultCode for FastVmTransactionResult.");
-        }
-        this.code = (FastVmResultCode) code;
+        this.code = FastVmResultCode.fromInt(code.toInt());
     }
 
     public void setKernelInterface(KernelInterface kernel) {
@@ -168,7 +155,7 @@ public final class FastVmTransactionResult {
         this.logs.addAll(logs);
     }
 
-    public void addInternalTransactions(List<InternalTransactionInterface> internalTransactions) {
+    public void addInternalTransactions(List<AionInternalTx> internalTransactions) {
         this.internalTransactions.addAll(internalTransactions);
     }
 
@@ -180,7 +167,7 @@ public final class FastVmTransactionResult {
         return this.logs;
     }
 
-    public List<InternalTransactionInterface> getInternalTransactions() {
+    public List<AionInternalTx> getInternalTransactions() {
         return this.internalTransactions;
     }
 

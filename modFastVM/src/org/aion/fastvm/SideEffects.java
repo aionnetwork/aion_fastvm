@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.mcf.types.InternalTransactionInterface;
+import org.aion.zero.types.AionInternalTx;
 
 /**
  * An internal helper class which holds all the dynamically generated effects:
@@ -47,7 +47,7 @@ import org.aion.mcf.types.InternalTransactionInterface;
 public class SideEffects {
 
     private Set<AionAddress> deleteAccounts = new HashSet<>();
-    private List<InternalTransactionInterface> internalTxs = new ArrayList<>();
+    private List<AionInternalTx> internalTxs = new ArrayList<>();
     private List<Log> logs = new ArrayList<>();
     private List<Call> calls = new ArrayList<>();
 
@@ -131,8 +131,10 @@ public class SideEffects {
      *
      * @param tx The internal transaction to add.
      */
-    public void addInternalTransaction(InternalTransactionInterface tx) {
-        internalTxs.add(tx);
+    public void addInternalTransaction(AionInternalTx tx) {
+        if (tx != null) {
+            internalTxs.add(tx);
+        }
     }
 
     /**
@@ -140,16 +142,14 @@ public class SideEffects {
      *
      * @param txs The collection of internal transactions to add.
      */
-    public void addInternalTransactions(List<InternalTransactionInterface> txs) {
-        for (InternalTransactionInterface tx : txs) {
-            if (tx != null) {
-                this.internalTxs.add(tx);
-            }
+    public void addInternalTransactions(List<AionInternalTx> txs) {
+        for (AionInternalTx tx : txs) {
+            addInternalTransaction(tx);
         }
     }
 
     public void markAllInternalTransactionsAsRejected() {
-        for (InternalTransactionInterface tx : getInternalTransactions()) {
+        for (AionInternalTx tx : getInternalTransactions()) {
             tx.markAsRejected();
         }
     }
@@ -182,7 +182,7 @@ public class SideEffects {
      *
      * @return the internal transactions.
      */
-    public List<InternalTransactionInterface> getInternalTransactions() {
+    public List<AionInternalTx> getInternalTransactions() {
         return internalTxs;
     }
 }
