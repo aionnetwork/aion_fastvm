@@ -6,15 +6,17 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import org.aion.types.InternalTransaction.RejectedStatus;
+import org.aion.types.Log;
 import org.aion.types.AionAddress;
+import org.aion.types.InternalTransaction;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
-import org.aion.types.Log;
-import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -180,8 +182,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxBulk() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(22);
-        for (AionInternalTx tx : txs) {
+        Collection<InternalTransaction> txs = getNewInternalTxs(22);
+        for (InternalTransaction tx : txs) {
             sideEffects.addInternalTransaction(tx);
         }
         assertEquals(txs, sideEffects.getInternalTransactions());
@@ -189,8 +191,8 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxBulkSomeDuplicates() {
-        Collection<AionInternalTx> txs = getNewInternalTxs(17);
-        for (AionInternalTx tx : txs) {
+        Collection<InternalTransaction> txs = getNewInternalTxs(17);
+        for (InternalTransaction tx : txs) {
             sideEffects.addInternalTransaction(tx);
             sideEffects.addInternalTransaction(tx);
         }
@@ -199,15 +201,15 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxs() {
-        List<AionInternalTx> txs = getNewInternalTxs(26);
+        List<InternalTransaction> txs = getNewInternalTxs(26);
         sideEffects.addInternalTransactions(txs);
         assertEquals(txs.size(), sideEffects.getInternalTransactions().size());
     }
 
     @Test
     public void testAddTxsSomeNull() {
-        List<AionInternalTx> txs = getNewInternalTxs(26);
-        List<AionInternalTx> txsWithNulls = new ArrayList<>(txs);
+        List<InternalTransaction> txs = getNewInternalTxs(26);
+        List<InternalTransaction> txsWithNulls = new ArrayList<>(txs);
         for (int i = 0; i < 19; i++) {
             txsWithNulls.add(null);
         }
@@ -217,7 +219,7 @@ public class SideEffectsUnitTest {
 
     @Test
     public void testAddTxsSomeDuplicates() {
-        List<AionInternalTx> txs = getNewInternalTxs(26);
+        List<InternalTransaction> txs = getNewInternalTxs(26);
         sideEffects.addInternalTransactions(txs);
         sideEffects.addInternalTransactions(txs);
         assertEquals(txs.size() * 2, sideEffects.getInternalTransactions().size());
@@ -231,12 +233,12 @@ public class SideEffectsUnitTest {
     @Test
     public void testRejectNonEmptyTxList() {
         sideEffects.addInternalTransactions(getNewInternalTxs(33));
-        for (AionInternalTx tx : sideEffects.getInternalTransactions()) {
-            assertFalse(tx.isRejected());
+        for (InternalTransaction tx : sideEffects.getInternalTransactions()) {
+            assertFalse(tx.isRejected);
         }
         sideEffects.markAllInternalTransactionsAsRejected();
-        for (AionInternalTx tx : sideEffects.getInternalTransactions()) {
-            assertTrue(tx.isRejected());
+        for (InternalTransaction tx : sideEffects.getInternalTransactions()) {
+            assertTrue(tx.isRejected);
         }
     }
 
@@ -352,8 +354,8 @@ public class SideEffectsUnitTest {
      * @param num The number of internal transactions in the collection.
      * @return the collection of internal transactions.
      */
-    private List<AionInternalTx> getNewInternalTxs(int num) {
-        List<AionInternalTx> internals = new ArrayList<>();
+    private List<InternalTransaction> getNewInternalTxs(int num) {
+        List<InternalTransaction> internals = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             internals.add(getNewInternalTx());
         }
@@ -365,14 +367,16 @@ public class SideEffectsUnitTest {
      *
      * @return a new internal transaction.
      */
-    private AionInternalTx getNewInternalTx() {
+    private InternalTransaction getNewInternalTx() {
         AionAddress sender = getNewAddress();
-        AionAddress recipient = getNewAddress();
+        AionAddress destination = getNewAddress();
         int arraySizes = RandomUtils.nextInt(0, 50);
-        byte[] nonce = RandomUtils.nextBytes(arraySizes);
-        byte[] value = RandomUtils.nextBytes(arraySizes);
+        BigInteger nonce = new BigInteger(1,RandomUtils.nextBytes(arraySizes));
+        BigInteger value = new BigInteger(1,RandomUtils.nextBytes(arraySizes));
         byte[] data = RandomUtils.nextBytes(arraySizes);
-        return new AionInternalTx(nonce, sender, recipient, value, data);
+        long energyLimit = RandomUtils.nextLong(0, 1000000L);
+        long energyPrice = RandomUtils.nextLong(1,10);
+        return InternalTransaction.contractCallTransaction(RejectedStatus.NOT_REJECTED, sender, destination, nonce, value, data, energyLimit, energyPrice);
     }
 
     /**

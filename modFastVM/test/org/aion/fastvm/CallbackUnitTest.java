@@ -43,7 +43,7 @@ import org.aion.util.types.AddressUtils;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
@@ -2155,12 +2155,12 @@ public class CallbackUnitTest {
         assertEquals(1, helper.getAddressesToBeDeleted().size());
         assertEquals(helper.getAddressesToBeDeleted().get(0), owner);
         assertEquals(1, helper.getInternalTransactions().size());
-        AionInternalTx tx = helper.getInternalTransactions().get(0);
-        assertEquals(owner, tx.getSenderAddress());
-        assertEquals(beneficiary, tx.getDestinationAddress());
-        assertEquals(ownerNonce, new BigInteger(tx.getNonce()));
-        assertEquals(new DataWordImpl(ownerBalance), new DataWordImpl(tx.getValue()));
-        assertArrayEquals(new byte[0], tx.getData());
+        InternalTransaction tx = helper.getInternalTransactions().get(0);
+        assertEquals(owner, tx.sender);
+        assertEquals(beneficiary, tx.destination);
+        assertEquals(ownerNonce, tx.senderNonce);
+        assertEquals(ownerBalance, tx.value);
+        assertArrayEquals(new byte[0], tx.copyOfData());
     }
 
     private byte[] makeTopics(int num) {
@@ -2570,8 +2570,8 @@ public class CallbackUnitTest {
 
     /** Asserts that all of the internal transactions in helper have been rejected. */
     private void checkHelperForRejections(SideEffects helper) {
-        for (AionInternalTx tx : helper.getInternalTransactions()) {
-            assertTrue(tx.isRejected());
+        for (InternalTransaction tx : helper.getInternalTransactions()) {
+            assertTrue(tx.isRejected);
         }
     }
 
@@ -2635,43 +2635,32 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransaction(
             ExecutionContext context,
-            AionInternalTx tx,
+            InternalTransaction tx,
             boolean isCreateContract,
             boolean wasSuccess) {
 
-        assertEquals(context.getSenderAddress(), tx.getSenderAddress());
-        if (isCreateContract) {
-            // Decrement nonce because the transaction incremented it after address was made.
-            AionAddress contract =
-                    new AionAddress(
-                            HashUtil.calcNewAddr(
-                                    context.getSenderAddress().toByteArray(),
-                                    wasSuccess
-                                            ? Callback.kernelRepo()
-                                                    .getNonce(context.getSenderAddress())
-                                                    .subtract(BigInteger.ONE)
-                                                    .toByteArray()
-                                            : Callback.kernelRepo()
-                                                    .getNonce(context.getSenderAddress())
-                                                    .toByteArray()));
-            assertEquals(contract, tx.getDestinationAddress());
-        } else {
-            assertEquals(context.getDestinationAddress(), tx.getDestinationAddress());
+        if (!isCreateContract) {
+            assertEquals(context.getDestinationAddress(), tx.destination);
         }
 
         if (isCreateContract && wasSuccess) {
-            assertEquals(
-                    Callback.kernelRepo()
-                            .getNonce(context.getSenderAddress())
-                            .subtract(BigInteger.ONE),
-                    tx.getNonceBI());
+            BigInteger nonce = Callback.kernelRepo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE);
+
+            AionAddress contract =
+                new AionAddress(
+                    HashUtil.calcNewAddr(
+                        context.getSenderAddress().toByteArray(),
+                        nonce.toByteArray()));
+            assertTrue(Callback.exists(contract.toByteArray()));
+
+            assertEquals(Callback.kernelRepo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE), tx.senderNonce);
         } else {
-            assertEquals(
-                    Callback.kernelRepo().getNonce(context.getSenderAddress()), tx.getNonceBI());
+            assertEquals(Callback.kernelRepo().getNonce(context.getSenderAddress()), tx.senderNonce);
         }
 
-        assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
-        assertArrayEquals(context.getTransactionData(), tx.getData());
+        assertEquals(context.getSenderAddress(), tx.sender);
+        assertEquals(context.getTransferValue(), tx.value);
+        assertArrayEquals(context.getTransactionData(), tx.copyOfData());
     }
 
     /**
@@ -2719,37 +2708,30 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransactionsAfterCreate(boolean wasSuccess) {
         ExecutionContext context = Callback.context();
-        List<AionInternalTx> internalTxs = context.getSideEffects().getInternalTransactions();
+        List<InternalTransaction> internalTxs = context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
         checkInternalTransaction(context, internalTxs.get(0), true, wasSuccess);
         checkSecondInteralTransaction(context, internalTxs.get(1));
         if (!wasSuccess) {
-            assertTrue(internalTxs.get(1).isRejected());
+            assertTrue(internalTxs.get(1).isRejected);
         }
     }
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
-    private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
+    private void checkSecondInteralTransaction(ExecutionContext context, InternalTransaction tx) {
         AionAddress caller = context.getSenderAddress();
-        assertEquals(context.getSenderAddress(), tx.getSenderAddress());
-        if (tx.isRejected()) {
+        assertEquals(context.getSenderAddress(), tx.sender);
+        if (tx.isRejected) {
             assertEquals(
-                    Callback.kernelRepo().getNonce(caller),
-                    new BigInteger(1, tx.getNonce()).subtract(BigInteger.ONE));
-            assertArrayEquals(
-                    new DataWordImpl(Callback.kernelRepo().getNonce(caller).add(BigInteger.ONE))
-                            .getData(),
-                    tx.getNonce());
+                Callback.kernelRepo().getNonce(caller),
+                tx.senderNonce.subtract(BigInteger.ONE));
         } else {
-            assertEquals(Callback.kernelRepo().getNonce(caller), new BigInteger(1, tx.getNonce()));
-            assertArrayEquals(
-                    new DataWordImpl(Callback.kernelRepo().getNonce(caller)).getData(),
-                    tx.getNonce());
+            assertEquals(Callback.kernelRepo().getNonce(caller), tx.senderNonce);
         }
-        assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
+        assertEquals(context.getTransferValue(), tx.value);
 
-        assertArrayEquals(context.getTransactionData(), tx.getData());
-        assertNull(tx.getDestinationAddress());
+        assertArrayEquals(context.getTransactionData(), tx.copyOfData());
+        assertNull(tx.destination);
     }
 
     /**

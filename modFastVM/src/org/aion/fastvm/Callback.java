@@ -13,6 +13,7 @@ import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.vm.DataWord;
@@ -21,7 +22,7 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -113,27 +114,32 @@ public class Callback {
         return true;
     }
 
-    /** Processes SELFDESTRUCT opcode. */
-    public static void selfDestruct(byte[] owner, byte[] beneficiary) {
-        BigInteger balance = kernelRepo().getBalance(new AionAddress(owner));
+    /**
+     * Processes SELFDESTRUCT opcode.
+     */
+    public static void selfDestruct(byte[] sender, byte[] destination) {
+        BigInteger balance = kernelRepo().getBalance(new AionAddress(sender));
 
         // add internal transaction
-        AionInternalTx internalTx =
-                newInternalTx(
-                        new AionAddress(owner),
-                        new AionAddress(beneficiary),
-                        kernelRepo().getNonce(new AionAddress(owner)),
-                        new DataWordImpl(balance),
-                        ByteUtil.EMPTY_BYTE_ARRAY);
+        InternalTransaction internalTx =
+                InternalTransaction.contractCallTransaction(
+                        RejectedStatus.NOT_REJECTED,
+                        new AionAddress(sender),
+                        new AionAddress(destination),
+                        kernelRepo().getNonce(new AionAddress(sender)),
+                        balance,
+                        ByteUtil.EMPTY_BYTE_ARRAY,
+                        0L,
+                        1L);
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer
-        kernelRepo().adjustBalance(new AionAddress(owner), balance.negate());
-        if (!Arrays.equals(owner, beneficiary)) {
-            kernelRepo().adjustBalance(new AionAddress(beneficiary), balance);
+        kernelRepo().adjustBalance(new AionAddress(sender), balance.negate());
+        if (!Arrays.equals(sender, destination)) {
+            kernelRepo().adjustBalance(new AionAddress(destination), balance);
         }
 
-        context().getSideEffects().addToDeletedAddresses(new AionAddress(owner));
+        context().getSideEffects().addToDeletedAddresses(new AionAddress(sender));
     }
 
     /** Processes LOG opcode. */
@@ -213,13 +219,16 @@ public class Callback {
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // add internal transaction
-        AionInternalTx internalTx =
-                newInternalTx(
+        InternalTransaction internalTx =
+                InternalTransaction.contractCallTransaction(
+                        RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData());
+                        ctx.getTransferValue(),
+                        ctx.getTransactionData(),
+                        0L,
+                        1L);
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer balance
@@ -251,7 +260,7 @@ public class Callback {
 
         // post execution
         if (result.getResultCode().toInt() != FastVmResultCode.SUCCESS.toInt()) {
-            internalTx.markAsRejected();
+            context().getSideEffects().markMostRecentInternalTransactionAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
             track.rollback();
@@ -279,14 +288,15 @@ public class Callback {
         ctx.setDestinationAddress(newAddress);
 
         // add internal transaction
-        // TODO: should the `to` address be null?
-        AionInternalTx internalTx =
-                newInternalTx(
+        InternalTransaction internalTx =
+                InternalTransaction.contractCreateTransaction(
+                        RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
-                        ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
-                        new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData());
+                        ctx.getTransferValue(),
+                        ctx.getTransactionData(),
+                        0L,
+                        1L);
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // in case of hashing collisions
@@ -314,12 +324,14 @@ public class Callback {
 
         // add internal transaction
         internalTx =
-                newInternalTx(
+                InternalTransaction.contractCreateTransaction(
+                        RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
-                        null,
                         track.getNonce(ctx.getSenderAddress()),
-                        new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData());
+                        ctx.getTransferValue(),
+                        ctx.getTransactionData(),
+                        0L,
+                        1L);
         ctx.getSideEffects().addInternalTransaction(internalTx);
 
         // execute transaction
@@ -333,7 +345,7 @@ public class Callback {
 
         // post execution
         if (result.getResultCode().toInt() != FastVmResultCode.SUCCESS.toInt()) {
-            internalTx.markAsRejected();
+            context().getSideEffects().markMostRecentInternalTransactionAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
             track.rollback();
@@ -341,7 +353,7 @@ public class Callback {
             // charge the codedeposit
             if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
                 result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
-                internalTx.markAsRejected();
+                context().getSideEffects().markMostRecentInternalTransactionAsRejected();
                 ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
                 track.rollback();
@@ -410,18 +422,6 @@ public class Callback {
                 blockTimestamp,
                 blockNrgLimit,
                 blockDifficulty);
-    }
-
-    /** Creates a new internal transaction. */
-    private static AionInternalTx newInternalTx(
-        AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data) {
-
-        return new AionInternalTx(
-            new DataWordImpl(nonce).getData(),
-            from,
-            to,
-            value.getData(),
-            data);
     }
 
     private static FastVmTransactionResult precompiledToFvmResult(

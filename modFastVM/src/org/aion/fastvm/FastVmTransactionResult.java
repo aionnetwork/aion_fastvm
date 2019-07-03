@@ -8,7 +8,7 @@ import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.mcf.types.KernelInterface;
 import org.aion.mcf.types.ResultCode;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.types.InternalTransaction;
 
 public final class FastVmTransactionResult {
 
@@ -17,7 +17,7 @@ public final class FastVmTransactionResult {
     private byte[] output;
     private long energyRemaining;
     private List<Log> logs = new ArrayList<>();
-    private List<AionInternalTx> internalTransactions = new ArrayList<>();
+    private List<InternalTransaction> internalTransactions = new ArrayList<>();
     private List<AionAddress> deletedAddresses = new ArrayList<>();
 
     /**
@@ -155,7 +155,7 @@ public final class FastVmTransactionResult {
         this.logs.addAll(logs);
     }
 
-    public void addInternalTransactions(List<AionInternalTx> internalTransactions) {
+    public void addInternalTransactions(List<InternalTransaction> internalTransactions) {
         this.internalTransactions.addAll(internalTransactions);
     }
 
@@ -167,7 +167,7 @@ public final class FastVmTransactionResult {
         return this.logs;
     }
 
-    public List<AionInternalTx> getInternalTransactions() {
+    public List<InternalTransaction> getInternalTransactions() {
         return this.internalTransactions;
     }
 

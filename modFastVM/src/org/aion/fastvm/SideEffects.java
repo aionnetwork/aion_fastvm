@@ -27,9 +27,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.aion.mcf.vm.types.InternalTransactionUtil;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.types.InternalTransaction;
 
 /**
  * An internal helper class which holds all the dynamically generated effects:
@@ -47,7 +48,7 @@ import org.aion.zero.types.AionInternalTx;
 public class SideEffects {
 
     private Set<AionAddress> deleteAccounts = new HashSet<>();
-    private List<AionInternalTx> internalTxs = new ArrayList<>();
+    private List<InternalTransaction> internalTxs = new ArrayList<>();
     private List<Log> logs = new ArrayList<>();
     private List<Call> calls = new ArrayList<>();
 
@@ -131,7 +132,7 @@ public class SideEffects {
      *
      * @param tx The internal transaction to add.
      */
-    public void addInternalTransaction(AionInternalTx tx) {
+    public void addInternalTransaction(InternalTransaction tx) {
         if (tx != null) {
             internalTxs.add(tx);
         }
@@ -142,16 +143,25 @@ public class SideEffects {
      *
      * @param txs The collection of internal transactions to add.
      */
-    public void addInternalTransactions(List<AionInternalTx> txs) {
-        for (AionInternalTx tx : txs) {
+    public void addInternalTransactions(List<InternalTransaction> txs) {
+        for (InternalTransaction tx : txs) {
             addInternalTransaction(tx);
         }
     }
 
     public void markAllInternalTransactionsAsRejected() {
-        for (AionInternalTx tx : getInternalTransactions()) {
-            tx.markAsRejected();
+        internalTxs = InternalTransactionUtil.createRejectedTransactionList(internalTxs);
+    }
+
+    public void markMostRecentInternalTransactionAsRejected() {
+        if (internalTxs.isEmpty()) {
+            return;
         }
+
+        InternalTransaction toReject = internalTxs.get(internalTxs.size() - 1);
+        InternalTransaction rejected = InternalTransactionUtil.createRejectedTransaction(toReject);
+        internalTxs.remove(toReject);
+        internalTxs.add(rejected);
     }
 
     public void merge(SideEffects other) {
@@ -182,7 +192,7 @@ public class SideEffects {
      *
      * @return the internal transactions.
      */
-    public List<AionInternalTx> getInternalTransactions() {
+    public List<InternalTransaction> getInternalTransactions() {
         return internalTxs;
     }
 }

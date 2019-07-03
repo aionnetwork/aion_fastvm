@@ -29,15 +29,15 @@ import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWordImpl;
+import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
-import org.aion.mcf.types.IExecutionLog;
 import org.aion.util.types.ByteArrayWrapper;
 import org.aion.fastvm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.zero.impl.types.AionBlock;
-import org.aion.zero.types.AionInternalTx;
+import org.aion.types.InternalTransaction;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.aion.zero.types.AionTxReceipt;
@@ -1787,24 +1787,27 @@ public class TransactionExecutorUnitTest {
         return topics;
     }
 
-    private List<AionInternalTx> newInternalTxs(int num) {
-        List<AionInternalTx> txs = new ArrayList<>();
+    private List<InternalTransaction> newInternalTxs(int num) {
+        List<InternalTransaction> txs = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             txs.add(newInternalTx());
         }
         return txs;
     }
 
-    private AionInternalTx newInternalTx() {
+    private InternalTransaction newInternalTx() {
         byte[] nonce = RandomUtils.nextBytes(10);
         byte[] value = RandomUtils.nextBytes(10);
         byte[] data = RandomUtils.nextBytes(10);
-        return new AionInternalTx(
-                nonce,
+        return InternalTransaction.contractCallTransaction(
+                RejectedStatus.NOT_REJECTED,
                 getNewAddress(),
                 getNewAddress(),
-                value,
-                data);
+                new BigInteger(1, nonce),
+                new BigInteger(1, value),
+                data,
+                0L,
+                1L);
     }
 
     /**
