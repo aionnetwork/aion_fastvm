@@ -1796,7 +1796,6 @@ public class TransactionExecutorUnitTest {
     }
 
     private AionInternalTx newInternalTx() {
-        String note = "";
         byte[] nonce = RandomUtils.nextBytes(10);
         byte[] value = RandomUtils.nextBytes(10);
         byte[] data = RandomUtils.nextBytes(10);
@@ -1805,8 +1804,7 @@ public class TransactionExecutorUnitTest {
                 getNewAddress(),
                 getNewAddress(),
                 value,
-                data,
-                note);
+                data);
     }
 
     /**
@@ -1817,7 +1815,7 @@ public class TransactionExecutorUnitTest {
      * @param helper An execution helper.
      */
     private void checkLogs(AionTxExecSummary summary, SideEffects helper) {
-        List<Log> summaryLogs = toAionTypesLogs(summary.getLogs());
+        List<Log> summaryLogs = summary.getLogs();
         List<Log> helperLogs = helper.getExecutionLogs();
         List<AionAddress> summaryAddrs = new ArrayList<>();
         List<AionAddress> helperAddrs = new ArrayList<>();
@@ -2018,14 +2016,4 @@ public class TransactionExecutorUnitTest {
     // RepositoryCache repo) {
     //        return getNewExecutor(tx, block, repo, false);
     //    }
-
-    private static List<Log> toAionTypesLogs(List<IExecutionLog> logs) {
-        List<Log> aionTypesLogs = new ArrayList<>();
-        for (IExecutionLog log : logs) {
-            aionTypesLogs.add(
-                    Log.topicsAndData(
-                            log.getSourceAddress().toByteArray(), log.getTopics(), log.getData()));
-        }
-        return aionTypesLogs;
-    }
 }

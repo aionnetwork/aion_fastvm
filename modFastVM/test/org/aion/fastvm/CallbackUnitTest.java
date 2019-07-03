@@ -2664,11 +2664,10 @@ public class CallbackUnitTest {
                     Callback.kernelRepo()
                             .getNonce(context.getSenderAddress())
                             .subtract(BigInteger.ONE),
-                    new BigInteger(1, tx.getNonce()));
+                    tx.getNonceBI());
         } else {
             assertEquals(
-                    Callback.kernelRepo().getNonce(context.getSenderAddress()),
-                    new BigInteger(1, tx.getNonce()));
+                    Callback.kernelRepo().getNonce(context.getSenderAddress()), tx.getNonceBI());
         }
 
         assertEquals(new DataWordImpl(context.getTransferValue()), new DataWordImpl(tx.getValue()));
@@ -2720,8 +2719,7 @@ public class CallbackUnitTest {
      */
     private void checkInternalTransactionsAfterCreate(boolean wasSuccess) {
         ExecutionContext context = Callback.context();
-        List<AionInternalTx> internalTxs =
-            context.getSideEffects().getInternalTransactions();
+        List<AionInternalTx> internalTxs = context.getSideEffects().getInternalTransactions();
         assertEquals(2, internalTxs.size());
         checkInternalTransaction(context, internalTxs.get(0), true, wasSuccess);
         checkSecondInteralTransaction(context, internalTxs.get(1));
@@ -2731,8 +2729,7 @@ public class CallbackUnitTest {
     }
 
     /** Checks the second of the 2 internal transactions created during the CREATE opcode. */
-    private void checkSecondInteralTransaction(
-        ExecutionContext context, AionInternalTx tx) {
+    private void checkSecondInteralTransaction(ExecutionContext context, AionInternalTx tx) {
         AionAddress caller = context.getSenderAddress();
         assertEquals(context.getSenderAddress(), tx.getSenderAddress());
         if (tx.isRejected()) {

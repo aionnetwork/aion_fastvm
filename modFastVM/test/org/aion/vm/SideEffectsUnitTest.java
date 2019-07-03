@@ -368,12 +368,11 @@ public class SideEffectsUnitTest {
     private AionInternalTx getNewInternalTx() {
         AionAddress sender = getNewAddress();
         AionAddress recipient = getNewAddress();
-        String note = "";
         int arraySizes = RandomUtils.nextInt(0, 50);
         byte[] nonce = RandomUtils.nextBytes(arraySizes);
         byte[] value = RandomUtils.nextBytes(arraySizes);
         byte[] data = RandomUtils.nextBytes(arraySizes);
-        return new AionInternalTx(nonce, sender, recipient, value, data, note);
+        return new AionInternalTx(nonce, sender, recipient, value, data);
     }
 
     /**

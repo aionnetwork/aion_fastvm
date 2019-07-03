@@ -124,8 +124,7 @@ public class Callback {
                         new AionAddress(beneficiary),
                         kernelRepo().getNonce(new AionAddress(owner)),
                         new DataWordImpl(balance),
-                        ByteUtil.EMPTY_BYTE_ARRAY,
-                        "selfdestruct");
+                        ByteUtil.EMPTY_BYTE_ARRAY);
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer
@@ -220,10 +219,8 @@ public class Callback {
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
                         new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData(),
-                        "call");
+                        ctx.getTransactionData());
         context().getSideEffects().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getTransactionHash());
 
         // transfer balance
         if (ctx.getTransactionKind() != ExecutionContext.DELEGATECALL
@@ -289,10 +286,8 @@ public class Callback {
                         ctx.getDestinationAddress(),
                         track.getNonce(ctx.getSenderAddress()),
                         new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData(),
-                        "create");
+                        ctx.getTransactionData());
         context().getSideEffects().addInternalTransaction(internalTx);
-        ctx.setTransactionHash(internalTx.getTransactionHash());
 
         // in case of hashing collisions
         boolean alreadyExsits = track.hasAccountState(newAddress);
@@ -324,8 +319,7 @@ public class Callback {
                         null,
                         track.getNonce(ctx.getSenderAddress()),
                         new DataWordImpl(ctx.getTransferValue()),
-                        ctx.getTransactionData(),
-                        "create");
+                        ctx.getTransactionData());
         ctx.getSideEffects().addInternalTransaction(internalTx);
 
         // execute transaction
@@ -420,16 +414,14 @@ public class Callback {
 
     /** Creates a new internal transaction. */
     private static AionInternalTx newInternalTx(
-        AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data,
-        String note) {
+        AionAddress from, AionAddress to, BigInteger nonce, DataWord value, byte[] data) {
 
         return new AionInternalTx(
             new DataWordImpl(nonce).getData(),
             from,
             to,
             value.getData(),
-            data,
-            note);
+            data);
     }
 
     private static FastVmTransactionResult precompiledToFvmResult(
