@@ -44,7 +44,6 @@ sourceSets {
 
 dependencies {
 
-    compile project(':aion_vm_api')
     //compile 'network.aion:util4j:0.4.0'
     //compile 'network.aion:crypto4j:0.4.0'
     compile project(':modUtil')
@@ -65,7 +64,6 @@ dependencies {
     testCompile project(':modDbImpl')
     testCompile project(':modEvtMgr')
 
-    testCompile project(':aion_vm_api')
     //testCompile 'network.aion:rlp4j:0.4.0'
     testCompile project(':modRlp')
 
