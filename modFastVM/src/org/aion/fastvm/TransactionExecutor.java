@@ -23,6 +23,7 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import org.aion.base.Transaction;
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.precompiled.type.PrecompiledTransactionContext;
@@ -30,8 +31,7 @@ import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.interfaces.tx.Transaction;
-import org.aion.vm.api.interfaces.KernelInterface;
+import org.aion.mcf.types.KernelInterface;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**

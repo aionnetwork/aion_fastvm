@@ -2,7 +2,7 @@ package org.aion.fastvm;
 
 import org.aion.util.file.NativeLoader;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.api.interfaces.KernelInterface;
+import org.aion.mcf.types.KernelInterface;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**

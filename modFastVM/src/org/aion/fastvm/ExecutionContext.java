@@ -26,12 +26,12 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.aion.base.TransactionInterface;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.interfaces.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.vm.api.interfaces.TransactionInterface;
 
 /**
  * Execution context, including both transaction and block information.

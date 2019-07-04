@@ -21,7 +21,7 @@ import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.vm.api.interfaces.InternalTransactionInterface;
+import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;

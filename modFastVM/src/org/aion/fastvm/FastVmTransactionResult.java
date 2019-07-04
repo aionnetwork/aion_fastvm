@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.vm.api.interfaces.InternalTransactionInterface;
-import org.aion.vm.api.interfaces.KernelInterface;
-import org.aion.vm.api.interfaces.ResultCode;
+import org.aion.mcf.types.InternalTransactionInterface;
+import org.aion.mcf.types.KernelInterface;
+import org.aion.mcf.types.ResultCode;
 
 public final class FastVmTransactionResult {
 

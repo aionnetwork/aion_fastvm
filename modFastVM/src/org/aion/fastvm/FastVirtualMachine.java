@@ -2,14 +2,13 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
+import org.aion.base.Transaction;
+import org.aion.base.TransactionInterface;
 import org.aion.mcf.db.RepositoryCache;
-import org.aion.interfaces.tx.Transaction;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.types.AionAddress;
-import org.aion.vm.api.interfaces.KernelInterface;
-import org.aion.vm.api.interfaces.SimpleFuture;
-import org.aion.vm.api.interfaces.TransactionInterface;
+import org.aion.mcf.types.KernelInterface;
 import org.aion.zero.types.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 

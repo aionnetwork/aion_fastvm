@@ -30,11 +30,11 @@ import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
-import org.aion.vm.api.interfaces.IExecutionLog;
+import org.aion.mcf.types.IExecutionLog;
 import org.aion.vm.api.types.ByteArrayWrapper;
 
-import org.aion.vm.api.interfaces.InternalTransactionInterface;
-import org.aion.vm.api.interfaces.TransactionResult;
+import org.aion.mcf.types.InternalTransactionInterface;
+import org.aion.fastvm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;

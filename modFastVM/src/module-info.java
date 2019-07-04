@@ -10,6 +10,7 @@ module aion.fastvm {
     requires aion.util;
     requires org.json;
     requires aion.types;
+    requires aion.base;
 
     exports org.aion.solidity;
     exports org.aion.fastvm;

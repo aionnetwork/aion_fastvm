@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.vm.api.interfaces.InternalTransactionInterface;
+import org.aion.mcf.types.InternalTransactionInterface;
 
 /**
  * An internal helper class which holds all the dynamically generated effects:

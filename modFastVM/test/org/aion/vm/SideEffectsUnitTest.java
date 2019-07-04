@@ -14,7 +14,7 @@ import org.aion.types.AionAddress;
 import org.aion.fastvm.SideEffects;
 import org.aion.fastvm.SideEffects.Call;
 import org.aion.types.Log;
-import org.aion.vm.api.interfaces.InternalTransactionInterface;
+import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.zero.types.AionInternalTx;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
