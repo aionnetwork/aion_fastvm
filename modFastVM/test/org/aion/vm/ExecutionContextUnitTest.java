@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.aion.types.AionAddress;
-import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.util.types.AddressUtils;

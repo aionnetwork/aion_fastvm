@@ -15,7 +15,7 @@ import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;

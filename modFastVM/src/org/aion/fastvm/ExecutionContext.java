@@ -30,7 +30,7 @@ import org.aion.base.TransactionInterface;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
 
 /**

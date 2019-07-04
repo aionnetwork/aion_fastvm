@@ -31,7 +31,7 @@ import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
 import org.aion.vm.api.types.ByteArrayWrapper;
-import org.aion.interfaces.vm.DataWord;
+import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
