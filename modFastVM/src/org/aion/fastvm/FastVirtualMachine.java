@@ -2,7 +2,7 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
-import org.aion.interfaces.db.RepositoryCache;
+import org.aion.mcf.db.RepositoryCache;
 import org.aion.interfaces.tx.Transaction;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
