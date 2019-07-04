@@ -61,7 +61,7 @@ import org.aion.mcf.db.RepositoryConfig;
 import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.vm.api.types.ByteArrayWrapper;
+import org.aion.util.types.ByteArrayWrapper;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;

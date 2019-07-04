@@ -31,7 +31,7 @@ import org.aion.mcf.vm.Constants;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
 import org.aion.mcf.types.IExecutionLog;
-import org.aion.vm.api.types.ByteArrayWrapper;
+import org.aion.util.types.ByteArrayWrapper;
 
 import org.aion.mcf.types.InternalTransactionInterface;
 import org.aion.fastvm.TransactionResult;
