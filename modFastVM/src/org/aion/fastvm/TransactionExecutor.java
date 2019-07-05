@@ -23,7 +23,7 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import org.aion.base.Transaction;
+import org.aion.base.AionTransaction;
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.precompiled.type.PrecompiledTransactionContext;
@@ -50,18 +50,18 @@ public class TransactionExecutor {
 
     private FastVmTransactionResult transactionResult;
     private ExecutionContext context;
-    private Transaction transaction;
+    private AionTransaction transaction;
 
     private boolean fork040Enable;
 
     public TransactionExecutor(
-            Transaction transaction, ExecutionContext context, KernelInterface kernel) {
+            AionTransaction transaction, ExecutionContext context, KernelInterface kernel) {
 
         this(transaction, context, kernel, false);
     }
 
     public TransactionExecutor(
-            Transaction transaction,
+            AionTransaction transaction,
             ExecutionContext context,
             KernelInterface kernel,
             boolean fork040Enable) {

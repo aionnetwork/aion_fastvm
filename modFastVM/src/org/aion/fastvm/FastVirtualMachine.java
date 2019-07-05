@@ -2,7 +2,6 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import java.util.List;
-import org.aion.base.Transaction;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
@@ -53,7 +52,7 @@ public class FastVirtualMachine {
 
             TransactionExecutor executor =
                     new TransactionExecutor(
-                            (Transaction) contexts[i].getTransaction(),
+                            contexts[i].getTransaction(),
                             contexts[i],
                             this.kernelSnapshot.makeChildKernelInterface(),
                             fork040Enable);
