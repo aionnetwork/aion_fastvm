@@ -7,7 +7,6 @@ import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.mcf.types.KernelInterface;
-import org.aion.mcf.types.ResultCode;
 import org.aion.types.InternalTransaction;
 
 public final class FastVmTransactionResult {
@@ -116,11 +115,11 @@ public final class FastVmTransactionResult {
         this.energyRemaining = energyRemaining;
     }
 
-    public void setResultCode(ResultCode code) {
+    public void setResultCode(FastVmResultCode code) {
         if (code == null) {
             throw new NullPointerException("Cannot set null result code.");
         }
-        this.code = FastVmResultCode.fromInt(code.toInt());
+        this.code = code;
     }
 
     public void setKernelInterface(KernelInterface kernel) {

@@ -32,7 +32,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.util.types.ByteArrayWrapper;
-import org.aion.fastvm.TransactionResult;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -1401,19 +1400,19 @@ public class TransactionExecutorUnitTest {
     //        assertArrayEquals(result.getOutput(), ByteUtil.EMPTY_BYTE_ARRAY);
     //    }
 
-    /**
-     * Checks that result has the expected code and expected energy limit. If this fails then the
-     * calling test fails.
-     *
-     * @param result The result to check.
-     * @param expectedCode The expected result code.
-     * @param expectedNrgLeft The expected energy left.
-     */
-    private void checkTransactionResults(
-            TransactionResult result, int expectedCode, long expectedNrgLeft) {
-        assertEquals(expectedCode, result.getResultCode().toInt());
-        assertEquals(expectedNrgLeft, result.getEnergyRemaining());
-    }
+//    /**
+//     * Checks that result has the expected code and expected energy limit. If this fails then the
+//     * calling test fails.
+//     *
+//     * @param result The result to check.
+//     * @param expectedCode The expected result code.
+//     * @param expectedNrgLeft The expected energy left.
+//     */
+//    private void checkTransactionResults(
+//          TransactionResult result, int expectedCode, long expectedNrgLeft) {
+//        assertEquals(expectedCode, result.getResultCode().toInt());
+//        assertEquals(expectedNrgLeft, result.getEnergyRemaining());
+//    }
 
     /**
      * Returns an energy limit quantity that is invalid. The quantity is invalid for contract
