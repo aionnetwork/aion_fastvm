@@ -18,7 +18,7 @@ import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
-import org.aion.mcf.vm.Constants;
+import org.aion.base.Constants;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;

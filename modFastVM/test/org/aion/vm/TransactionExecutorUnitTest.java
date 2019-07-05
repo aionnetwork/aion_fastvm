@@ -27,7 +27,7 @@ import org.aion.mcf.db.RepositoryConfig;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgPrune;
-import org.aion.mcf.vm.Constants;
+import org.aion.base.Constants;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
@@ -38,7 +38,7 @@ import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.types.InternalTransaction;
-import org.aion.zero.types.AionTransaction;
+import org.aion.base.AionTransaction;
 import org.aion.zero.types.AionTxExecSummary;
 import org.aion.zero.types.AionTxReceipt;
 import org.apache.commons.lang3.RandomUtils;
@@ -1184,16 +1184,16 @@ public class TransactionExecutorUnitTest {
     //                summaryBuilder.build(), tx, coinbase, getNewAddresses(RandomUtils.nextInt(0,
     // 10)));
     //    }
-
-    /**
-     * Returns the amount of energy consumed by the transaction tx.
-     *
-     * @param tx The transaction.
-     * @return the amount of energy consumed.
-     */
-    private long computeEnergyConsumption(AionTransaction tx) {
-        return tx.getEnergyLimit() - tx.nrgLimit() + tx.transactionCost(0);
-    }
+//
+//    /**
+//     * Returns the amount of energy consumed by the transaction tx.
+//     *
+//     * @param tx The transaction.
+//     * @return the amount of energy consumed.
+//     */
+//    private long computeEnergyConsumption(AionTransaction tx) {
+//        return tx.getEnergyLimit() - tx.nrgLimit() + tx.transactionCost(0);
+//    }
 
     //    /**
     //     * Produces a transaction summary using executor's build receipt from tx.
@@ -1294,9 +1294,9 @@ public class TransactionExecutorUnitTest {
         when(tx.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(tx.getData()).thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 100)));
         when(tx.getEnergyLimit()).thenReturn(nrg);
-        when(tx.nrgPrice()).thenReturn(new DataWordImpl(RandomUtils.nextInt(0, 100)));
+        when(tx.nrgPrice()).thenReturn(BigInteger.valueOf(RandomUtils.nextInt(0, 100)));
         when(tx.getEnergyPrice()).thenReturn(nrgPrice);
-        when(tx.nrgLimit()).thenReturn(nrgLimit);
+        when(tx.nrgLimit()).thenReturn(BigInteger.valueOf(nrgLimit));
         when(tx.getDestinationAddress()).thenReturn(getNewAddress());
         when(tx.getContractAddress()).thenReturn(getNewAddress());
         when(tx.getSenderAddress()).thenReturn(sender);

@@ -6,7 +6,7 @@ import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.zero.impl.types.AionBlock;
-import org.aion.zero.types.AionTransaction;
+import org.aion.base.AionTransaction;
 import org.apache.commons.lang3.RandomUtils;
 
 public class TestUtils {

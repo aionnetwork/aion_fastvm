@@ -8,7 +8,7 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.types.AionAddress;
 import org.aion.mcf.types.KernelInterface;
-import org.aion.zero.types.AionTransaction;
+import org.aion.base.AionTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class FastVirtualMachine {
@@ -33,7 +33,7 @@ public class FastVirtualMachine {
      * are immediately available to be consumed by some other repository without any checks.
      */
     public SimpleFuture<FastVmTransactionResult>[] run(
-            KernelInterface kernel, Transaction[] transactions) {
+            KernelInterface kernel, AionTransaction[] transactions) {
         if (kernel == null) {
             throw new NullPointerException("Cannot set null KernelInterface.");
         }
@@ -135,7 +135,7 @@ public class FastVirtualMachine {
     }
 
     private ExecutionContext constructTransactionContext(
-            Transaction transaction, KernelInterface kernel) {
+            AionTransaction transaction, KernelInterface kernel) {
         byte[] txHash = transaction.getTransactionHash();
         AionAddress address =
                 transaction.isContractCreationTransaction()
