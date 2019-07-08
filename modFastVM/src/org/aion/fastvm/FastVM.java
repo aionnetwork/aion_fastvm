@@ -46,8 +46,21 @@ public class FastVM {
     /** Destroys the given VM instance. */
     private static native void destroy(long instance);
 
+    /**
+     * Run the specified code in the given context.
+     *
+     * <p>This method is thread-safe.
+     *
+     * @implNote Since all contracts can possibly interact with the static state of the {@link
+     *     Callback} class, this method is synchronized.
+     * @param code The code to run.
+     * @param ctx The execution context.
+     * @param repo The current state of the world.
+     * @return the execution result.
+     */
     @SuppressWarnings("unchecked")
-    public FastVmTransactionResult run(byte[] code, ExecutionContext ctx, KernelInterface repo) {
+    public synchronized FastVmTransactionResult run(
+            byte[] code, ExecutionContext ctx, KernelInterface repo) {
         if (!(repo instanceof KernelInterfaceForFastVM)) {
             throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
         }
@@ -62,8 +75,23 @@ public class FastVM {
         return FastVmTransactionResult.fromBytes(result);
     }
 
+    /**
+     * Run the specified code in the given context.
+     *
+     * <p>This method is thread-safe.
+     *
+     * <p>This is the new Fvm execution point as of the 0.4.0 fork.
+     *
+     * @implNote Since all contracts can possibly interact with the static state of the {@link
+     *     Callback} class, this method is synchronized.
+     * @param code The code to run.
+     * @param ctx The execution context.
+     * @param repo The current state of the world.
+     * @return the execution result.
+     */
     @SuppressWarnings("unchecked")
-    public FastVmTransactionResult run_v1(byte[] code, ExecutionContext ctx, KernelInterface repo) {
+    public synchronized FastVmTransactionResult run_v1(
+            byte[] code, ExecutionContext ctx, KernelInterface repo) {
         if (!(repo instanceof KernelInterfaceForFastVM)) {
             throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
         }
