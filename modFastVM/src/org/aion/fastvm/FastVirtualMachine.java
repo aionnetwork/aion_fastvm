@@ -5,11 +5,6 @@ import org.aion.base.AionTransaction;
 import org.aion.mcf.types.KernelInterface;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.precompiled.ContractFactory;
-import org.aion.precompiled.PrecompiledResultCode;
-import org.aion.precompiled.PrecompiledTransactionResult;
-import org.aion.precompiled.type.PrecompiledContract;
-import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -176,28 +171,17 @@ public final class FastVirtualMachine {
             ExecutionContext context,
             FastVmTransactionResult result,
             boolean isFork040enabled) {
-        ContractFactory precompiledFactory = new ContractFactory();
-        PrecompiledContract precompiledContract =
-                precompiledFactory.getPrecompiledContract(
-                        toPrecompiledTransactionContext(context), kernel);
 
         AionTransaction transaction = context.getTransaction();
 
-        // Execute the transaction as either a precompiled or fvm transaction.
+        // Execute the transaction.
         FastVmTransactionResult newResult = null;
-        if (precompiledContract != null) {
-            newResult =
-                    precompiledToFvmResult(
-                            precompiledContract.execute(
-                                    transaction.getData(), context.getTransactionEnergy()));
-        } else {
-            byte[] code = kernel.getCode(transaction.getDestinationAddress());
-            if (!ArrayUtils.isEmpty(code)) {
-                if (isFork040enabled) {
-                    newResult = new FastVM().run_v1(code, context, kernel);
-                } else {
-                    newResult = new FastVM().run(code, context, kernel);
-                }
+        byte[] code = kernel.getCode(transaction.getDestinationAddress());
+        if (!ArrayUtils.isEmpty(code)) {
+            if (isFork040enabled) {
+                newResult = new FastVM().run_v1(code, context, kernel);
+            } else {
+                newResult = new FastVM().run(code, context, kernel);
             }
         }
 
@@ -324,77 +308,5 @@ public final class FastVirtualMachine {
                 blockTimestamp,
                 blockEnergyLimit,
                 blockDifficulty);
-    }
-
-    private static FastVmTransactionResult precompiledToFvmResult(
-            PrecompiledTransactionResult precompiledResult) {
-        FastVmTransactionResult fvmResult = new FastVmTransactionResult();
-
-        fvmResult.addLogs(precompiledResult.getLogs());
-        fvmResult.addInternalTransactions(precompiledResult.getInternalTransactions());
-        fvmResult.addDeletedAddresses(precompiledResult.getDeletedAddresses());
-
-        fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
-        fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
-        fvmResult.setReturnData(precompiledResult.getReturnData());
-        fvmResult.setKernelInterface(precompiledResult.getKernelInterface());
-
-        return fvmResult;
-    }
-
-    private static FastVmResultCode precompiledToFvmResultCode(
-            PrecompiledResultCode precompiledResultCode) {
-        switch (precompiledResultCode) {
-            case BAD_JUMP_DESTINATION:
-                return FastVmResultCode.BAD_JUMP_DESTINATION;
-            case VM_INTERNAL_ERROR:
-                return FastVmResultCode.VM_INTERNAL_ERROR;
-            case STATIC_MODE_ERROR:
-                return FastVmResultCode.STATIC_MODE_ERROR;
-            case INVALID_NRG_LIMIT:
-                return FastVmResultCode.INVALID_NRG_LIMIT;
-            case STACK_UNDERFLOW:
-                return FastVmResultCode.STACK_UNDERFLOW;
-            case BAD_INSTRUCTION:
-                return FastVmResultCode.BAD_INSTRUCTION;
-            case STACK_OVERFLOW:
-                return FastVmResultCode.STACK_OVERFLOW;
-            case INVALID_NONCE:
-                return FastVmResultCode.INVALID_NONCE;
-            case VM_REJECTED:
-                return FastVmResultCode.VM_REJECTED;
-            case OUT_OF_NRG:
-                return FastVmResultCode.OUT_OF_NRG;
-            case SUCCESS:
-                return FastVmResultCode.SUCCESS;
-            case FAILURE:
-                return FastVmResultCode.FAILURE;
-            case REVERT:
-                return FastVmResultCode.REVERT;
-            case ABORT:
-                return FastVmResultCode.ABORT;
-            case INSUFFICIENT_BALANCE:
-                return FastVmResultCode.INSUFFICIENT_BALANCE;
-            case INCOMPATIBLE_CONTRACT_CALL:
-                return FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL;
-            default:
-                throw new IllegalStateException("Unknown code: " + precompiledResultCode);
-        }
-    }
-
-    private static PrecompiledTransactionContext toPrecompiledTransactionContext(
-            ExecutionContext context) {
-        return new PrecompiledTransactionContext(
-                context.getDestinationAddress(),
-                context.getOriginAddress(),
-                context.getSenderAddress(),
-                context.getSideEffects().getExecutionLogs(),
-                context.getSideEffects().getInternalTransactions(),
-                context.getSideEffects().getAddressesToBeDeleted(),
-                context.getHashOfOriginTransaction(),
-                context.getTransactionHash(),
-                context.getBlockNumber(),
-                context.getTransactionEnergy(),
-                context.getTransactionStackDepth());
     }
 }
