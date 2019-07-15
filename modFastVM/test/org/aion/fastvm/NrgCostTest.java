@@ -626,7 +626,7 @@ public class NrgCostTest {
 
             long t1 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     AionAddress address =
                             new AionAddress(
@@ -644,7 +644,7 @@ public class NrgCostTest {
 
             long t3 = System.nanoTime();
             for (int i = 0; i < blocks; i++) {
-                RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo = db.startTracking();
+                RepositoryCache<AccountState, IBlockStoreBase> repo = db.startTracking();
                 for (int j = 0; j < transactions; j++) {
                     AionAddress address =
                             new AionAddress(

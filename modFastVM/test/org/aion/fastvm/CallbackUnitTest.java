@@ -131,7 +131,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(repo);
         Callback.push(pair);
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> stackRepo =
+        RepositoryCache<AccountState, IBlockStoreBase> stackRepo =
                 Callback.kernelRepo().getRepositoryCache();
         System.out.println(repo.getRepositoryCache());
         compareRepos(repo.getRepositoryCache(), stackRepo);
@@ -377,7 +377,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorage() {
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+        RepositoryCache<AccountState, IBlockStoreBase> repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
@@ -394,7 +394,7 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleEntries() {
         int num = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+        RepositoryCache<AccountState, IBlockStoreBase> repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         AionAddress[] addresses = new AionAddress[num];
@@ -419,7 +419,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorageMultipleAddresses() {
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>> repo =
+        RepositoryCache<AccountState, IBlockStoreBase> repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
@@ -442,7 +442,7 @@ public class CallbackUnitTest {
     @Test
     public void testPutStorageMultipleAddressesAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase<?, ?>>[] repos = new RepositoryCache[depths];
+        RepositoryCache<AccountState, IBlockStoreBase>[] repos = new RepositoryCache[depths];
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
             repos[depths - 1 - i] =
