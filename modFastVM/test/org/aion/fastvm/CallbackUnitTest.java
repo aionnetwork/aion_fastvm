@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
+import org.aion.precompiled.type.IExternalStateForPrecompiled;
 import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
@@ -2384,13 +2385,13 @@ public class CallbackUnitTest {
         if (result == null) {
             when(factory.getPrecompiledContract(
                             Mockito.any(PrecompiledTransactionContext.class),
-                            Mockito.any(KernelInterfaceForFastVM.class)))
+                            Mockito.any(IExternalStateForPrecompiled.class)))
                     .thenReturn(null);
             return factory;
         } else {
             when(factory.getPrecompiledContract(
                             Mockito.any(PrecompiledTransactionContext.class),
-                            Mockito.any(KernelInterfaceForFastVM.class)))
+                            Mockito.any(IExternalStateForPrecompiled.class)))
                     .thenReturn(contract);
         }
         return factory;

@@ -239,8 +239,7 @@ public class Callback {
             track.adjustBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
-        PrecompiledContract pc =
-                factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), track);
+        PrecompiledContract pc = factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), wrapInExternalState(track));
         if (pc != null) {
             result =
                     precompiledToFvmResult(
@@ -494,5 +493,9 @@ public class Callback {
                 context.getBlockNumber(),
                 context.getTransactionEnergy(),
                 context.getTransactionStackDepth());
+    }
+
+    private static ExternalStateForPrecompiled wrapInExternalState(KernelInterfaceForFastVM kernel) {
+        return new ExternalStateForPrecompiled(kernel.getRepositoryCache(), kernel.getBlockNumber(), kernel.isLocalCall, kernel.allowNonceIncrement);
     }
 }
