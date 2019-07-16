@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -22,7 +23,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -140,15 +140,16 @@ public class MultiThreadTest {
                                     vm.run(
                                             code,
                                             ctx,
-                                            new KernelInterfaceForFastVM(
-                                                    repo,
-                                                    true,
-                                                    false,
-                                                    blockDifficulty,
-                                                    blockNumber,
-                                                    blockTimestamp,
-                                                    blockNrgLimit,
-                                                    blockCoinbase));
+                                            new ExternalStateForTesting(
+                                                repo,
+                                                blockCoinbase,
+                                                blockDifficulty,
+                                                false,
+                                                true,
+                                                false,
+                                                blockNumber,
+                                                blockTimestamp,
+                                                blockNrgLimit));
                             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });

@@ -51,6 +51,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -67,7 +68,6 @@ import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -671,16 +671,17 @@ public class NrgCostTest {
         }
     }
 
-    private  KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(
+    private IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
+        return new ExternalStateForTesting(
             cache,
+            blockCoinbase,
+            blockDifficulty,
+            false,
             true,
             false,
-            blockDifficulty,
             blockNumber,
             blockTimestamp,
-            blockNrgLimit,
-            blockCoinbase);
+            blockNrgLimit);
     }
 
     private ExecutionContext newExecutionContext() {

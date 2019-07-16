@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.precompiled.PrecompiledResultCode;
 import org.aion.precompiled.PrecompiledTransactionResult;
 import org.aion.precompiled.type.IExternalStateForPrecompiled;
@@ -37,7 +38,6 @@ import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.base.Constants;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
@@ -113,7 +113,7 @@ public class CallbackUnitTest {
 
     @Test(expected = NullPointerException.class)
     public void testPeekAtEmptyStack2() {
-        Callback.kernelRepo();
+        Callback.externalState();
     }
 
     @Test
@@ -128,14 +128,14 @@ public class CallbackUnitTest {
 
     @Test
     public void testPeekAtRepoInStackSizeOne() {
-        KernelInterfaceForFastVM repo = mockKernelRepo();
+        IExternalStateForFvm externalState = mockState();
         Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(externalState);
         Callback.push(pair);
         RepositoryCache<AccountState, IBlockStoreBase> stackRepo =
-                Callback.kernelRepo().getRepositoryCache();
-        System.out.println(repo.getRepositoryCache());
-        compareRepos(repo.getRepositoryCache(), stackRepo);
+                Callback.externalState().getUnderlyingRepository();
+        System.out.println(externalState.getUnderlyingRepository());
+        compareRepos(externalState.getUnderlyingRepository(), stackRepo);
     }
 
     @Test
@@ -161,10 +161,10 @@ public class CallbackUnitTest {
         Pair[] pairs = new Pair[reps];
         for (int i = 0; i < reps; i++) {
             ExecutionContext ctx = mockContext();
-            KernelInterfaceForFastVM repo = mockKernelRepo();
-            Pair<ExecutionContext, KernelInterfaceForFastVM> mockedPair = mockEmptyPair();
+            IExternalStateForFvm externalState = mockState();
+            Pair<ExecutionContext, IExternalStateForFvm> mockedPair = mockEmptyPair();
             when(mockedPair.getLeft()).thenReturn(ctx);
-            when(mockedPair.getRight()).thenReturn(repo);
+            when(mockedPair.getRight()).thenReturn(externalState);
             pairs[i] = mockedPair;
         }
         for (int i = 0; i < reps; i++) {
@@ -173,8 +173,8 @@ public class CallbackUnitTest {
         for (Pair pair : pairs) {
             compareMockContexts((ExecutionContext) pair.getLeft(), Callback.context());
             compareRepos(
-                    ((KernelInterfaceForFastVM) pair.getRight()).getRepositoryCache(),
-                    Callback.kernelRepo().getRepositoryCache());
+                    ((IExternalStateForFvm) pair.getRight()).getUnderlyingRepository(),
+                    Callback.externalState().getUnderlyingRepository());
             Callback.pop();
         }
         try {
@@ -293,10 +293,10 @@ public class CallbackUnitTest {
     @Test
     public void testHasAccountStateWhenAccountExists() {
         AionAddress address = getNewAddress();
-        KernelInterfaceForFastVM repo = mockKernelRepo();
-        when(repo.hasAccountState(address)).thenReturn(true);
+        IExternalStateForFvm externalState = mockState();
+        when(externalState.hasAccountState(address)).thenReturn(true);
         Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(externalState);
         Callback.push(pair);
         assertTrue(Callback.exists(address.toByteArray()));
     }
@@ -304,10 +304,10 @@ public class CallbackUnitTest {
     @Test
     public void testHasAccountStateWhenAccountDoesNotExist() {
         AionAddress address = getNewAddress();
-        KernelInterfaceForFastVM repo = mockKernelRepo();
-        when(repo.hasAccountState(address)).thenReturn(false);
+        IExternalStateForFvm externalState = mockState();
+        when(externalState.hasAccountState(address)).thenReturn(false);
         Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(externalState);
         Callback.push(pair);
         assertFalse(Callback.exists(address.toByteArray()));
     }
@@ -575,10 +575,10 @@ public class CallbackUnitTest {
             BigInteger benNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
             AionAddress owner =
                     getNewAddressInRepo(
-                            Callback.kernelRepo().getRepositoryCache(), ownerBalance, ownerNonce);
+                            Callback.externalState().getUnderlyingRepository(), ownerBalance, ownerNonce);
             AionAddress beneficiary =
                     getNewAddressInRepo(
-                            Callback.kernelRepo().getRepositoryCache(), benBalance, benNonce);
+                            Callback.externalState().getUnderlyingRepository(), benBalance, benNonce);
 
             // Test every other with owner as beneficiary
             if (i % 2 == 0) {
@@ -1930,7 +1930,7 @@ public class CallbackUnitTest {
 
     // <---------------------------------------HELPERS BELOW--------------------------------------->
 
-    private Pair<ExecutionContext, KernelInterfaceForFastVM> mockEmptyPair() {
+    private Pair<ExecutionContext, IExternalStateForFvm> mockEmptyPair() {
         return mock(Pair.class);
     }
 
@@ -1938,7 +1938,7 @@ public class CallbackUnitTest {
      * Returns a mocked pair whose left entry is a mocked context that returns a new helper when
      * helper is called and whose right entry is a new DummyRepository.
      */
-    private Pair<ExecutionContext, KernelInterfaceForFastVM> mockPair() {
+    private Pair<ExecutionContext, IExternalStateForFvm> mockPair() {
         ExecutionContext context = mockContext();
         SideEffects helper = new SideEffects();
         when(context.getSideEffects()).thenReturn(helper);
@@ -1946,16 +1946,17 @@ public class CallbackUnitTest {
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight())
                 .thenReturn(
-                        new KernelInterfaceForFastVM(
+                        new ExternalStateForTesting(
                                 new AionRepositoryCache(
                                         AionRepositoryImpl.createForTesting(repoConfig)),
+                                AddressUtils.ZERO_ADDRESS,
+                                new DataWordImpl(),
+                                false,
                                 true,
                                 false,
-                                new DataWordImpl(),
                                 0L,
                                 0L,
-                                0L,
-                                AddressUtils.ZERO_ADDRESS));
+                                0L));
         return pair;
     }
 
@@ -2082,13 +2083,13 @@ public class CallbackUnitTest {
         assertArrayEquals(context.getTransactionData(), other.getTransactionData());
     }
 
-    private KernelInterfaceForFastVM mockKernelRepo() {
+    private IExternalStateForFvm mockState() {
         RepositoryCache cache = mock(RepositoryCache.class);
         when(cache.toString()).thenReturn("mocked repo.");
-        KernelInterfaceForFastVM kernel = mock(KernelInterfaceForFastVM.class);
-        when(kernel.getRepositoryCache()).thenReturn(cache);
-        when(kernel.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
-        return kernel;
+        IExternalStateForFvm externalState = mock(IExternalStateForFvm.class);
+        when(externalState.getUnderlyingRepository()).thenReturn(cache);
+        when(externalState.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
+        return externalState;
     }
 
     private void compareMockContexts(ExecutionContext context, ExecutionContext other) {
@@ -2146,7 +2147,7 @@ public class CallbackUnitTest {
             AionAddress beneficiary,
             BigInteger beneficiaryOldBalance) {
 
-        RepositoryCache repo = Callback.kernelRepo().getRepositoryCache();
+        RepositoryCache repo = Callback.externalState().getUnderlyingRepository();
         ExecutionContext ctx = Callback.context();
         SideEffects helper = ctx.getSideEffects();
         assertEquals(BigInteger.ZERO, repo.getBalance(owner));
@@ -2225,11 +2226,11 @@ public class CallbackUnitTest {
      */
     private void pushNewBlockHash(long blockNum, byte[] hash) {
         ExecutionContext context = mockContext();
-        KernelInterfaceForFastVM kernel = mockKernelRepo();
-        when(kernel.getBlockHashByNumber(blockNum)).thenReturn(hash);
+        IExternalStateForFvm externalState = mockState();
+        when(externalState.getBlockHashByNumber(blockNum)).thenReturn(hash);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(kernel);
+        when(pair.getRight()).thenReturn(externalState);
         Callback.push(pair);
     }
 
@@ -2239,11 +2240,11 @@ public class CallbackUnitTest {
      */
     private void pushNewCode(AionAddress address, byte[] code) {
         ExecutionContext context = mockContext();
-        KernelInterfaceForFastVM repo = mockKernelRepo();
-        when(repo.getCode(address)).thenReturn(code);
+        IExternalStateForFvm externalState = mockState();
+        when(externalState.getCode(address)).thenReturn(code);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(repo);
+        when(pair.getRight()).thenReturn(externalState);
         Callback.push(pair);
     }
 
@@ -2403,7 +2404,7 @@ public class CallbackUnitTest {
         when(vm.run(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
-                        Mockito.any(KernelInterfaceForFastVM.class)))
+                        Mockito.any(IExternalStateForFvm.class)))
                 .thenReturn(result);
         return vm;
     }
@@ -2513,7 +2514,7 @@ public class CallbackUnitTest {
                             : new AionAddress(result.getReturnData());
 
             if (contract != null) {
-                assertArrayEquals(code, Callback.kernelRepo().getCode(contract));
+                assertArrayEquals(code, Callback.externalState().getCode(contract));
             }
         }
     }
@@ -2591,17 +2592,17 @@ public class CallbackUnitTest {
             FastVmResultCode resultCode) {
 
         if (caller.equals(recipient)) {
-            assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
+            assertEquals(callerPrevBalance, Callback.externalState().getBalance(caller));
         } else {
             if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
+                assertEquals(callerPrevBalance, Callback.externalState().getBalance(caller));
             } else {
                 if (!resultCode.isSuccess()) {
-                    assertEquals(callerPrevBalance, Callback.kernelRepo().getBalance(caller));
+                    assertEquals(callerPrevBalance, Callback.externalState().getBalance(caller));
                 } else {
                     assertEquals(
                             callerPrevBalance.subtract(callValue),
-                            Callback.kernelRepo().getBalance(caller));
+                            Callback.externalState().getBalance(caller));
                 }
             }
 
@@ -2609,21 +2610,21 @@ public class CallbackUnitTest {
                 // if there was no recipient then DummyRepository created that account when Callback
                 // transferred balance to it, so its balance should be callValue.
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                    assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(recipient));
+                    assertEquals(BigInteger.ZERO, Callback.externalState().getBalance(recipient));
                 } else {
-                    assertEquals(callValue, Callback.kernelRepo().getBalance(recipient));
+                    assertEquals(callValue, Callback.externalState().getBalance(recipient));
                 }
             } else {
                 if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
-                    assertEquals(recipientPrevBalance, Callback.kernelRepo().getBalance(recipient));
+                    assertEquals(recipientPrevBalance, Callback.externalState().getBalance(recipient));
                 } else {
                     if (!resultCode.isSuccess()) {
                         assertEquals(
-                                recipientPrevBalance, Callback.kernelRepo().getBalance(recipient));
+                                recipientPrevBalance, Callback.externalState().getBalance(recipient));
                     } else {
                         assertEquals(
                                 recipientPrevBalance.add(callValue),
-                                Callback.kernelRepo().getBalance(recipient));
+                                Callback.externalState().getBalance(recipient));
                     }
                 }
             }
@@ -2645,7 +2646,7 @@ public class CallbackUnitTest {
         }
 
         if (isCreateContract && wasSuccess) {
-            BigInteger nonce = Callback.kernelRepo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE);
+            BigInteger nonce = Callback.externalState().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE);
 
             AionAddress contract =
                 new AionAddress(
@@ -2654,9 +2655,9 @@ public class CallbackUnitTest {
                         nonce.toByteArray()));
             assertTrue(Callback.exists(contract.toByteArray()));
 
-            assertEquals(Callback.kernelRepo().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE), tx.senderNonce);
+            assertEquals(Callback.externalState().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE), tx.senderNonce);
         } else {
-            assertEquals(Callback.kernelRepo().getNonce(context.getSenderAddress()), tx.senderNonce);
+            assertEquals(Callback.externalState().getNonce(context.getSenderAddress()), tx.senderNonce);
         }
 
         assertEquals(context.getSenderAddress(), tx.sender);
@@ -2724,10 +2725,10 @@ public class CallbackUnitTest {
         assertEquals(context.getSenderAddress(), tx.sender);
         if (tx.isRejected) {
             assertEquals(
-                Callback.kernelRepo().getNonce(caller),
+                Callback.externalState().getNonce(caller),
                 tx.senderNonce.subtract(BigInteger.ONE));
         } else {
-            assertEquals(Callback.kernelRepo().getNonce(caller), tx.senderNonce);
+            assertEquals(Callback.externalState().getNonce(caller), tx.senderNonce);
         }
         assertEquals(context.getTransferValue(), tx.value);
 
@@ -2753,29 +2754,29 @@ public class CallbackUnitTest {
                 new AionAddress(
                         HashUtil.calcNewAddr(
                                 caller.toByteArray(),
-                                Callback.kernelRepo()
+                                Callback.externalState()
                                         .getNonce(caller)
                                         .subtract(BigInteger.ONE)
                                         .toByteArray()));
         if (postExecuteWasSuccess) {
-            assertEquals(callerBalance.subtract(value), Callback.kernelRepo().getBalance(caller));
+            assertEquals(callerBalance.subtract(value), Callback.externalState().getBalance(caller));
         } else {
-            assertEquals(callerBalance, Callback.kernelRepo().getBalance(caller));
+            assertEquals(callerBalance, Callback.externalState().getBalance(caller));
         }
         if (contractExisted) {
-            assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(contract));
+            assertEquals(BigInteger.ZERO, Callback.externalState().getBalance(contract));
         } else {
             if (postExecuteWasSuccess && !nrgLessThanDeposit) {
-                assertEquals(value, Callback.kernelRepo().getBalance(contract));
+                assertEquals(value, Callback.externalState().getBalance(contract));
             } else {
-                assertEquals(BigInteger.ZERO, Callback.kernelRepo().getBalance(contract));
+                assertEquals(BigInteger.ZERO, Callback.externalState().getBalance(contract));
             }
         }
     }
 
-    private static KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(
-                cache, true, false, new DataWordImpl(), 0L, 0L, 0L, AddressUtils.ZERO_ADDRESS);
+    private static IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
+        return new ExternalStateForTesting(
+                cache, AddressUtils.ZERO_ADDRESS, new DataWordImpl(), false, true, false, 0L, 0L, 0L);
     }
 
     private static PrecompiledResultCode fvmToPrecompiledCode(FastVmResultCode fvmCode) {

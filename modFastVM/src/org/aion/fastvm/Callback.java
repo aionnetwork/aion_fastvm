@@ -19,7 +19,6 @@ import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.base.Constants;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.precompiled.ContractFactory;
 import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.types.InternalTransaction;
@@ -36,11 +35,11 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class Callback {
 
-    private static LinkedList<Pair<ExecutionContext, KernelInterfaceForFastVM>> stack =
+    private static LinkedList<Pair<ExecutionContext, IExternalStateForFvm>> stack =
             new LinkedList<>();
 
     /** Pushes a pair of context and repository into the callback stack. */
-    public static void push(Pair<ExecutionContext, KernelInterfaceForFastVM> pair) {
+    public static void push(Pair<ExecutionContext, IExternalStateForFvm> pair) {
         stack.push(pair);
     }
 
@@ -55,31 +54,31 @@ public class Callback {
     }
 
     /** Returns the current repository. */
-    public static KernelInterfaceForFastVM kernelRepo() {
+    public static IExternalStateForFvm externalState() {
         return stack.peek().getRight();
     }
 
     /** Returns the hash of the given block. */
     public static byte[] getBlockHash(long number) {
-        byte[] hash = kernelRepo().getBlockHashByNumber(number);
+        byte[] hash = externalState().getBlockHashByNumber(number);
         return hash == null ? new byte[32] : hash;
     }
 
     /** Returns the code of a contract. */
     public static byte[] getCode(byte[] address) {
-        byte[] code = kernelRepo().getCode(new AionAddress(address));
+        byte[] code = externalState().getCode(new AionAddress(address));
         return code == null ? new byte[0] : code;
     }
 
     /** Returns the balance of an account. */
     public static byte[] getBalance(byte[] address) {
-        BigInteger balance = kernelRepo().getBalance(new AionAddress(address));
+        BigInteger balance = externalState().getBalance(new AionAddress(address));
         return balance == null ? DataWordImpl.ZERO.getData() : new DataWordImpl(balance).getData();
     }
 
     /** Returns whether an account exists. */
     public static boolean exists(byte[] address) {
-        return kernelRepo().hasAccountState(new AionAddress(address));
+        return externalState().hasAccountState(new AionAddress(address));
     }
 
     /** Returns the value that is mapped to the given key. */
@@ -88,7 +87,7 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + (value == null ?
         // "":Hex.toHexString(value.getData())));
 
-        return kernelRepo().getStorage(new AionAddress(address), key);
+        return externalState().getStorageValue(new AionAddress(address), key);
     }
 
     /** Sets the value that is mapped to the given key. */
@@ -98,9 +97,9 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         if (value == null || value.length == 0 || isZero(value)) {
-            kernelRepo().removeStorage(new AionAddress(address), key);
+            externalState().removeStorage(new AionAddress(address), key);
         } else {
-            kernelRepo().putStorage(new AionAddress(address), key, value);
+            externalState().addStorageValue(new AionAddress(address), key, value);
         }
     }
 
@@ -118,7 +117,7 @@ public class Callback {
      * Processes SELFDESTRUCT opcode.
      */
     public static void selfDestruct(byte[] sender, byte[] destination) {
-        BigInteger balance = kernelRepo().getBalance(new AionAddress(sender));
+        BigInteger balance = externalState().getBalance(new AionAddress(sender));
 
         // add internal transaction
         InternalTransaction internalTx =
@@ -126,7 +125,7 @@ public class Callback {
                         RejectedStatus.NOT_REJECTED,
                         new AionAddress(sender),
                         new AionAddress(destination),
-                        kernelRepo().getNonce(new AionAddress(sender)),
+                        externalState().getNonce(new AionAddress(sender)),
                         balance,
                         ByteUtil.EMPTY_BYTE_ARRAY,
                         0L,
@@ -134,9 +133,9 @@ public class Callback {
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer
-        kernelRepo().adjustBalance(new AionAddress(sender), balance.negate());
+        externalState().addBalance(new AionAddress(sender), balance.negate());
         if (!Arrays.equals(sender, destination)) {
-            kernelRepo().adjustBalance(new AionAddress(destination), balance);
+            externalState().addBalance(new AionAddress(destination), balance);
         }
 
         context().getSideEffects().addToDeletedAddresses(new AionAddress(sender));
@@ -169,7 +168,7 @@ public class Callback {
 
         // check value
         BigInteger endowment = ctx.getTransferValue();
-        BigInteger callersBalance = kernelRepo().getBalance(ctx.getSenderAddress());
+        BigInteger callersBalance = externalState().getBalance(ctx.getSenderAddress());
         if (callersBalance.compareTo(endowment) < 0) {
             return new FastVmTransactionResult(FastVmResultCode.FAILURE, 0).toBytes();
         }
@@ -209,12 +208,12 @@ public class Callback {
         }
 
         // Check that the destination address is safe to call from this VM.
-        if (!kernelRepo().destinationAddressIsSafeForThisVM(codeAddress)) {
+        if (!externalState().destinationAddressIsSafeForFvm(codeAddress)) {
             return new FastVmTransactionResult(
                     FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
         }
 
-        KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
+        IExternalStateForFvm childState = externalState().newChildExternalState();
         FastVmTransactionResult result =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
@@ -224,7 +223,7 @@ public class Callback {
                         RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
                         ctx.getDestinationAddress(),
-                        track.getNonce(ctx.getSenderAddress()),
+                        childState.getNonce(ctx.getSenderAddress()),
                         ctx.getTransferValue(),
                         ctx.getTransactionData(),
                         0L,
@@ -235,25 +234,25 @@ public class Callback {
         if (ctx.getTransactionKind() != ExecutionContext.DELEGATECALL
                 && ctx.getTransactionKind() != ExecutionContext.CALLCODE) {
             BigInteger transferAmount = ctx.getTransferValue();
-            track.adjustBalance(ctx.getSenderAddress(), transferAmount.negate());
-            track.adjustBalance(ctx.getDestinationAddress(), transferAmount);
+            childState.addBalance(ctx.getSenderAddress(), transferAmount.negate());
+            childState.addBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
-        PrecompiledContract pc = factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), wrapInExternalState(track));
+        PrecompiledContract pc = factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), wrapInExternalState(childState));
         if (pc != null) {
             result =
                     precompiledToFvmResult(
-                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()), track);
+                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()), childState);
         } else {
             // get the code
             byte[] code =
-                    track.hasAccountState(codeAddress)
-                            ? track.getCode(codeAddress)
+                    childState.hasAccountState(codeAddress)
+                            ? childState.getCode(codeAddress)
                             : ByteUtil.EMPTY_BYTE_ARRAY;
 
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
-                result = jit.run(code, ctx, track);
+                result = jit.run(code, ctx, childState);
             }
         }
 
@@ -262,9 +261,9 @@ public class Callback {
             context().getSideEffects().markMostRecentInternalTransactionAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
-            track.rollback();
+            childState.rollback();
         } else {
-            track.commit();
+            childState.commit();
         }
 
         return result;
@@ -276,12 +275,12 @@ public class Callback {
      * @param ctx execution context
      */
     private static FastVmTransactionResult doCreate(ExecutionContext ctx, FastVM jit) {
-        KernelInterfaceForFastVM track = kernelRepo().makeChildKernelInterface();
+        IExternalStateForFvm childState = externalState().newChildExternalState();
         FastVmTransactionResult result =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // compute new address
-        byte[] nonce = track.getNonce(ctx.getSenderAddress()).toByteArray();
+        byte[] nonce = childState.getNonce(ctx.getSenderAddress()).toByteArray();
         AionAddress newAddress =
                 new AionAddress(HashUtil.calcNewAddr(ctx.getSenderAddress().toByteArray(), nonce));
         ctx.setDestinationAddress(newAddress);
@@ -291,7 +290,7 @@ public class Callback {
                 InternalTransaction.contractCreateTransaction(
                         RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
-                        track.getNonce(ctx.getSenderAddress()),
+                        childState.getNonce(ctx.getSenderAddress()),
                         ctx.getTransferValue(),
                         ctx.getTransactionData(),
                         0L,
@@ -299,34 +298,34 @@ public class Callback {
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // in case of hashing collisions
-        boolean alreadyExsits = track.hasAccountState(newAddress);
+        boolean alreadyExsits = childState.hasAccountState(newAddress);
 
-        if (track.isFork040Enable()) {
-            byte[] code = track.getCode(newAddress);
+        if (childState.isFork040enabled()) {
+            byte[] code = childState.getCode(newAddress);
             if (code == null || code.length == 0) {
                 alreadyExsits = false;
             }
         }
 
-        BigInteger oldBalance = track.getBalance(newAddress);
-        track.createAccount(newAddress);
-        track.incrementNonce(newAddress); // EIP-161
-        track.adjustBalance(newAddress, oldBalance);
+        BigInteger oldBalance = childState.getBalance(newAddress);
+        childState.createAccount(newAddress);
+        childState.incrementNonce(newAddress); // EIP-161
+        childState.addBalance(newAddress, oldBalance);
 
         // transfer balance
         BigInteger transferAmount = ctx.getTransferValue();
-        track.adjustBalance(ctx.getSenderAddress(), transferAmount.negate());
-        track.adjustBalance(newAddress, transferAmount);
+        childState.addBalance(ctx.getSenderAddress(), transferAmount.negate());
+        childState.addBalance(newAddress, transferAmount);
 
         // update nonce
-        track.incrementNonce(ctx.getSenderAddress());
+        childState.incrementNonce(ctx.getSenderAddress());
 
         // add internal transaction
         internalTx =
                 InternalTransaction.contractCreateTransaction(
                         RejectedStatus.NOT_REJECTED,
                         ctx.getSenderAddress(),
-                        track.getNonce(ctx.getSenderAddress()),
+                        childState.getNonce(ctx.getSenderAddress()),
                         ctx.getTransferValue(),
                         ctx.getTransactionData(),
                         0L,
@@ -338,7 +337,7 @@ public class Callback {
             result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getTransactionData())) {
-                result = jit.run(ctx.getTransactionData(), ctx, track);
+                result = jit.run(ctx.getTransactionData(), ctx, childState);
             }
         }
 
@@ -347,7 +346,7 @@ public class Callback {
             context().getSideEffects().markMostRecentInternalTransactionAsRejected();
             ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
-            track.rollback();
+            childState.rollback();
         } else {
             // charge the codedeposit
             if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
@@ -355,15 +354,15 @@ public class Callback {
                 context().getSideEffects().markMostRecentInternalTransactionAsRejected();
                 ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all
 
-                track.rollback();
+                childState.rollback();
                 return result;
             }
             byte[] code = result.getReturnData();
-            track.putCode(newAddress, code == null ? new byte[0] : code);
+            childState.putCode(newAddress, code == null ? new byte[0] : code);
 
             result.setReturnData(newAddress.toByteArray());
 
-            track.commit();
+            childState.commit();
         }
 
         return result;
@@ -424,7 +423,7 @@ public class Callback {
     }
 
     private static FastVmTransactionResult precompiledToFvmResult(
-            PrecompiledTransactionResult precompiledResult, KernelInterfaceForFastVM kernel) {
+            PrecompiledTransactionResult precompiledResult, IExternalStateForFvm state) {
         FastVmTransactionResult fvmResult = new FastVmTransactionResult();
 
         fvmResult.addLogs(precompiledResult.getLogs());
@@ -434,7 +433,7 @@ public class Callback {
         fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
         fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
         fvmResult.setReturnData(precompiledResult.getReturnData());
-        fvmResult.setKernelInterface(kernel);
+        fvmResult.setKernelInterface(state);
 
         return fvmResult;
     }
@@ -495,7 +494,7 @@ public class Callback {
                 context.getTransactionStackDepth());
     }
 
-    private static ExternalStateForPrecompiled wrapInExternalState(KernelInterfaceForFastVM kernel) {
-        return new ExternalStateForPrecompiled(kernel.getRepositoryCache(), kernel.getBlockNumber(), kernel.isLocalCall, kernel.allowNonceIncrement);
+    private static ExternalStateForPrecompiled wrapInExternalState(IExternalStateForFvm state) {
+        return new ExternalStateForPrecompiled(state.getUnderlyingRepository(), state.getBlockNumber(), state.isLocalCall(), state.allowNonceIncrement());
     }
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -19,7 +20,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -101,15 +101,16 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    blockCoinbase,
+                    blockDifficulty,
+                    false,
                     true,
                     false,
-                    blockDifficulty,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit,
-                    blockCoinbase));
+                    blockNrgLimit));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -130,15 +131,16 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    blockCoinbase,
+                    blockDifficulty,
+                    false,
                     true,
                     false,
-                    blockDifficulty,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit,
-                    blockCoinbase));
+                    blockNrgLimit));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -159,15 +161,16 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new KernelInterfaceForFastVM(
+                vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    blockCoinbase,
+                    blockDifficulty,
+                    false,
                     true,
                     false,
-                    blockDifficulty,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit,
-                    blockCoinbase));
+                    blockNrgLimit));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }

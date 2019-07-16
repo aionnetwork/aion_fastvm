@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -20,7 +21,6 @@ import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -102,7 +102,7 @@ public class ContractTest {
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -111,7 +111,7 @@ public class ContractTest {
 
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -130,7 +130,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -139,7 +139,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -148,7 +148,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -157,7 +157,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(new DataWordImpl(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -166,7 +166,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertTrue(result.getEnergyRemaining() > 0);
@@ -187,7 +187,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result
@@ -224,7 +224,7 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result
@@ -255,23 +255,24 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
     }
 
-    private KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(
-                cache,
-                true,
-                false,
-                blockDifficulty,
-                blockNumber,
-                blockTimestamp,
-                blockNrgLimit,
-                blockCoinbase);
+    private IExternalStateForFvm newStateImpl(RepositoryCache cache) {
+        return new ExternalStateForTesting(
+            cache,
+            blockCoinbase,
+            blockDifficulty,
+            false,
+            true,
+            false,
+            blockNumber,
+            blockTimestamp,
+            blockNrgLimit);
     }
 
     private ExecutionContext newExecutionContext() {

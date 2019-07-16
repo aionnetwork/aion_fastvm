@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.mcf.types.KernelInterface;
 import org.aion.types.InternalTransaction;
 
 public final class FastVmTransactionResult {
 
-    private KernelInterface kernel;
+    private IExternalStateForFvm externalState;
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
@@ -25,7 +24,7 @@ public final class FastVmTransactionResult {
      * code.
      */
     public FastVmTransactionResult() {
-        this.kernel = null;
+        this.externalState = null;
         this.code = FastVmResultCode.SUCCESS;
         this.output = new byte[0];
         this.energyRemaining = 0;
@@ -39,7 +38,7 @@ public final class FastVmTransactionResult {
      * @param energyRemaining The energy remaining after executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
-        this.kernel = null;
+        this.externalState = null;
         this.code = code;
         this.energyRemaining = energyRemaining;
         this.output = new byte[0];
@@ -54,7 +53,7 @@ public final class FastVmTransactionResult {
      * @param output The output of executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
-        this.kernel = null;
+        this.externalState = null;
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
         this.energyRemaining = energyRemaining;
@@ -66,7 +65,7 @@ public final class FastVmTransactionResult {
      * <p>The representation is partial because it only represents the {@link FastVmResultCode}, the
      * amount of energy remaining, and the output.
      *
-     * <p>In particular, the {@link KernelInterface} is not included in this representation, meaning
+     * <p>In particular, the {@link IExternalStateForFvm} is not included in this representation, meaning
      * these components of this object will be lost when the byte array representation is
      * transformed back into a {@code TransactionResult} via the {@code fromBytes()} method.
      *
@@ -91,7 +90,7 @@ public final class FastVmTransactionResult {
      * via the {@code toBytes()} method.
      *
      * <p>The returned object will be constructed from the partial representation, which, because it
-     * is partial, will have no {@link KernelInterface}.
+     * is partial, will have no {@link IExternalStateForFvm}.
      *
      * @param bytes A partial byte array representation of a {@code TransactionResult}.
      * @return The {@code TransactionResult} object obtained from the byte array representation.
@@ -122,8 +121,8 @@ public final class FastVmTransactionResult {
         this.code = code;
     }
 
-    public void setKernelInterface(KernelInterface kernel) {
-        this.kernel = kernel;
+    public void setKernelInterface(IExternalStateForFvm state) {
+        this.externalState = state;
     }
 
     public void setReturnData(byte[] output) {
@@ -146,8 +145,8 @@ public final class FastVmTransactionResult {
         return this.energyRemaining;
     }
 
-    public KernelInterface getKernelInterface() {
-        return this.kernel;
+    public IExternalStateForFvm getKernelInterface() {
+        return this.externalState;
     }
 
     public void addLogs(List<Log> logs) {

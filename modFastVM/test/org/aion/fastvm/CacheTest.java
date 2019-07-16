@@ -3,6 +3,7 @@ package org.aion.fastvm;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -13,7 +14,6 @@ import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.conversions.Hex;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -118,15 +118,16 @@ public class CacheTest {
                     vm.run(
                             code,
                             ctx,
-                        new KernelInterfaceForFastVM(
+                        new ExternalStateForTesting(
                             repo,
+                            blockCoinbase,
+                            blockDifficulty,
+                            false,
                             true,
                             false,
-                            blockDifficulty,
                             blockNumber,
                             blockTimestamp,
-                            blockNrgLimit,
-                            blockCoinbase));
+                            blockNrgLimit));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Properties;
+import org.aion.ExternalStateForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -18,7 +19,6 @@ import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.zero.impl.db.ContractDetailsAion;
@@ -125,7 +125,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 69;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -148,7 +148,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -171,7 +171,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -194,7 +194,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 10000;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -217,20 +217,21 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 369;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, wrapInKernelInterface(repo));
+        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
 
-    private KernelInterfaceForFastVM wrapInKernelInterface(RepositoryCache cache) {
-        return new KernelInterfaceForFastVM(
+    private IExternalStateForFvm newState(RepositoryCache cache) {
+        return new ExternalStateForTesting(
             cache,
+            blockCoinbase,
+            blockDifficulty,
+            false,
             true,
             false,
-            blockDifficulty,
             blockNumber,
             blockTimestamp,
-            blockNrgLimit,
-            blockCoinbase);
+            blockNrgLimit);
     }
 }

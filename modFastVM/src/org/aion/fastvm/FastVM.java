@@ -1,8 +1,6 @@
 package org.aion.fastvm;
 
 import org.aion.util.file.NativeLoader;
-import org.aion.mcf.vm.types.KernelInterfaceForFastVM;
-import org.aion.mcf.types.KernelInterface;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -55,18 +53,14 @@ public class FastVM {
      *     Callback} class, this method is synchronized.
      * @param code The code to run.
      * @param ctx The execution context.
-     * @param repo The current state of the world.
+     * @param externalState The current state of the world.
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
     public synchronized FastVmTransactionResult run(
-            byte[] code, ExecutionContext ctx, KernelInterface repo) {
-        if (!(repo instanceof KernelInterfaceForFastVM)) {
-            throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
-        }
+            byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
-        KernelInterfaceForFastVM kernelRepo = (KernelInterfaceForFastVM) repo;
-        Callback.push(Pair.of(ctx, kernelRepo));
+        Callback.push(Pair.of(ctx, externalState));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION);
         destroy(instance);
@@ -86,18 +80,14 @@ public class FastVM {
      *     Callback} class, this method is synchronized.
      * @param code The code to run.
      * @param ctx The execution context.
-     * @param repo The current state of the world.
+     * @param externalState The current state of the world.
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
     public synchronized FastVmTransactionResult run_v1(
-            byte[] code, ExecutionContext ctx, KernelInterface repo) {
-        if (!(repo instanceof KernelInterfaceForFastVM)) {
-            throw new IllegalArgumentException("repo must be type KernelInterfaceForFastVM!");
-        }
+            byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
-        KernelInterfaceForFastVM kernelRepo = (KernelInterfaceForFastVM) repo;
-        Callback.push(Pair.of(ctx, kernelRepo));
+        Callback.push(Pair.of(ctx, externalState));
         long instance = create();
         byte[] result = run(instance, code, ctx.toBytes(), REVISION_AION_V1);
         destroy(instance);
