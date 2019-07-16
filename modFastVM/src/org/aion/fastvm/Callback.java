@@ -243,7 +243,7 @@ public class Callback {
         if (pc != null) {
             result =
                     precompiledToFvmResult(
-                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()));
+                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()), track);
         } else {
             // get the code
             byte[] code =
@@ -424,7 +424,7 @@ public class Callback {
     }
 
     private static FastVmTransactionResult precompiledToFvmResult(
-            PrecompiledTransactionResult precompiledResult) {
+            PrecompiledTransactionResult precompiledResult, KernelInterfaceForFastVM kernel) {
         FastVmTransactionResult fvmResult = new FastVmTransactionResult();
 
         fvmResult.addLogs(precompiledResult.getLogs());
@@ -434,7 +434,7 @@ public class Callback {
         fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
         fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
         fvmResult.setReturnData(precompiledResult.getReturnData());
-        fvmResult.setKernelInterface(precompiledResult.getKernelInterface());
+        fvmResult.setKernelInterface(kernel);
 
         return fvmResult;
     }
