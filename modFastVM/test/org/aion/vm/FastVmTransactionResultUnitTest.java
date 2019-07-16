@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.aion.fastvm.FastVmResultCode;
 import org.aion.fastvm.FastVmTransactionResult;
-import org.aion.mcf.types.KernelInterface;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -141,8 +140,7 @@ public class FastVmTransactionResultUnitTest {
      * original. Any test that calls this and this is not true will fail.
      *
      * Note that the encoding is a partial encoding that does not include the
-     * {@link org.aion.vm.api.ExecutionSideEffects} or
-     * {@link KernelInterface} objects, so these are ignored.
+     * logs, internal transactions, deleted accounts or state objects, so these are ignored.
      *
      * @param original The TransactionResult to encode and decode.
      */
