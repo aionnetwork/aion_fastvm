@@ -3,15 +3,13 @@ package org.aion;
 import java.math.BigInteger;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.fastvm.FastVmTransactionResult;
+import org.aion.fastvm.FvmDataWord;
 import org.aion.fastvm.IExternalStateForFvm;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.db.InternalVmType;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.valid.TxNrgRule;
-import org.aion.mcf.vm.DataWord;
-import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.mcf.vm.types.DoubleDataWord;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.types.AionAddress;
 import org.aion.util.types.ByteArrayWrapper;
@@ -25,9 +23,9 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final long blockNumber;
     private final long blockTimestamp;
     private final long blockEnergyLimit;
-    private final DataWord blockDifficulty;
+    private final FvmDataWord blockDifficulty;
 
-    public ExternalStateForTesting(RepositoryCache<AccountState, IBlockStoreBase> repository, AionAddress miner, DataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
+    public ExternalStateForTesting(RepositoryCache<AccountState, IBlockStoreBase> repository, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         this.repository = repository;
         this.miner = miner;
         this.blockDifficulty = blockDifficulty;
@@ -117,10 +115,16 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @param value The value.
      */
     @Override
-    public void addStorageValue(AionAddress address, byte[] key, byte[] value) {
-        ByteArrayWrapper storageKey = alignDataToWordSize(key);
-        ByteArrayWrapper storageValue = alignValueToWordSizeForPut(value);
-        if (value == null || value.length == 0 || storageValue.isZero()) {
+    public void addStorageValue(AionAddress address, FvmDataWord key, FvmDataWord value) {
+        byte[] valueBytes = value.copyOfData();
+        if (valueBytes == null || valueBytes.length == 0) {
+            // used to ensure FVM correctness
+            throw new IllegalArgumentException("Put with null, empty or zero byte array values is not allowed for the FVM. For deletions, make explicit calls to the delete method.");
+        }
+
+        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
+        ByteArrayWrapper storageValue = alignValueToWordSizeForPut(valueBytes);
+        if (storageValue.isZero()) {
             // used to ensure FVM correctness
             throw new IllegalArgumentException("Put with null, empty or zero byte array values is not allowed for the FVM. For deletions, make explicit calls to the delete method.");
         }
@@ -137,8 +141,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @param key The key.
      */
     @Override
-    public void removeStorage(AionAddress address, byte[] key) {
-        ByteArrayWrapper storageKey = alignDataToWordSize(key);
+    public void removeStorage(AionAddress address, FvmDataWord key) {
+        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
         this.repository.removeStorageRow(address, storageKey);
         setVmType(address);
     }
@@ -152,14 +156,14 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @return the value.
      */
     @Override
-    public byte[] getStorageValue(AionAddress address, byte[] key) {
-        ByteArrayWrapper storageKey = alignDataToWordSize(key);
+    public FvmDataWord getStorageValue(AionAddress address, FvmDataWord key) {
+        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
         ByteArrayWrapper value = this.repository.getStorageValue(address, storageKey);
         if (value != null && (value.isZero() || value.isEmpty())) {
             // used to ensure FVM correctness
             throw new IllegalStateException("A zero or empty value was retrieved from storage. Storing zeros is not allowed by the FVM. An incorrect put was previously performed instead of an explicit call to the delete method.");
         }
-        return (value == null) ? DataWordImpl.ZERO.getData() : alignValueToWordSizeForGet(value);
+        return (value == null) ? FvmDataWord.fromBytes(new byte[FvmDataWord.SIZE]) : FvmDataWord.fromBytes(value.toBytes());
     }
 
     /**
@@ -436,11 +440,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public long getBlockDifficulty() {
-        if (this.blockDifficulty instanceof DataWordImpl) {
-            return ((DataWordImpl) this.blockDifficulty).longValue();
-        } else {
-            return ((DoubleDataWord) this.blockDifficulty).longValue();
-        }
+        return this.blockDifficulty.toLong();
     }
 
     /**
@@ -462,45 +462,28 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      *
      * <p>This method should only be used for putting data into storage.
      */
-    private ByteArrayWrapper alignValueToWordSizeForPut(byte[] value) {
-        if (value.length == DoubleDataWord.BYTES) {
-            return new ByteArrayWrapper(new DoubleDataWord(value).getData());
-        } else {
-            DataWordImpl valueAsWord = new DataWordImpl(value);
-            return (valueAsWord.isZero()) ? valueAsWord.toWrapper() : new ByteArrayWrapper(valueAsWord.getNoLeadZeroesData());
-        }
+    private ByteArrayWrapper alignValueToWordSizeForPut(byte[] bytes) {
+        return (allBytesAreZero(bytes)) ? new ByteArrayWrapper(bytes) : new ByteArrayWrapper(dropLeadingZeroes(bytes));
     }
 
-    /**
-     * If data.length > 16 then data is aligned to be 32 bytes.
-     *
-     * <p>Otherwise it is aligned to be 16 bytes.
-     *
-     * <p>Takes a byte[] and outputs a {@link ByteArrayWrapper}.
-     */
-    private ByteArrayWrapper alignDataToWordSize(byte[] data) {
-        if (data.length == DoubleDataWord.BYTES) {
-            return new ByteArrayWrapper(new DoubleDataWord(data).getData());
-        } else {
-            return new ByteArrayWrapper(new DataWordImpl(data).getData());
+    private static boolean allBytesAreZero(byte[] bytes) {
+        for (byte singleByte : bytes) {
+            if (singleByte != 0x0) {
+                return false;
+            }
         }
+        return true;
     }
 
-    /**
-     * If data.length > 16 then data is aligned to be 32 bytes.
-     *
-     * <p>Otherwise it is aligned to be 16 bytes.
-     *
-     * <p>This method should only be used for getting data from storage.
-     */
-    private byte[] alignValueToWordSizeForGet(ByteArrayWrapper wrappedValue) {
-        byte[] value = wrappedValue.getData();
-
-        if (value.length > DataWordImpl.BYTES) {
-            return new DoubleDataWord(value).getData();
-        } else {
-            return new DataWordImpl(value).getData();
+    private static int findIndexOfFirstNonZeroByte(byte[] bytes) {
+        int indexOfFirstNonZeroByte = 0;
+        for (byte singleByte : bytes) {
+            if (singleByte != 0x0) {
+                return indexOfFirstNonZeroByte;
+            }
+            indexOfFirstNonZeroByte++;
         }
+        return indexOfFirstNonZeroByte;
     }
 
     private InternalVmType getVmType(AionAddress destination) {
@@ -522,5 +505,26 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
             }
         }
         return vm;
+    }
+
+    /**
+     * Returns the input bytes but with all leading zero bytes removed.
+     *
+     * If the input bytes consists of all zero bytes then an array of length 1 whose only byte is
+     * a zero byte is returned.
+     *
+     * @param bytes The bytes to chop.
+     * @return the chopped bytes.
+     */
+    private static byte[] dropLeadingZeroes(byte[] bytes) {
+        int indexOfFirstNonZeroByte = findIndexOfFirstNonZeroByte(bytes);
+
+        if (indexOfFirstNonZeroByte == bytes.length) {
+            return new byte[1];
+        }
+
+        byte[] nonZeroBytes = new byte[bytes.length - indexOfFirstNonZeroByte];
+        System.arraycopy(bytes, indexOfFirstNonZeroByte, nonZeroBytes, 0, bytes.length - indexOfFirstNonZeroByte);
+        return nonZeroBytes;
     }
 }

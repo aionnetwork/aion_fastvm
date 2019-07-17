@@ -9,11 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.aion.types.AionAddress;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.base.Constants;
 import org.aion.types.InternalTransaction;
@@ -72,7 +70,7 @@ public class Callback {
     /** Returns the balance of an account. */
     public static byte[] getBalance(byte[] address) {
         BigInteger balance = externalState().getBalance(new AionAddress(address));
-        return balance == null ? DataWordImpl.ZERO.getData() : new DataWordImpl(balance).getData();
+        return balance == null ? new byte[FvmDataWord.SIZE] : FvmDataWord.fromBigInteger(balance).copyOfData();
     }
 
     /** Returns whether an account exists. */
@@ -86,7 +84,7 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + (value == null ?
         // "":Hex.toHexString(value.getData())));
 
-        return externalState().getStorageValue(new AionAddress(address), key);
+        return externalState().getStorageValue(new AionAddress(address), FvmDataWord.fromBytes(key)).copyOfData();
     }
 
     /** Sets the value that is mapped to the given key. */
@@ -96,9 +94,9 @@ public class Callback {
         // Hex.toHexString(key) + ", value = " + Hex.toHexString(value));
 
         if (value == null || value.length == 0 || isZero(value)) {
-            externalState().removeStorage(new AionAddress(address), key);
+            externalState().removeStorage(new AionAddress(address), FvmDataWord.fromBytes(key));
         } else {
-            externalState().addStorageValue(new AionAddress(address), key, value);
+            externalState().addStorageValue(new AionAddress(address), FvmDataWord.fromBytes(key), FvmDataWord.fromBytes(value));
         }
     }
 
@@ -380,11 +378,11 @@ public class Callback {
         byte[] caller = new byte[AionAddress.LENGTH];
         buffer.get(caller);
 
-        DataWord nrgPrice = new DataWordImpl(prev.getTransactionEnergyPrice());
+        FvmDataWord nrgPrice = FvmDataWord.fromLong(prev.getTransactionEnergyPrice());
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
-        DataWordImpl callValue = new DataWordImpl(buf);
+        FvmDataWord callValue = FvmDataWord.fromBytes(buf);
         byte[] callData = new byte[buffer.getInt()];
         buffer.get(callData);
 
@@ -396,7 +394,7 @@ public class Callback {
         long blockNumber = prev.getBlockNumber();
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
-        DataWord blockDifficulty = new DataWordImpl(prev.getBlockDifficulty());
+        FvmDataWord blockDifficulty = FvmDataWord.fromLong(prev.getBlockDifficulty());
 
         // TODO: properly construct a transaction first
         return new ExecutionContext(

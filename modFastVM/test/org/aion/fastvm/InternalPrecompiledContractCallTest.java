@@ -14,7 +14,6 @@ import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.db.PruneConfig;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.precompiled.PrecompiledForTesting;
 import org.aion.types.AionAddress;
@@ -298,13 +297,13 @@ public class InternalPrecompiledContractCallTest {
      * Returns an encoded context that gets decoded inside the Callback class.
      */
     private static byte[] encodeContext(AionAddress caller, AionAddress destination, BigInteger value, byte[] data, int kind) {
-        int len = (AionAddress.LENGTH * 2) + DataWordImpl.BYTES + (Integer.BYTES * 4) + Long.BYTES + data.length;
+        int len = (AionAddress.LENGTH * 2) + FvmDataWord.SIZE + (Integer.BYTES * 4) + Long.BYTES + data.length;
 
         ByteBuffer buffer = ByteBuffer.allocate(len).order(ByteOrder.BIG_ENDIAN);
         buffer.put(destination.toByteArray());
         buffer.put(caller.toByteArray());
         buffer.putLong(ENERGY_LIMIT);
-        buffer.put(new DataWordImpl(value).getData());
+        buffer.put(FvmDataWord.fromBigInteger(value).copyOfData());
         buffer.putInt(data.length);
         buffer.put(data);
         buffer.putInt(0);
@@ -344,11 +343,11 @@ public class InternalPrecompiledContractCallTest {
     }
 
     private static ExecutionContext newDummyContext(AionAddress originAddress, AionAddress recipient) {
-        return new ExecutionContext(null, null, recipient, originAddress, originAddress, new DataWordImpl(1L), ENERGY_LIMIT, new DataWordImpl(BigInteger.ZERO), new byte[0], 0, ExecutionContext.CALL, 0, randomAddress(), 0L, 0L, 500_000L, new DataWordImpl(0L));
+        return new ExecutionContext(null, null, recipient, originAddress, originAddress, FvmDataWord.fromLong(1L), ENERGY_LIMIT, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, ExecutionContext.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
     }
 
     private static ExternalStateForTesting newState() {
-        return new ExternalStateForTesting(newRepository(), randomAddress(), new DataWordImpl(0), false, true, false, 0L, 0L, 0L);
+        return new ExternalStateForTesting(newRepository(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
     }
 
     private static RepositoryCache<AccountState, IBlockStoreBase> newRepository() {

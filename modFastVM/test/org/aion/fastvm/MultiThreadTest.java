@@ -17,9 +17,7 @@ import org.aion.db.impl.DatabaseFactory;
 import org.aion.mcf.db.ContractDetails;
 import org.aion.mcf.db.PruneConfig;
 import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
@@ -41,11 +39,11 @@ public class MultiThreadTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
+    private FvmDataWord blockDifficulty = FvmDataWord.fromLong(0x100000000L);
 
-    private DataWord nrgPrice;
+    private FvmDataWord nrgPrice;
     private long nrgLimit;
-    private DataWord callValue;
+    private FvmDataWord callValue;
     private byte[] callData;
 
     private int depth = 0;
@@ -60,9 +58,9 @@ public class MultiThreadTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWordImpl.ONE;
+        nrgPrice = FvmDataWord.fromLong(1);
         nrgLimit = 20000;
-        callValue = DataWordImpl.ZERO;
+        callValue = FvmDataWord.fromLong(0);
         callData = new byte[0];
         helper = new SideEffects();
 
@@ -113,7 +111,7 @@ public class MultiThreadTest {
 
                             callData =
                                     ByteUtil.merge(
-                                            Hex.decode("8256cff3"), new DataWordImpl(64).getData());
+                                            Hex.decode("8256cff3"), FvmDataWord.fromLong(64).copyOfData());
 
                             ExecutionContext ctx =
                                     new ExecutionContext(

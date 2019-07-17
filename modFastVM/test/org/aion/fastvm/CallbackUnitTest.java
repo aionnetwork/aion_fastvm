@@ -26,10 +26,9 @@ import org.aion.mcf.db.PruneConfig;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.db.RepositoryConfig;
 import org.aion.mcf.config.CfgPrune;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.Log;
+import org.aion.util.bytes.ByteUtil;
 import org.aion.util.types.ByteArrayWrapper;
-import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -255,7 +254,7 @@ public class CallbackUnitTest {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
         AionAddress address = pushNewBalance(balance);
         assertArrayEquals(
-                new DataWordImpl(balance).getData(), Callback.getBalance(address.toByteArray()));
+                FvmDataWord.fromBigInteger(balance).copyOfData(), Callback.getBalance(address.toByteArray()));
     }
 
     @Test
@@ -264,7 +263,7 @@ public class CallbackUnitTest {
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         assertArrayEquals(
-                new byte[DataWordImpl.BYTES], Callback.getBalance(getNewAddress().toByteArray()));
+                new byte[FvmDataWord.SIZE], Callback.getBalance(getNewAddress().toByteArray()));
     }
 
     @Test
@@ -278,7 +277,7 @@ public class CallbackUnitTest {
         }
         for (int i = 0; i < depths; i++) {
             assertArrayEquals(
-                    new DataWordImpl(balances[i]).getData(),
+                    FvmDataWord.fromBigInteger(balances[i]).copyOfData(),
                     Callback.getBalance(addresses[i].toByteArray()));
             Callback.pop();
         }
@@ -311,8 +310,8 @@ public class CallbackUnitTest {
         RepositoryCache repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
+        byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
+        byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
         AionAddress address = pushNewStorageEntry(repo, key, value, true);
         assertArrayEquals(value, Callback.getStorage(address.toByteArray(), key));
     }
@@ -322,13 +321,13 @@ public class CallbackUnitTest {
         RepositoryCache repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
+        byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
+        byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
         AionAddress address = pushNewStorageEntry(repo, key, value, true);
-        byte[] badKey = Arrays.copyOf(key, DataWordImpl.BYTES);
+        byte[] badKey = Arrays.copyOf(key, FvmDataWord.SIZE);
         badKey[0] = (byte) ~key[0];
         assertArrayEquals(
-                DataWordImpl.ZERO.getData(), Callback.getStorage(address.toByteArray(), badKey));
+                FvmDataWord.fromBytes(new byte[0]).copyOfData(), Callback.getStorage(address.toByteArray(), badKey));
     }
 
     @Test
@@ -375,15 +374,15 @@ public class CallbackUnitTest {
         RepositoryCache<AccountState, IBlockStoreBase> repo =
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
-        byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
+        byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
+        byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
         AionAddress address = putInStorage(key, value);
         assertArrayEquals(
                 value,
-                new DataWordImpl(
-                                repo.getStorageValue(address, new DataWordImpl(key).toWrapper())
+                FvmDataWord.fromBytes(
+                                repo.getStorageValue(address, new ByteArrayWrapper(FvmDataWord.fromBytes(key).copyOfData()))
                                         .getData())
-                        .getData());
+                        .copyOfData());
     }
 
     @Test
@@ -396,19 +395,19 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
-            keys[num - 1 - i] = RandomUtils.nextBytes(DataWordImpl.BYTES);
-            values[num - 1 - i] = RandomUtils.nextBytes(DataWordImpl.BYTES);
+            keys[num - 1 - i] = RandomUtils.nextBytes(FvmDataWord.SIZE);
+            values[num - 1 - i] = RandomUtils.nextBytes(FvmDataWord.SIZE);
             addresses[num - 1 - i] = putInStorage(keys[num - 1 - i], values[num - 1 - i]);
         }
         for (int i = 0; i < num; i++) {
             assertArrayEquals(
                     values[i],
-                    new DataWordImpl(
+                    FvmDataWord.fromBytes(
                                     repo.getStorageValue(
                                                     addresses[i],
-                                                    new DataWordImpl(keys[i]).toWrapper())
+                                                    new ByteArrayWrapper(FvmDataWord.fromBytes(keys[i]).copyOfData()))
                                             .getData())
-                            .getData());
+                            .copyOfData());
         }
     }
 
@@ -425,12 +424,12 @@ public class CallbackUnitTest {
         for (int i = 0; i < numAddrs; i++) {
             assertArrayEquals(
                     values[i],
-                    new DataWordImpl(
+                    FvmDataWord.fromBytes(
                                     repo.getStorageValue(
                                                     addresses[i],
-                                                    new DataWordImpl(keys[i]).toWrapper())
+                                                    new ByteArrayWrapper(FvmDataWord.fromBytes(keys[i]).copyOfData()))
                                             .getData())
-                            .getData());
+                            .copyOfData());
         }
     }
 
@@ -455,12 +454,12 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        new DataWordImpl(
+                        FvmDataWord.fromBytes(
                                         repos[i].getStorageValue(
                                                         addresses[j],
-                                                        new DataWordImpl(keys[j]).toWrapper())
+                                                        new ByteArrayWrapper(FvmDataWord.fromBytes(keys[j]).copyOfData()))
                                                 .getData())
-                                .getData());
+                                .copyOfData());
             }
             Callback.pop();
         }
@@ -472,8 +471,8 @@ public class CallbackUnitTest {
                 new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
         pushNewRepo(repo);
         AionAddress address = getNewAddress();
-        byte[] key = RandomUtils.nextBytes(DataWordImpl.BYTES);
-        byte[] value = RandomUtils.nextBytes(DataWordImpl.BYTES);
+        byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
+        byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
         Callback.putStorage(address.toByteArray(), key, value);
         assertArrayEquals(value, Callback.getStorage(address.toByteArray(), key));
     }
@@ -639,7 +638,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -654,7 +653,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -664,7 +663,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergy(),
-                        new DataWordImpl(ctx.getTransferValue()),
+                        FvmDataWord.fromBigInteger(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -683,7 +682,7 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                            FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             false,
                             false,
                             ExecutionContext.DELEGATECALL,
@@ -702,7 +701,7 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                            FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             i % 2 == 0,
                             false,
                             ExecutionContext.DELEGATECALL,
@@ -712,7 +711,7 @@ public class CallbackUnitTest {
                             ctx.getDestinationAddress(),
                             ctx.getSenderAddress(),
                             ctx.getTransactionEnergy(),
-                            new DataWordImpl(ctx.getTransferValue()),
+                            FvmDataWord.fromBigInteger(ctx.getTransferValue()),
                             ctx.getTransactionData(),
                             ctx.getTransactionStackDepth(),
                             ctx.getTransactionKind(),
@@ -730,7 +729,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -745,7 +744,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         true,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -755,7 +754,7 @@ public class CallbackUnitTest {
                         ctx.getDestinationAddress(),
                         ctx.getSenderAddress(),
                         ctx.getTransactionEnergy(),
-                        new DataWordImpl(ctx.getTransferValue()),
+                        FvmDataWord.fromBigInteger(ctx.getTransferValue()),
                         ctx.getTransactionData(),
                         ctx.getTransactionStackDepth(),
                         ctx.getTransactionKind(),
@@ -774,7 +773,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES)),
+                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -788,7 +787,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWordImpl(context.getTransferValue()),
+                        FvmDataWord.fromBigInteger(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         Constants.MAX_CALL_DEPTH,
@@ -809,7 +808,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         caller,
                         getNewAddress(),
-                        new DataWordImpl(balance.add(BigInteger.ONE)),
+                        FvmDataWord.fromBigInteger(balance.add(BigInteger.ONE)),
                         false,
                         false,
                         ExecutionContext.DELEGATECALL,
@@ -823,7 +822,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWordImpl(context.getTransferValue()),
+                        FvmDataWord.fromBigInteger(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         0,
@@ -1703,7 +1702,7 @@ public class CallbackUnitTest {
                                 new AionRepositoryCache(
                                         AionRepositoryImpl.createForTesting(repoConfig)),
                                 AddressUtils.ZERO_ADDRESS,
-                                new DataWordImpl(),
+                                FvmDataWord.fromBytes(new byte[0]),
                                 false,
                                 true,
                                 false,
@@ -1724,7 +1723,7 @@ public class CallbackUnitTest {
         when(context.getTransactionData())
                 .thenReturn(RandomUtils.nextBytes(RandomUtils.nextInt(0, 50)));
         when(context.getTransferValue())
-                .thenReturn(new BigInteger(1, RandomUtils.nextBytes(DataWordImpl.BYTES)));
+                .thenReturn(new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)));
         when(context.getTransactionEnergy()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getTransactionHash()).thenReturn(RandomUtils.nextBytes(32));
         when(context.getTransactionStackDepth()).thenReturn(RandomUtils.nextInt(0, 1000));
@@ -1734,7 +1733,7 @@ public class CallbackUnitTest {
     private ExecutionContext newExecutionContext(
             AionAddress caller,
             AionAddress recipient,
-            DataWordImpl callValue,
+            FvmDataWord callValue,
             boolean isEmptyData,
             boolean septForkEnabled,
             int kind,
@@ -1742,7 +1741,7 @@ public class CallbackUnitTest {
 
         byte[] txHash = RandomUtils.nextBytes(32);
         AionAddress origin = getNewAddress();
-        DataWordImpl nrgPrice = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
+        FvmDataWord nrgPrice = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
@@ -1760,7 +1759,7 @@ public class CallbackUnitTest {
         }
         long blockTimestamp = RandomUtils.nextLong(100, 100_000);
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
-        DataWordImpl blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
+        FvmDataWord blockDifficulty = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
         return new ExecutionContext(
                 null,
                 txHash,
@@ -1792,7 +1791,7 @@ public class CallbackUnitTest {
             AionAddress address,
             AionAddress caller,
             long nrgLimit,
-            DataWord callValue,
+            FvmDataWord callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -1800,7 +1799,7 @@ public class CallbackUnitTest {
 
         int len =
                 (AionAddress.LENGTH * 2)
-                        + DataWordImpl.BYTES
+                        + FvmDataWord.SIZE
                         + (Integer.BYTES * 4)
                         + Long.BYTES
                         + callData.length;
@@ -1808,7 +1807,7 @@ public class CallbackUnitTest {
         buffer.put(address.toByteArray());
         buffer.put(caller.toByteArray());
         buffer.putLong(nrgLimit);
-        buffer.put(callValue.getData());
+        buffer.put(callValue.copyOfData());
         buffer.putInt(callData.length);
         buffer.put(callData);
         buffer.putInt(depth);
@@ -1959,9 +1958,9 @@ public class CallbackUnitTest {
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
                 context.getSenderAddress(),
-                new DataWordImpl(previous.getTransactionEnergyPrice()),
+                FvmDataWord.fromLong(previous.getTransactionEnergyPrice()),
                 context.getTransactionEnergy(),
-                new DataWordImpl(context.getTransferValue()),
+                FvmDataWord.fromBigInteger(context.getTransferValue()),
                 context.getTransactionData(),
                 context.getTransactionStackDepth(),
                 context.getTransactionKind(),
@@ -1970,7 +1969,7 @@ public class CallbackUnitTest {
                 previous.getBlockNumber(),
                 previous.getBlockTimestamp(),
                 previous.getBlockEnergyLimit(),
-                new DataWordImpl(previous.getBlockDifficulty()));
+                FvmDataWord.fromLong(previous.getBlockDifficulty()));
     }
 
     /**
@@ -2032,7 +2031,7 @@ public class CallbackUnitTest {
             byte[] pack = packs.get(i).toBytes();
             keys[i] =
                     Arrays.copyOfRange(
-                            pack, AionAddress.LENGTH, AionAddress.LENGTH + DataWordImpl.BYTES);
+                            pack, AionAddress.LENGTH, AionAddress.LENGTH + FvmDataWord.SIZE);
         }
         return keys;
     }
@@ -2042,17 +2041,17 @@ public class CallbackUnitTest {
         byte[][] values = new byte[len][];
         for (int i = 0; i < len; i++) {
             byte[] pack = packs.get(i).toBytes();
-            values[i] = Arrays.copyOfRange(pack, pack.length - DataWordImpl.BYTES, pack.length);
+            values[i] = Arrays.copyOfRange(pack, pack.length - FvmDataWord.SIZE, pack.length);
         }
         return values;
     }
 
     private byte[] packIntoBytes(AionAddress address, byte[] key, byte[] value) {
-        byte[] pack = new byte[AionAddress.LENGTH + (DataWordImpl.BYTES * 2)];
+        byte[] pack = new byte[AionAddress.LENGTH + (FvmDataWord.SIZE * 2)];
         System.arraycopy(address.toByteArray(), 0, pack, 0, AionAddress.LENGTH);
-        System.arraycopy(key, 0, pack, AionAddress.LENGTH, DataWordImpl.BYTES);
+        System.arraycopy(key, 0, pack, AionAddress.LENGTH, FvmDataWord.SIZE);
         System.arraycopy(
-                value, 0, pack, AionAddress.LENGTH + DataWordImpl.BYTES, DataWordImpl.BYTES);
+                value, 0, pack, AionAddress.LENGTH + FvmDataWord.SIZE, FvmDataWord.SIZE);
         return pack;
     }
 
@@ -2080,8 +2079,8 @@ public class CallbackUnitTest {
         byte[][] keys = new byte[num][];
         byte[][] values = new byte[num][];
         for (int i = 0; i < num; i++) {
-            keys[num - 1 - i] = RandomUtils.nextBytes(DataWordImpl.BYTES);
-            values[num - 1 - i] = RandomUtils.nextBytes(DataWordImpl.BYTES);
+            keys[num - 1 - i] = RandomUtils.nextBytes(FvmDataWord.SIZE);
+            values[num - 1 - i] = RandomUtils.nextBytes(FvmDataWord.SIZE);
             addresses[num - 1 - i] =
                     pushNewStorageEntry(repo, keys[num - 1 - i], values[num - 1 - i], pushToRepo);
         }
@@ -2099,8 +2098,8 @@ public class CallbackUnitTest {
         if (pushToRepo) {
             repo.addStorageRow(
                     address,
-                    new DataWordImpl(key).toWrapper(),
-                    new ByteArrayWrapper(new DataWordImpl(value).getNoLeadZeroesData()));
+                    new ByteArrayWrapper(FvmDataWord.fromBytes(key).copyOfData()),
+                    new ByteArrayWrapper(ByteUtil.stripLeadingZeroes(FvmDataWord.fromBytes(value).copyOfData())));
         } else {
             Callback.putStorage(address.toByteArray(), key, value);
         }
@@ -2205,7 +2204,7 @@ public class CallbackUnitTest {
                         context.getDestinationAddress(),
                         context.getSenderAddress(),
                         context.getTransactionEnergy(),
-                        new DataWordImpl(context.getTransferValue()),
+                        FvmDataWord.fromBigInteger(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
                         kind,
@@ -2284,7 +2283,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         caller,
                         recipient,
-                        new DataWordImpl(callerBalance),
+                        FvmDataWord.fromBigInteger(callerBalance),
                         dataIsEmpty,
                         septForkEnabled,
                         kind,
@@ -2503,6 +2502,6 @@ public class CallbackUnitTest {
 
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
         return new ExternalStateForTesting(
-                cache, AddressUtils.ZERO_ADDRESS, new DataWordImpl(), false, true, false, 0L, 0L, 0L);
+                cache, AddressUtils.ZERO_ADDRESS, FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
     }
 }

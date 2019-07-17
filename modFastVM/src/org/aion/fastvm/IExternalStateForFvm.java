@@ -62,7 +62,7 @@ public interface IExternalStateForFvm {
      * @param key The key.
      * @param value The value.
      */
-    void addStorageValue(AionAddress address, byte[] key, byte[] value);
+    void addStorageValue(AionAddress address, FvmDataWord key, FvmDataWord value);
 
     /**
      * Removes any key-value pairing whose key is the given key in the storage space of the given
@@ -71,7 +71,7 @@ public interface IExternalStateForFvm {
      * @param address The address.
      * @param key The key.
      */
-    void removeStorage(AionAddress address, byte[] key);
+    void removeStorage(AionAddress address, FvmDataWord key);
 
     /**
      * Returns the value of the key-value pairing in the storage space of the given address if one
@@ -81,7 +81,7 @@ public interface IExternalStateForFvm {
      * @param key The key.
      * @return the value.
      */
-    byte[] getStorageValue(AionAddress address, byte[] key);
+    FvmDataWord getStorageValue(AionAddress address, FvmDataWord key);
 
     /**
      * Returns {@code true} only if the destination address is safe for the FVM to execute.

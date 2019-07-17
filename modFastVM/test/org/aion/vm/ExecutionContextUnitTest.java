@@ -7,9 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.aion.fastvm.FvmDataWord;
 import org.aion.types.AionAddress;
-import org.aion.mcf.vm.DataWord;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.util.types.AddressUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -20,7 +19,7 @@ import org.spongycastle.util.encoders.Hex;
 
 public class ExecutionContextUnitTest {
     private AionAddress recipient, origin, caller, coinbase;
-    private DataWord blockDifficulty, nrgPrice, callValue;
+    private FvmDataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;
     private long nrgLimit, blockNumber, blockTimestamp, blockNrgLimit;
     private int depth, kind, flags;
@@ -35,9 +34,9 @@ public class ExecutionContextUnitTest {
                 AddressUtils.wrapAddress("3333333333333333333333333333333333333333333333333333333333333333");
         coinbase =
                 AddressUtils.wrapAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        blockDifficulty = new DataWordImpl(Hex.decode("0000000000000000000000000000000f"));
-        nrgPrice = new DataWordImpl(Hex.decode("00000000000000000000000000000004"));
-        callValue = new DataWordImpl(Hex.decode("00000000000000000000000000000006"));
+        blockDifficulty = FvmDataWord.fromBytes(Hex.decode("0000000000000000000000000000000f"));
+        nrgPrice = FvmDataWord.fromBytes(Hex.decode("00000000000000000000000000000004"));
+        callValue = FvmDataWord.fromBytes(Hex.decode("00000000000000000000000000000006"));
         txHash = RandomUtils.nextBytes(32);
         callData = new byte[] {0x07};
         depth = 8;
@@ -70,21 +69,21 @@ public class ExecutionContextUnitTest {
 
     @Test
     public void testToBytesRandomBlockDifficulty() {
-        blockDifficulty = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
+        blockDifficulty = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomNrgPrice() {
-        nrgPrice = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
+        nrgPrice = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomCallValue() {
-        callValue = new DataWordImpl(RandomUtils.nextBytes(DataWordImpl.BYTES));
+        callValue = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
@@ -240,10 +239,10 @@ public class ExecutionContextUnitTest {
                 context.getSenderAddress(),
                 new AionAddress(Arrays.copyOfRange(encoding, start, end)));
         start = end;
-        end += DataWordImpl.BYTES;
+        end += FvmDataWord.SIZE;
         assertEquals(
                 context.getTransactionEnergyPrice(),
-                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
+            FvmDataWord.fromBytes(Arrays.copyOfRange(encoding, start, end)).toLong());
         start = end;
         end += Long.BYTES;
         longBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -251,10 +250,10 @@ public class ExecutionContextUnitTest {
         assertEquals(context.getTransactionEnergy(), longBuf.getLong());
         longBuf.clear();
         start = end;
-        end += DataWordImpl.BYTES;
+        end += FvmDataWord.SIZE;
         assertEquals(
-                new DataWordImpl(context.getTransferValue()),
-                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)));
+                FvmDataWord.fromBigInteger(context.getTransferValue()),
+                FvmDataWord.fromBytes(Arrays.copyOfRange(encoding, start, end)));
         start = end;
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
@@ -304,9 +303,9 @@ public class ExecutionContextUnitTest {
         longBuf.flip();
         assertEquals(context.getBlockEnergyLimit(), longBuf.getLong());
         start = end;
-        end += DataWordImpl.BYTES;
+        end += FvmDataWord.SIZE;
         assertEquals(
                 context.getBlockDifficulty(),
-                new DataWordImpl(Arrays.copyOfRange(encoding, start, end)).longValue());
+                FvmDataWord.fromBytes(Arrays.copyOfRange(encoding, start, end)).toLong());
     }
 }

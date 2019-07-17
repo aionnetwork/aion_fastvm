@@ -2,7 +2,6 @@ package org.aion.fastvm;
 
 import java.math.BigInteger;
 import org.aion.base.AionTransaction;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.AionAddress;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -267,16 +266,15 @@ public final class FastVirtualMachine {
         byte[] transactionHash = transaction.getTransactionHash();
         AionAddress originAddress = transaction.getSenderAddress();
         AionAddress callerAddress = transaction.getSenderAddress();
-        DataWordImpl energyPrice = new DataWordImpl(transaction.getEnergyPrice());
+        FvmDataWord energyPrice = FvmDataWord.fromLong(transaction.getEnergyPrice());
         long energyRemaining = transaction.getEnergyLimit() - transaction.getTransactionCost();
-        DataWordImpl transferValue =
-                new DataWordImpl(ArrayUtils.nullToEmpty(transaction.getValue()));
+        FvmDataWord transferValue = FvmDataWord.fromBytes(ArrayUtils.nullToEmpty(transaction.getValue()));
         byte[] data = ArrayUtils.nullToEmpty(transaction.getData());
         AionAddress minerAddress = externalState.getMinerAddress();
         long blockNumber = externalState.getBlockNumber();
         long blockTimestamp = externalState.getBlockTimestamp();
         long blockEnergyLimit = externalState.getBlockEnergyLimit();
-        DataWordImpl blockDifficulty = new DataWordImpl(externalState.getBlockDifficulty());
+        FvmDataWord blockDifficulty = FvmDataWord.fromLong(externalState.getBlockDifficulty());
         AionAddress destinationAddress =
                 transaction.isContractCreationTransaction()
                         ? transaction.getContractAddress()

@@ -59,9 +59,7 @@ import org.aion.mcf.db.ContractDetails;
 import org.aion.mcf.db.PruneConfig;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.config.CfgPrune;
-import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.util.types.ByteArrayWrapper;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
@@ -90,11 +88,11 @@ public class NrgCostTest {
     private long blockNumber = 1;
     private long blockTimestamp = System.currentTimeMillis() / 1000;
     private long blockNrgLimit = 5000000;
-    private DataWord blockDifficulty = new DataWordImpl(0x100000000L);
+    private FvmDataWord blockDifficulty = FvmDataWord.fromLong(0x100000000L);
 
-    private DataWord nrgPrice;
+    private FvmDataWord nrgPrice;
     private long nrgLimit;
-    private DataWord callValue;
+    private FvmDataWord callValue;
     private byte[] callData;
 
     private int depth = 0;
@@ -113,9 +111,9 @@ public class NrgCostTest {
 
     @Before
     public void setup() {
-        nrgPrice = DataWordImpl.ONE;
+        nrgPrice = FvmDataWord.fromLong(1);
         nrgLimit = 10_000_000L;
-        callValue = DataWordImpl.ZERO;
+        callValue = FvmDataWord.fromLong(0);
         callData = new byte[0];
 
         address = new AionAddress(RandomUtils.nextBytes(32));
@@ -633,9 +631,9 @@ public class NrgCostTest {
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
                     repo.addStorageRow(
                             address,
-                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper(),
+                            new ByteArrayWrapper(FvmDataWord.fromBytes(RandomUtils.nextBytes(16)).copyOfData()),
                             new ByteArrayWrapper(
-                                    new DataWordImpl(RandomUtils.nextBytes(16)).getNoLeadZeroesData()));
+                                    ByteUtil.stripLeadingZeroes(FvmDataWord.fromBytes(RandomUtils.nextBytes(16)).copyOfData())));
                 }
                 repo.flush();
                 db.flush();
@@ -649,10 +647,10 @@ public class NrgCostTest {
                     AionAddress address =
                             new AionAddress(
                                     ByteUtil.merge(zeros28, ByteUtil.intToBytes(i * 1024 + j)));
-                    new DataWordImpl(
+                    FvmDataWord.fromBytes(
                             repo.getStorageValue(
                                             address,
-                                            new DataWordImpl(RandomUtils.nextBytes(16)).toWrapper())
+                                            new ByteArrayWrapper(FvmDataWord.fromBytes(RandomUtils.nextBytes(16)).copyOfData()))
                                     .getData());
                 }
                 repo.flush();

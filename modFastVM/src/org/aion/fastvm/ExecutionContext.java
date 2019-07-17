@@ -27,9 +27,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.aion.base.AionTransaction;
 import org.aion.types.AionAddress;
-import org.aion.mcf.vm.types.DataWordImpl;
-import org.aion.mcf.vm.types.DoubleDataWord;
-import org.aion.mcf.vm.DataWord;
 import org.aion.util.bytes.ByteUtil;
 
 /**
@@ -40,7 +37,7 @@ import org.aion.util.bytes.ByteUtil;
 public class ExecutionContext {
     private static final int ENCODE_BASE_LEN =
             (AionAddress.LENGTH * 4)
-                    + (DataWordImpl.BYTES * 3)
+                    + (FvmDataWord.SIZE * 3)
                     + (Long.BYTES * 4)
                     + (Integer.BYTES * 4);
     public static int CALL = 0;
@@ -56,9 +53,9 @@ public class ExecutionContext {
     public AionAddress address;
     public AionAddress sender;
     private AionAddress blockCoinbase;
-    private DataWord nrgPrice;
-    private DataWord callValue;
-    private DataWord blockDifficulty;
+    private FvmDataWord nrgPrice;
+    private FvmDataWord callValue;
+    private FvmDataWord blockDifficulty;
     private byte[] callData;
     private byte[] txHash;
     private long nrg; // NOTE: nrg = tx_nrg_limit - tx_basic_cost
@@ -97,9 +94,9 @@ public class ExecutionContext {
             AionAddress destination,
             AionAddress origin,
             AionAddress sender,
-            DataWord nrgPrice,
+            FvmDataWord nrgPrice,
             long nrg,
-            DataWord callValue,
+            FvmDataWord callValue,
             byte[] callData,
             int depth,
             int kind,
@@ -108,7 +105,7 @@ public class ExecutionContext {
             long blockNumber,
             long blockTimestamp,
             long blockNrgLimit,
-            DataWord blockDifficulty) {
+            FvmDataWord blockDifficulty) {
 
         this.transaction = transaction;
         this.address = destination;
@@ -155,9 +152,9 @@ public class ExecutionContext {
         buffer.put(address.toByteArray());
         buffer.put(origin.toByteArray());
         buffer.put(sender.toByteArray());
-        buffer.put(nrgPrice.getData());
+        buffer.put(nrgPrice.copyOfData());
         buffer.putLong(nrg);
-        buffer.put(callValue.getData());
+        buffer.put(callValue.copyOfData());
         buffer.putInt(callData.length); // length of the call data
         buffer.put(callData);
         buffer.putInt(depth);
@@ -167,7 +164,7 @@ public class ExecutionContext {
         buffer.putLong(blockNumber);
         buffer.putLong(blockTimestamp);
         buffer.putLong(blockNrgLimit);
-        buffer.put(blockDifficulty.getData());
+        buffer.put(blockDifficulty.copyOfData());
         return buffer.array();
     }
 
@@ -201,11 +198,7 @@ public class ExecutionContext {
 
     /** @return the nrg price in current environment. */
     public long getTransactionEnergyPrice() {
-        if (this.nrgPrice instanceof DataWordImpl) {
-            return ((DataWordImpl) this.nrgPrice).longValue();
-        } else {
-            return ((DoubleDataWord) this.nrgPrice).longValue();
-        }
+        return this.nrgPrice.toLong();
     }
 
     /** @return the nrg limit in current environment. */
@@ -215,7 +208,7 @@ public class ExecutionContext {
 
     /** @return the deposited value by instruction/transaction. */
     public BigInteger getTransferValue() {
-        return callValue.value();
+        return callValue.toBigInteger();
     }
 
     /** @return the call data. */
@@ -260,11 +253,7 @@ public class ExecutionContext {
 
     /** @return the block difficulty. */
     public long getBlockDifficulty() {
-        if (blockDifficulty instanceof DataWordImpl) {
-            return ((DataWordImpl) blockDifficulty).longValue();
-        } else {
-            return ((DoubleDataWord) blockDifficulty).longValue();
-        }
+        return blockDifficulty.toLong();
     }
 
     /** @return the transaction helper. */
