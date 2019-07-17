@@ -8,9 +8,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.aion.precompiled.PrecompiledResultCode;
-import org.aion.precompiled.PrecompiledTransactionResult;
-import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.types.InternalTransaction.RejectedStatus;
@@ -19,8 +16,6 @@ import org.aion.util.bytes.ByteUtil;
 import org.aion.mcf.vm.DataWord;
 import org.aion.crypto.HashUtil;
 import org.aion.base.Constants;
-import org.aion.precompiled.ContractFactory;
-import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,6 +32,10 @@ public class Callback {
 
     private static LinkedList<Pair<ExecutionContext, IExternalStateForFvm>> stack =
             new LinkedList<>();
+
+    public static boolean stackIsEmpty() {
+        return stack.isEmpty();
+    }
 
     /** Pushes a pair of context and repository into the callback stack. */
     public static void push(Pair<ExecutionContext, IExternalStateForFvm> pair) {
@@ -158,7 +157,7 @@ public class Callback {
      * method was formerly called call and now the call method simply invokes this method with new
      * instances of the fast vm and contract factory.
      */
-    static byte[] performCall(byte[] message, FastVM vm, ContractFactory factory) {
+    static byte[] performCall(byte[] message, FastVM vm) {
         ExecutionContext ctx = parseMessage(message);
 
         // check call stack depth
@@ -178,7 +177,7 @@ public class Callback {
         if (ctx.getTransactionKind() == ExecutionContext.CREATE) {
             result = doCreate(ctx, vm);
         } else {
-            result = doCall(ctx, vm, factory);
+            result = doCall(ctx, vm);
         }
 
         // merge the effects
@@ -195,12 +194,11 @@ public class Callback {
 
     /** Process CALL/CALLCODE/DELEGATECALL/CREATE opcode. */
     public static byte[] call(byte[] message) {
-        return performCall(message, new FastVM(), new ContractFactory());
+        return performCall(message, new FastVM());
     }
 
     /** The method handles the CALL/CALLCODE/DELEGATECALL opcode. */
-    private static FastVmTransactionResult doCall(
-            ExecutionContext ctx, FastVM jit, ContractFactory factory) {
+    private static FastVmTransactionResult doCall(ExecutionContext ctx, FastVM jit) {
         AionAddress codeAddress = ctx.getDestinationAddress();
         if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
                 || ctx.getTransactionKind() == ExecutionContext.DELEGATECALL) {
@@ -238,11 +236,10 @@ public class Callback {
             childState.addBalance(ctx.getDestinationAddress(), transferAmount);
         }
 
-        PrecompiledContract pc = factory.getPrecompiledContract(toPrecompiledTransactionContext(ctx), wrapInExternalState(childState));
-        if (pc != null) {
-            result =
-                    precompiledToFvmResult(
-                            pc.execute(ctx.getTransactionData(), ctx.getTransactionEnergy()), childState);
+        if (childState.isPrecompiledContract(ctx.getDestinationAddress())) {
+
+            result = childState.runInternalPrecompiledContractCall(ctx);
+
         } else {
             // get the code
             byte[] code =
@@ -420,81 +417,5 @@ public class Callback {
                 blockTimestamp,
                 blockNrgLimit,
                 blockDifficulty);
-    }
-
-    private static FastVmTransactionResult precompiledToFvmResult(
-            PrecompiledTransactionResult precompiledResult, IExternalStateForFvm state) {
-        FastVmTransactionResult fvmResult = new FastVmTransactionResult();
-
-        fvmResult.addLogs(precompiledResult.getLogs());
-        fvmResult.addInternalTransactions(precompiledResult.getInternalTransactions());
-        fvmResult.addDeletedAddresses(precompiledResult.getDeletedAddresses());
-
-        fvmResult.setEnergyRemaining(precompiledResult.getEnergyRemaining());
-        fvmResult.setResultCode(precompiledToFvmResultCode(precompiledResult.getResultCode()));
-        fvmResult.setReturnData(precompiledResult.getReturnData());
-        fvmResult.setKernelInterface(state);
-
-        return fvmResult;
-    }
-
-    private static FastVmResultCode precompiledToFvmResultCode(
-            PrecompiledResultCode precompiledResultCode) {
-        switch (precompiledResultCode) {
-            case BAD_JUMP_DESTINATION:
-                return FastVmResultCode.BAD_JUMP_DESTINATION;
-            case VM_INTERNAL_ERROR:
-                return FastVmResultCode.VM_INTERNAL_ERROR;
-            case STATIC_MODE_ERROR:
-                return FastVmResultCode.STATIC_MODE_ERROR;
-            case INVALID_NRG_LIMIT:
-                return FastVmResultCode.INVALID_NRG_LIMIT;
-            case STACK_UNDERFLOW:
-                return FastVmResultCode.STACK_UNDERFLOW;
-            case BAD_INSTRUCTION:
-                return FastVmResultCode.BAD_INSTRUCTION;
-            case STACK_OVERFLOW:
-                return FastVmResultCode.STACK_OVERFLOW;
-            case INVALID_NONCE:
-                return FastVmResultCode.INVALID_NONCE;
-            case VM_REJECTED:
-                return FastVmResultCode.VM_REJECTED;
-            case OUT_OF_NRG:
-                return FastVmResultCode.OUT_OF_NRG;
-            case SUCCESS:
-                return FastVmResultCode.SUCCESS;
-            case FAILURE:
-                return FastVmResultCode.FAILURE;
-            case REVERT:
-                return FastVmResultCode.REVERT;
-            case ABORT:
-                return FastVmResultCode.ABORT;
-            case INSUFFICIENT_BALANCE:
-                return FastVmResultCode.INSUFFICIENT_BALANCE;
-            case INCOMPATIBLE_CONTRACT_CALL:
-                return FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL;
-            default:
-                throw new IllegalStateException("Unknown code: " + precompiledResultCode);
-        }
-    }
-
-    private static PrecompiledTransactionContext toPrecompiledTransactionContext(
-            ExecutionContext context) {
-        return new PrecompiledTransactionContext(
-                context.getDestinationAddress(),
-                context.getOriginAddress(),
-                context.getSenderAddress(),
-                context.getSideEffects().getExecutionLogs(),
-                context.getSideEffects().getInternalTransactions(),
-                context.getSideEffects().getAddressesToBeDeleted(),
-                context.getHashOfOriginTransaction(),
-                context.getTransactionHash(),
-                context.getBlockNumber(),
-                context.getTransactionEnergy(),
-                context.getTransactionStackDepth());
-    }
-
-    private static ExternalStateForPrecompiled wrapInExternalState(IExternalStateForFvm state) {
-        return new ExternalStateForPrecompiled(state.getUnderlyingRepository(), state.getBlockNumber(), state.isLocalCall(), state.allowNonceIncrement());
     }
 }

@@ -1,6 +1,8 @@
 package org.aion;
 
 import java.math.BigInteger;
+import org.aion.fastvm.ExecutionContext;
+import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.IExternalStateForFvm;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -10,6 +12,7 @@ import org.aion.mcf.valid.TxNrgRule;
 import org.aion.mcf.vm.DataWord;
 import org.aion.mcf.vm.types.DataWordImpl;
 import org.aion.mcf.vm.types.DoubleDataWord;
+import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.types.AionAddress;
 import org.aion.util.types.ByteArrayWrapper;
 
@@ -78,6 +81,28 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     @Override
     public ExternalStateForTesting newChildExternalState() {
         return new ExternalStateForTesting(this.repository.startTracking(), this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
+    }
+
+    /**
+     * Returns {@code true} only if the specified address is the address of a precompiled contract.
+     *
+     * @param address The address to check.
+     * @return whether the address is a precompiled contract.
+     */
+    @Override
+    public boolean isPrecompiledContract(AionAddress address) {
+        return PrecompiledFactoryForTesting.isPrecompiledContract(address);
+    }
+
+    /**
+     * Executes an internal precompiled contract call and returns the result.
+     *
+     * @param context The context of the internal transaction.
+     * @return the execution result.
+     */
+    @Override
+    public FastVmTransactionResult runInternalPrecompiledContractCall(ExecutionContext context) {
+        return PrecompiledFactoryForTesting.runPrecompiledContract(context);
     }
 
     /**

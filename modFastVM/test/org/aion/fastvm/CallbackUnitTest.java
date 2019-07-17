@@ -18,10 +18,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import org.aion.ExternalStateForTesting;
-import org.aion.precompiled.PrecompiledResultCode;
-import org.aion.precompiled.PrecompiledTransactionResult;
-import org.aion.precompiled.type.IExternalStateForPrecompiled;
-import org.aion.precompiled.type.PrecompiledTransactionContext;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -38,8 +34,6 @@ import org.aion.crypto.HashUtil;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.base.Constants;
-import org.aion.precompiled.ContractFactory;
-import org.aion.precompiled.type.PrecompiledContract;
 import org.aion.util.types.AddressUtils;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -840,66 +834,6 @@ public class CallbackUnitTest {
     }
 
     @Test
-    public void testPerformCallDelegateCallIsPrecompiledIsSuccessSeptForkDisabled() {
-        performCallIsPrecompiledIsSuccessSeptForkDisabled(ExecutionContext.DELEGATECALL);
-    }
-
-    @Test
-    public void testPerformCallCallcodeIsPrecompiledIsSuccessSeptForkDisabled() {
-        performCallIsPrecompiledIsSuccessSeptForkDisabled(ExecutionContext.CALLCODE);
-    }
-
-    @Test
-    public void testPerformCallCallIsPrecompiledIsSuccessSeptForkDisabled() {
-        performCallIsPrecompiledIsSuccessSeptForkDisabled(ExecutionContext.CALL);
-    }
-
-    @Test
-    public void testPerformCallDelegateCallIsPrecompiledNotSuccessSeptForkDisabled() {
-        performCallIsPrecompiledNotSuccessSeptForkDisabled(ExecutionContext.DELEGATECALL);
-    }
-
-    @Test
-    public void testPerformCallCallcodeIsPrecompiledNotSuccessSeptForkDisabled() {
-        performCallIsPrecompiledNotSuccessSeptForkDisabled(ExecutionContext.CALLCODE);
-    }
-
-    @Test
-    public void testPerformCallCallIsPrecompiledNotSuccessSeptForkDisabled() {
-        performCallIsPrecompiledNotSuccessSeptForkDisabled(ExecutionContext.CALL);
-    }
-
-    @Test
-    public void testPerformCallDelegateCallIsPrecompiledIsSuccessSeptForkEnabled() {
-        performCallIsPrecompiledIsSuccessSeptForkEnabled(ExecutionContext.DELEGATECALL);
-    }
-
-    @Test
-    public void testPerformCallCallcodeIsPrecompiledIsSuccessSeptForkEnabled() {
-        performCallIsPrecompiledIsSuccessSeptForkEnabled(ExecutionContext.CALLCODE);
-    }
-
-    @Test
-    public void testPerformCallCallIsPrecompiledIsSuccessSeptForkEnabled() {
-        performCallIsPrecompiledIsSuccessSeptForkEnabled(ExecutionContext.CALL);
-    }
-
-    @Test
-    public void testPerformCallDelegateCallIsPrecompiledNotSuccessSeptForkEnabled() {
-        performCallIsPrecompiledNotSuccessSeptForkEnabled(ExecutionContext.DELEGATECALL);
-    }
-
-    @Test
-    public void testPerformCallCallcodeIsPrecompiledNotSuccessSeptForkEnabled() {
-        performCallIsPrecompiledNotSuccessSeptForkEnabled(ExecutionContext.CALLCODE);
-    }
-
-    @Test
-    public void testPerformCallCallIsPrecompiledNotSuccessSeptForkEnabled() {
-        performCallIsPrecompiledNotSuccessSeptForkEnabled(ExecutionContext.CALL);
-    }
-
-    @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoRecipientSeptForkDisabled() {
         performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(
                 ExecutionContext.DELEGATECALL);
@@ -1052,12 +986,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1087,12 +1019,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1123,12 +1053,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1162,12 +1090,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1201,12 +1127,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1237,12 +1161,10 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1273,14 +1195,12 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null);
 
         mockedResult.setResultCodeAndEnergyRemaining(
                 FastVmResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1311,14 +1231,12 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null);
 
         mockedResult.setResultCodeAndEnergyRemaining(
                 FastVmResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1350,12 +1268,10 @@ public class CallbackUnitTest {
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1387,12 +1303,10 @@ public class CallbackUnitTest {
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null);
 
         runPerformCallAndCheck(
                 context,
                 vm,
-                factory,
                 mockedResult,
                 false,
                 ExecutionContext.CREATE,
@@ -1425,12 +1339,10 @@ public class CallbackUnitTest {
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null);
 
                 runPerformCallAndCheck(
                         context,
                         vm,
-                        factory,
                         mockedResult,
                         false,
                         ExecutionContext.CREATE,
@@ -1465,12 +1377,10 @@ public class CallbackUnitTest {
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null);
 
                 runPerformCallAndCheck(
                         context,
                         vm,
-                        factory,
                         mockedResult,
                         false,
                         ExecutionContext.CREATE,
@@ -1484,155 +1394,6 @@ public class CallbackUnitTest {
     }
 
     // <----------METHODS BELOW ARE TESTS THAT ARE SHARED BY MULTIPLE TESTS AND SO REUSED---------->
-
-    private void performCallIsPrecompiledIsSuccessSeptForkDisabled(int kind) {
-        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = RandomUtils.nextLong(0, 10_000);
-        ExecutionContext context =
-                setupTestForPerformCall(
-                        callerBalance,
-                        recipientBalance,
-                        false,
-                        kind,
-                        new byte[0],
-                        false,
-                        false,
-                        nrgLimit);
-
-        long energy = RandomUtils.nextLong(0, 10_000);
-        FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energy);
-        FastVM vm = mockFastVM(mockedResult);
-
-        PrecompiledTransactionResult precompiledMockedResult =
-                new PrecompiledTransactionResult(PrecompiledResultCode.SUCCESS, energy);
-        ContractFactory factory = mockFactory(precompiledMockedResult);
-
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
-        checkContextHelper(true);
-        checkPerformCallResults(
-                context,
-                callerBalance,
-                recipientBalance,
-                false,
-                false,
-                kind,
-                mockedResult.getResultCode());
-    }
-
-    private void performCallIsPrecompiledNotSuccessSeptForkDisabled(int kind) {
-        for (FastVmResultCode code : FastVmResultCode.values()) {
-            if (!code.equals(FastVmResultCode.SUCCESS)) {
-                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-                long nrgLimit = RandomUtils.nextLong(0, 10_000);
-                ExecutionContext context =
-                        setupTestForPerformCall(
-                                callerBalance,
-                                recipientBalance,
-                                false,
-                                kind,
-                                new byte[0],
-                                false,
-                                false,
-                                nrgLimit);
-
-                FastVmTransactionResult mockedResult = new FastVmTransactionResult(code, 0);
-                FastVM vm = mockFastVM(mockedResult);
-                PrecompiledTransactionResult precompiledMockedResult =
-                        new PrecompiledTransactionResult(fvmToPrecompiledCode(code), 0);
-                ContractFactory factory = mockFactory(precompiledMockedResult);
-
-                runPerformCallAndCheck(
-                        context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().getSideEffects());
-                checkContextHelper(true);
-                checkPerformCallResults(
-                        context,
-                        callerBalance,
-                        recipientBalance,
-                        false,
-                        false,
-                        kind,
-                        mockedResult.getResultCode());
-            }
-        }
-    }
-
-    private void performCallIsPrecompiledIsSuccessSeptForkEnabled(int kind) {
-        BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-        BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = RandomUtils.nextLong(0, 10_000);
-        ExecutionContext context =
-                setupTestForPerformCall(
-                        callerBalance,
-                        recipientBalance,
-                        true,
-                        kind,
-                        new byte[0],
-                        false,
-                        false,
-                        nrgLimit);
-
-        long energy = RandomUtils.nextLong(0, 10_000);
-        FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, energy);
-        FastVM vm = mockFastVM(mockedResult);
-        PrecompiledTransactionResult precompiledMockedResult =
-                new PrecompiledTransactionResult(PrecompiledResultCode.SUCCESS, energy);
-        ContractFactory factory = mockFactory(precompiledMockedResult);
-
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
-        checkContextHelper(true);
-        checkPerformCallResults(
-                context,
-                callerBalance,
-                recipientBalance,
-                false,
-                false,
-                kind,
-                mockedResult.getResultCode());
-    }
-
-    private void performCallIsPrecompiledNotSuccessSeptForkEnabled(int kind) {
-        for (FastVmResultCode code : FastVmResultCode.values()) {
-            if (!code.equals(FastVmResultCode.SUCCESS)) {
-                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-                long nrgLimit = RandomUtils.nextLong(0, 10_000);
-                ExecutionContext context =
-                        setupTestForPerformCall(
-                                callerBalance,
-                                recipientBalance,
-                                true,
-                                kind,
-                                new byte[0],
-                                false,
-                                false,
-                                nrgLimit);
-
-                FastVmTransactionResult mockedResult = new FastVmTransactionResult(code, 0);
-                FastVM vm = mockFastVM(mockedResult);
-                PrecompiledTransactionResult precompiledMockedResult =
-                        new PrecompiledTransactionResult(fvmToPrecompiledCode(code), 0);
-                ContractFactory factory = mockFactory(precompiledMockedResult);
-
-                runPerformCallAndCheck(
-                        context, vm, factory, mockedResult, false, kind, false, false, null);
-                checkHelperForRejections(Callback.context().getSideEffects());
-                checkContextHelper(true);
-                checkPerformCallResults(
-                        context,
-                        callerBalance,
-                        recipientBalance,
-                        false,
-                        false,
-                        kind,
-                        mockedResult.getResultCode());
-            }
-        }
-    }
 
     private void performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(int kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
@@ -1653,13 +1414,12 @@ public class CallbackUnitTest {
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
-            ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setResultCode(FastVmResultCode.SUCCESS);
             runPerformCallAndCheck(
-                    context, vm, factory, mockedResult, true, kind, false, false, null);
+                    context, vm, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(
                     context,
@@ -1691,13 +1451,12 @@ public class CallbackUnitTest {
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
-            ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setResultCode(FastVmResultCode.SUCCESS);
             runPerformCallAndCheck(
-                    context, vm, factory, mockedResult, true, kind, false, false, null);
+                    context, vm, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(
                     context,
@@ -1729,13 +1488,12 @@ public class CallbackUnitTest {
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
-            ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setResultCode(FastVmResultCode.SUCCESS);
             runPerformCallAndCheck(
-                    context, vm, factory, mockedResult, true, kind, false, false, null);
+                    context, vm, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(
                     context,
@@ -1767,13 +1525,12 @@ public class CallbackUnitTest {
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
             FastVM vm = mockFastVM(mockedResult);
-            ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
             mockedResult.setResultCode(FastVmResultCode.SUCCESS);
             runPerformCallAndCheck(
-                    context, vm, factory, mockedResult, true, kind, false, false, null);
+                    context, vm, mockedResult, true, kind, false, false, null);
             checkContextHelper(true);
             checkPerformCallResults(
                     context,
@@ -1805,9 +1562,8 @@ public class CallbackUnitTest {
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
+        runPerformCallAndCheck(context, vm, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(
                 context,
@@ -1839,10 +1595,9 @@ public class CallbackUnitTest {
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
                 runPerformCallAndCheck(
-                        context, vm, factory, mockedResult, false, kind, false, false, null);
+                        context, vm, mockedResult, false, kind, false, false, null);
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
@@ -1876,9 +1631,8 @@ public class CallbackUnitTest {
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
         FastVM vm = mockFastVM(mockedResult);
-        ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
-        runPerformCallAndCheck(context, vm, factory, mockedResult, false, kind, false, false, null);
+        runPerformCallAndCheck(context, vm, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
         checkPerformCallResults(
                 context,
@@ -1910,10 +1664,9 @@ public class CallbackUnitTest {
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
                 FastVM vm = mockFastVM(mockedResult);
-                ContractFactory factory = mockFactory(null); // signal not a precompiled contract.
 
                 runPerformCallAndCheck(
-                        context, vm, factory, mockedResult, false, kind, false, false, null);
+                        context, vm, mockedResult, false, kind, false, false, null);
                 checkHelperForRejections(Callback.context().getSideEffects());
                 checkContextHelper(true);
                 checkPerformCallResults(
@@ -2374,30 +2127,6 @@ public class CallbackUnitTest {
         return address;
     }
 
-    /**
-     * Returns a mocked ContractFactory whose returned contract's execute method will return result.
-     * Unless result is null! In this case the mocked factory returns null, which tells Callback
-     * that the transaction is not a precompiled contract.
-     */
-    private ContractFactory mockFactory(PrecompiledTransactionResult result) {
-        PrecompiledContract contract = mock(PrecompiledContract.class);
-        when(contract.execute(Mockito.any(byte[].class), Mockito.anyLong())).thenReturn(result);
-        ContractFactory factory = mock(ContractFactory.class);
-        if (result == null) {
-            when(factory.getPrecompiledContract(
-                            Mockito.any(PrecompiledTransactionContext.class),
-                            Mockito.any(IExternalStateForPrecompiled.class)))
-                    .thenReturn(null);
-            return factory;
-        } else {
-            when(factory.getPrecompiledContract(
-                            Mockito.any(PrecompiledTransactionContext.class),
-                            Mockito.any(IExternalStateForPrecompiled.class)))
-                    .thenReturn(contract);
-        }
-        return factory;
-    }
-
     /** Returns a mocked FastVM whose run method returns result. */
     private FastVM mockFastVM(FastVmTransactionResult result) {
         FastVM vm = mock(FastVM.class);
@@ -2454,7 +2183,6 @@ public class CallbackUnitTest {
      *
      * @param context The context whose params were used in the test set up.
      * @param mockVM A mocked VM.
-     * @param mockFac A mocked ContractFactory.
      * @param expectedResult The expected performCall result.
      * @param vmGotBadCode Signals that the code for the VM to execute was null or empty.
      * @param kind The opcode to run.
@@ -2465,7 +2193,6 @@ public class CallbackUnitTest {
     private void runPerformCallAndCheck(
             ExecutionContext context,
             FastVM mockVM,
-            ContractFactory mockFac,
             FastVmTransactionResult expectedResult,
             boolean vmGotBadCode,
             int kind,
@@ -2484,7 +2211,7 @@ public class CallbackUnitTest {
                         kind,
                         0);
         FastVmTransactionResult result =
-                FastVmTransactionResult.fromBytes(Callback.performCall(message, mockVM, mockFac));
+                FastVmTransactionResult.fromBytes(Callback.performCall(message, mockVM));
         assertEquals(expectedResult.getResultCode(), result.getResultCode());
         if (vmGotBadCode) {
             assertEquals(context.getTransactionEnergy(), result.getEnergyRemaining());
@@ -2777,44 +2504,5 @@ public class CallbackUnitTest {
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
         return new ExternalStateForTesting(
                 cache, AddressUtils.ZERO_ADDRESS, new DataWordImpl(), false, true, false, 0L, 0L, 0L);
-    }
-
-    private static PrecompiledResultCode fvmToPrecompiledCode(FastVmResultCode fvmCode) {
-        switch (fvmCode) {
-            case INCOMPATIBLE_CONTRACT_CALL:
-                return PrecompiledResultCode.INCOMPATIBLE_CONTRACT_CALL;
-            case INSUFFICIENT_BALANCE:
-                return PrecompiledResultCode.INSUFFICIENT_BALANCE;
-            case BAD_JUMP_DESTINATION:
-                return PrecompiledResultCode.BAD_JUMP_DESTINATION;
-            case VM_INTERNAL_ERROR:
-                return PrecompiledResultCode.VM_INTERNAL_ERROR;
-            case STATIC_MODE_ERROR:
-                return PrecompiledResultCode.STATIC_MODE_ERROR;
-            case INVALID_NRG_LIMIT:
-                return PrecompiledResultCode.INVALID_NRG_LIMIT;
-            case STACK_UNDERFLOW:
-                return PrecompiledResultCode.STACK_UNDERFLOW;
-            case BAD_INSTRUCTION:
-                return PrecompiledResultCode.BAD_INSTRUCTION;
-            case STACK_OVERFLOW:
-                return PrecompiledResultCode.STACK_OVERFLOW;
-            case INVALID_NONCE:
-                return PrecompiledResultCode.INVALID_NONCE;
-            case VM_REJECTED:
-                return PrecompiledResultCode.VM_REJECTED;
-            case OUT_OF_NRG:
-                return PrecompiledResultCode.OUT_OF_NRG;
-            case SUCCESS:
-                return PrecompiledResultCode.SUCCESS;
-            case FAILURE:
-                return PrecompiledResultCode.FAILURE;
-            case REVERT:
-                return PrecompiledResultCode.REVERT;
-            case ABORT:
-                return PrecompiledResultCode.ABORT;
-            default:
-                throw new IllegalArgumentException("Unknown code: " + fvmCode);
-        }
     }
 }

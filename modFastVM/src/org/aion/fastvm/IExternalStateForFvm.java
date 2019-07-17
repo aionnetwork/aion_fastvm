@@ -38,6 +38,23 @@ public interface IExternalStateForFvm {
     IExternalStateForFvm newChildExternalState();
 
     /**
+     * Returns {@code true} only if the specified address is the address of a precompiled contract.
+     *
+     * @param address The address to check.
+     * @return whether the address is a precompiled contract.
+     */
+    boolean isPrecompiledContract(AionAddress address);
+
+    /**
+     * Executes an internal precompiled contract call. The provided context is the context for the
+     * internal transaction.
+     *
+     * @param context The context of the internal transaction.
+     * @return the execution result.
+     */
+    FastVmTransactionResult runInternalPrecompiledContractCall(ExecutionContext context);
+
+    /**
      * Adds the specified key-value pair to the storage space of the given address, overwriting the
      * value of the pairing with this new value if the key already exists.
      *
