@@ -6,9 +6,9 @@ import org.aion.fastvm.ExecutionContext;
 import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.FvmDataWord;
 import org.aion.fastvm.IExternalStateForFvm;
-import org.aion.mcf.valid.TxNrgRule;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.repository.BlockchainForTesting;
+import org.aion.repository.EnergyLimitRuleForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.types.AionAddress;
 
@@ -261,7 +261,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public boolean isValidEnergyLimitForCreate(long energyLimit) {
-        return (this.isLocalCall) ? true : TxNrgRule.isValidNrgContractCreate(energyLimit);
+        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForCreate(energyLimit);
     }
 
     /**
@@ -276,7 +276,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public boolean isValidEnergyLimitForNonCreate(long energyLimit) {
-        return (this.isLocalCall) ? true : TxNrgRule.isValidNrgTx(energyLimit);
+        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreate(energyLimit);
     }
 
     /**
