@@ -235,7 +235,7 @@ public class CallbackQueryTest {
     }
 
     private static ExecutionContext newDummyContext() {
-        return new ExecutionContext(null, null, randomAddress(), randomAddress(), randomAddress(), FvmDataWord.fromLong(1L), 1L, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, ExecutionContext.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
+        return new ExecutionContext(null, null, randomAddress(), randomAddress(), randomAddress(), FvmDataWord.fromLong(1L), 1L, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, TransactionKind.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
     }
 
     private static ExternalStateForTesting newState(BlockchainForTesting blockchain) {

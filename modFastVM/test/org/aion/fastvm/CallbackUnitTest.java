@@ -327,7 +327,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -341,7 +341,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         byte[] message =
                 generateContextMessage(
@@ -370,7 +370,7 @@ public class CallbackUnitTest {
                             FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             false,
                             false,
-                            ExecutionContext.DELEGATECALL,
+                            TransactionKind.DELEGATE_CALL,
                             nrgLimit);
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
@@ -387,7 +387,7 @@ public class CallbackUnitTest {
                             FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             i % 2 == 0,
                             false,
-                            ExecutionContext.DELEGATECALL,
+                            TransactionKind.DELEGATE_CALL,
                             nrgLimit);
             byte[] message =
                     generateContextMessage(
@@ -415,7 +415,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -429,7 +429,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         true,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         byte[] message =
                 generateContextMessage(
@@ -457,7 +457,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -471,7 +471,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBigInteger(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
-                        Constants.MAX_CALL_DEPTH,
+                        TransactionKind.CALL,
                         0);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.call(message));
         assertEquals(FastVmResultCode.FAILURE, result.getResultCode());
@@ -491,7 +491,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBigInteger(balance.add(BigInteger.ONE)),
                         false,
                         false,
-                        ExecutionContext.DELEGATECALL,
+                        TransactionKind.DELEGATE_CALL,
                         nrgLimit);
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
@@ -505,7 +505,7 @@ public class CallbackUnitTest {
                         FvmDataWord.fromBigInteger(context.getTransferValue()),
                         context.getTransactionData(),
                         context.getTransactionStackDepth(),
-                        0,
+                        TransactionKind.CALL,
                         0);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.call(message));
         assertEquals(FastVmResultCode.FAILURE, result.getResultCode());
@@ -515,135 +515,134 @@ public class CallbackUnitTest {
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoRecipientSeptForkDisabled() {
         performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(
-                ExecutionContext.DELEGATECALL);
+                TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractNoRecipientSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractNoRecipientSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(TransactionKind.CALL);
     }
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoRecipientSeptForkEnabled() {
         performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(
-                ExecutionContext.DELEGATECALL);
+                TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractNoRecipientSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractNoRecipientSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(TransactionKind.CALL);
     }
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoCodeSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractNoCodeSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractNoCodeSeptForkDisabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(TransactionKind.CALL);
     }
 
     @Test
     public void testPerformCallDelegateCallIsNotPrecompiledContractNoCodeSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractNoCodeSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(ExecutionContext.CALLCODE);
+        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractNoCodeSeptForkEnabled() {
-        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(TransactionKind.CALL);
     }
 
     @Test
     public void
             testPerformCallDelegateCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(
-                ExecutionContext.DELEGATECALL);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled() {
         performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(
-                ExecutionContext.CALLCODE);
+                TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(TransactionKind.CALL);
     }
 
     @Test
     public void
             testPerformCallDelegateCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(
-                ExecutionContext.DELEGATECALL);
+                TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(
-                ExecutionContext.CALLCODE);
+                TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(TransactionKind.CALL);
     }
 
     @Test
     public void
             testPerformCallDelegateCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(
-                ExecutionContext.DELEGATECALL);
+                TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(
-                ExecutionContext.CALLCODE);
+                TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(TransactionKind.CALL);
     }
 
     @Test
     public void
             testPerformCallDelegateCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(
-                ExecutionContext.DELEGATECALL);
+                TransactionKind.DELEGATE_CALL);
     }
 
     @Test
     public void testPerformCallCallcodeIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
         performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(
-                ExecutionContext.CALLCODE);
+                TransactionKind.CALLCODE);
     }
 
     @Test
     public void testPerformCallCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled() {
-        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(ExecutionContext.CALL);
+        performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(TransactionKind.CALL);
     }
 
     @Test
@@ -656,7 +655,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         new byte[0],
                         true,
                         false,
@@ -671,7 +670,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 true,
                 false,
                 null);
@@ -689,7 +688,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         true,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         new byte[0],
                         true,
                         false,
@@ -704,7 +703,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 true,
                 false,
                 null);
@@ -723,7 +722,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -738,7 +737,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 new byte[0]);
@@ -760,7 +759,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         true,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -775,7 +774,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 new byte[0]);
@@ -797,7 +796,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -812,7 +811,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 new byte[0]);
@@ -831,7 +830,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         true,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -846,7 +845,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 new byte[0]);
@@ -865,7 +864,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -882,7 +881,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 new byte[0]);
@@ -901,7 +900,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         true,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         true,
@@ -918,7 +917,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 false,
                 new byte[0]);
@@ -936,7 +935,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         false,
@@ -953,7 +952,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 code);
@@ -971,7 +970,7 @@ public class CallbackUnitTest {
                         callerBalance,
                         recipientBalance,
                         true,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         null,
                         false,
                         false,
@@ -988,7 +987,7 @@ public class CallbackUnitTest {
                 vm,
                 mockedResult,
                 false,
-                ExecutionContext.CREATE,
+                TransactionKind.CREATE,
                 false,
                 true,
                 code);
@@ -1008,7 +1007,7 @@ public class CallbackUnitTest {
                                 callerBalance,
                                 recipientBalance,
                                 false,
-                                ExecutionContext.CREATE,
+                                TransactionKind.CREATE,
                                 null,
                                 false,
                                 false,
@@ -1024,7 +1023,7 @@ public class CallbackUnitTest {
                         vm,
                         mockedResult,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         false,
                         false,
                         code);
@@ -1046,7 +1045,7 @@ public class CallbackUnitTest {
                                 callerBalance,
                                 recipientBalance,
                                 true,
-                                ExecutionContext.CREATE,
+                                TransactionKind.CREATE,
                                 null,
                                 false,
                                 false,
@@ -1062,7 +1061,7 @@ public class CallbackUnitTest {
                         vm,
                         mockedResult,
                         false,
-                        ExecutionContext.CREATE,
+                        TransactionKind.CREATE,
                         false,
                         false,
                         code);
@@ -1074,7 +1073,7 @@ public class CallbackUnitTest {
 
     // <----------METHODS BELOW ARE TESTS THAT ARE SHARED BY MULTIPLE TESTS AND SO REUSED---------->
 
-    private void performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(int kind) {
+    private void performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
@@ -1111,7 +1110,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private void performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(int kind) {
+    private void performCallIsNotPrecompiledContractNoRecipientSeptForkEnabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
@@ -1148,7 +1147,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private void performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(int kind) {
+    private void performCallIsNotPrecompiledContractNoCodeSeptForkDisabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
@@ -1185,7 +1184,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private void performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(int kind) {
+    private void performCallIsNotPrecompiledContractNoCodeSeptForkEnabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
             BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
@@ -1222,7 +1221,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private void performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(int kind) {
+    private void performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkDisabled(TransactionKind kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
@@ -1254,7 +1253,7 @@ public class CallbackUnitTest {
                 mockedResult.getResultCode());
     }
 
-    private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(int kind) {
+    private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkDisabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             if (!code.equals(FastVmResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
@@ -1291,7 +1290,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private void performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(int kind) {
+    private void performCallIsNotPrecompiledContractIsCodeIsSuccessSeptForkEnabled(TransactionKind kind) {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
@@ -1323,7 +1322,7 @@ public class CallbackUnitTest {
                 mockedResult.getResultCode());
     }
 
-    private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(int kind) {
+    private void performCallIsNotPrecompiledContractIsCodeNotSuccessSeptForkEnabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
             if (!code.equals(FastVmResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
@@ -1416,7 +1415,7 @@ public class CallbackUnitTest {
             FvmDataWord callValue,
             boolean isEmptyData,
             boolean septForkEnabled,
-            int kind,
+            TransactionKind kind,
             long nrgLimit) {
 
         byte[] txHash = RandomUtils.nextBytes(32);
@@ -1474,7 +1473,7 @@ public class CallbackUnitTest {
             FvmDataWord callValue,
             byte[] callData,
             int depth,
-            int kind,
+            TransactionKind kind,
             int flags) {
 
         int len =
@@ -1491,7 +1490,7 @@ public class CallbackUnitTest {
         buffer.putInt(callData.length);
         buffer.put(callData);
         buffer.putInt(depth);
-        buffer.putInt(kind);
+        buffer.putInt(kind.intValue);
         buffer.putInt(flags);
         return buffer.array();
     }
@@ -1799,7 +1798,7 @@ public class CallbackUnitTest {
             BigInteger recipientBalance,
             boolean wasNoRecipient,
             boolean isCreateContract,
-            int kind,
+            TransactionKind kind,
             FastVmResultCode resultCode) {
 
         ExecutionContext ctx = Callback.context();
@@ -1838,7 +1837,7 @@ public class CallbackUnitTest {
             FastVM mockVM,
             FastVmTransactionResult expectedResult,
             boolean vmGotBadCode,
-            int kind,
+            TransactionKind kind,
             boolean contractExisted,
             boolean postExecuteWasSuccess,
             byte[] code) {
@@ -1861,7 +1860,7 @@ public class CallbackUnitTest {
         } else {
             assertEquals(expectedResult.getEnergyRemaining(), result.getEnergyRemaining());
         }
-        if (kind == ExecutionContext.CREATE) {
+        if (kind == TransactionKind.CREATE) {
             checkCodeAfterCreate(contractExisted, postExecuteWasSuccess, result, code);
         }
     }
@@ -1898,7 +1897,7 @@ public class CallbackUnitTest {
             BigInteger callerBalance,
             BigInteger recipientBalance,
             boolean septForkEnabled,
-            int kind,
+            TransactionKind kind,
             byte[] code,
             boolean contractExists,
             boolean dataIsEmpty,
@@ -1957,13 +1956,13 @@ public class CallbackUnitTest {
             BigInteger recipientPrevBalance,
             BigInteger callValue,
             boolean wasNoRecipient,
-            int kind,
+            TransactionKind kind,
             FastVmResultCode resultCode) {
 
         if (caller.equals(recipient)) {
             assertEquals(callerPrevBalance, Callback.externalState().getBalance(caller));
         } else {
-            if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+            if (kind == TransactionKind.DELEGATE_CALL || kind == TransactionKind.CALLCODE) {
                 assertEquals(callerPrevBalance, Callback.externalState().getBalance(caller));
             } else {
                 if (!resultCode.isSuccess()) {
@@ -1978,13 +1977,13 @@ public class CallbackUnitTest {
             if (wasNoRecipient) {
                 // if there was no recipient then DummyRepository created that account when Callback
                 // transferred balance to it, so its balance should be callValue.
-                if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+                if (kind == TransactionKind.DELEGATE_CALL || kind == TransactionKind.CALLCODE) {
                     assertEquals(BigInteger.ZERO, Callback.externalState().getBalance(recipient));
                 } else {
                     assertEquals(callValue, Callback.externalState().getBalance(recipient));
                 }
             } else {
-                if (kind == ExecutionContext.DELEGATECALL || kind == ExecutionContext.CALLCODE) {
+                if (kind == TransactionKind.DELEGATE_CALL || kind == TransactionKind.CALLCODE) {
                     assertEquals(recipientPrevBalance, Callback.externalState().getBalance(recipient));
                 } else {
                     if (!resultCode.isSuccess()) {

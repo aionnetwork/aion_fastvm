@@ -40,10 +40,6 @@ public class ExecutionContext {
                     + (FvmDataWord.SIZE * 3)
                     + (Long.BYTES * 4)
                     + (Integer.BYTES * 4);
-    public static int CALL = 0;
-    public static int DELEGATECALL = 1;
-    public static int CALLCODE = 2;
-    public static int CREATE = 3;
 
     private SideEffects sideEffects;
     private AionAddress origin;
@@ -63,7 +59,7 @@ public class ExecutionContext {
     private long blockTimestamp;
     private long blockNrgLimit;
     private int depth;
-    private int kind;
+    private TransactionKind kind;
     private int flags;
 
     /**
@@ -99,7 +95,7 @@ public class ExecutionContext {
             FvmDataWord callValue,
             byte[] callData,
             int depth,
-            int kind,
+            TransactionKind kind,
             int flags,
             AionAddress blockCoinbase,
             long blockNumber,
@@ -158,7 +154,7 @@ public class ExecutionContext {
         buffer.putInt(callData.length); // length of the call data
         buffer.put(callData);
         buffer.putInt(depth);
-        buffer.putInt(kind);
+        buffer.putInt(kind.intValue);
         buffer.putInt(flags);
         buffer.put(blockCoinbase.toByteArray());
         buffer.putLong(blockNumber);
@@ -222,7 +218,7 @@ public class ExecutionContext {
     }
 
     /** @return the transaction kind. */
-    public int getTransactionKind() {
+    public TransactionKind getTransactionKind() {
         return kind;
     }
 

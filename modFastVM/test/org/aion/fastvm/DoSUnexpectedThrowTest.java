@@ -34,7 +34,7 @@ public class DoSUnexpectedThrowTest {
     private byte[] callData;
 
     private int depth = 0;
-    private int kind = ExecutionContext.CREATE;
+    private TransactionKind kind = TransactionKind.CREATE;
     private int flags = 0;
 
     private RepositoryForTesting repo;

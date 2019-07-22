@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.aion.fastvm.FvmDataWord;
+import org.aion.fastvm.TransactionKind;
 import org.aion.types.AionAddress;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.util.types.AddressUtils;
@@ -22,7 +23,8 @@ public class ExecutionContextUnitTest {
     private FvmDataWord blockDifficulty, nrgPrice, callValue;
     private byte[] txHash, callData;
     private long nrgLimit, blockNumber, blockTimestamp, blockNrgLimit;
-    private int depth, kind, flags;
+    private int depth, flags;
+    private TransactionKind kind;
 
     @Before
     public void setup() {
@@ -40,7 +42,7 @@ public class ExecutionContextUnitTest {
         txHash = RandomUtils.nextBytes(32);
         callData = new byte[] {0x07};
         depth = 8;
-        kind = 9;
+        kind = TransactionKind.CALL;
         flags = 10;
         nrgLimit = 5;
         blockNumber = 12;
@@ -108,16 +110,6 @@ public class ExecutionContextUnitTest {
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
         depth = Integer.MAX_VALUE;
-        context = newExecutionContext();
-        checkEncoding(context, context.toBytes());
-    }
-
-    @Test
-    public void testToBytesMinMaxKind() {
-        kind = Integer.MIN_VALUE;
-        ExecutionContext context = newExecutionContext();
-        checkEncoding(context, context.toBytes());
-        kind = Integer.MAX_VALUE;
         context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
@@ -273,7 +265,7 @@ public class ExecutionContextUnitTest {
         end += Integer.BYTES;
         intBuf.put(Arrays.copyOfRange(encoding, start, end));
         intBuf.flip();
-        assertEquals(context.getTransactionKind(), intBuf.getInt());
+        assertEquals(context.getTransactionKind(), TransactionKind.fromInt(intBuf.getInt()));
         intBuf.clear();
         start = end;
         end += Integer.BYTES;

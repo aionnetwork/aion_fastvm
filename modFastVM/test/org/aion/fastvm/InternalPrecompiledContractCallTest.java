@@ -61,7 +61,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], ExecutionContext.DELEGATECALL);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], TransactionKind.DELEGATE_CALL);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -97,7 +97,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], ExecutionContext.DELEGATECALL);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], TransactionKind.DELEGATE_CALL);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -133,7 +133,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], ExecutionContext.CALLCODE);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], TransactionKind.CALLCODE);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -169,7 +169,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], ExecutionContext.CALLCODE);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.senderAddress, transferAmount, new byte[0], TransactionKind.CALLCODE);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -203,7 +203,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.precompiledAddress, transferAmount, new byte[0], ExecutionContext.CALL);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.precompiledAddress, transferAmount, new byte[0], TransactionKind.CALL);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -237,7 +237,7 @@ public class InternalPrecompiledContractCallTest {
         addBalanceToAccount(this.originAddress, originOriginalBalance);
 
         BigInteger transferAmount = BigInteger.valueOf(220);
-        byte[] encodedContext = encodeContext(this.senderAddress, this.precompiledAddress, transferAmount, new byte[0], ExecutionContext.CALL);
+        byte[] encodedContext = encodeContext(this.senderAddress, this.precompiledAddress, transferAmount, new byte[0], TransactionKind.CALL);
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.performCall(encodedContext, null));
 
         assertResultCorrect(precompiledResult, result);
@@ -285,7 +285,7 @@ public class InternalPrecompiledContractCallTest {
     /**
      * Returns an encoded context that gets decoded inside the Callback class.
      */
-    private static byte[] encodeContext(AionAddress caller, AionAddress destination, BigInteger value, byte[] data, int kind) {
+    private static byte[] encodeContext(AionAddress caller, AionAddress destination, BigInteger value, byte[] data, TransactionKind kind) {
         int len = (AionAddress.LENGTH * 2) + FvmDataWord.SIZE + (Integer.BYTES * 4) + Long.BYTES + data.length;
 
         ByteBuffer buffer = ByteBuffer.allocate(len).order(ByteOrder.BIG_ENDIAN);
@@ -296,7 +296,7 @@ public class InternalPrecompiledContractCallTest {
         buffer.putInt(data.length);
         buffer.put(data);
         buffer.putInt(0);
-        buffer.putInt(kind);
+        buffer.putInt(kind.intValue);
         buffer.putInt(0);
         return buffer.array();
     }
@@ -332,7 +332,7 @@ public class InternalPrecompiledContractCallTest {
     }
 
     private static ExecutionContext newDummyContext(AionAddress originAddress, AionAddress recipient) {
-        return new ExecutionContext(null, null, recipient, originAddress, originAddress, FvmDataWord.fromLong(1L), ENERGY_LIMIT, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, ExecutionContext.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
+        return new ExecutionContext(null, null, recipient, originAddress, originAddress, FvmDataWord.fromLong(1L), ENERGY_LIMIT, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, TransactionKind.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
     }
 
     private static ExternalStateForTesting newState() {

@@ -290,10 +290,10 @@ public final class FastVirtualMachine {
                 transaction.isContractCreationTransaction()
                         ? transaction.getContractAddress()
                         : transaction.getDestinationAddress();
-        int kind =
+        TransactionKind kind =
                 transaction.isContractCreationTransaction()
-                        ? ExecutionContext.CREATE
-                        : ExecutionContext.CALL;
+                        ? TransactionKind.CREATE
+                        : TransactionKind.CALL;
 
         return new ExecutionContext(
                 transaction,

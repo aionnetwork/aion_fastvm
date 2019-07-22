@@ -172,7 +172,7 @@ public class Callback {
 
         // call sub-routine
         FastVmTransactionResult result;
-        if (ctx.getTransactionKind() == ExecutionContext.CREATE) {
+        if (ctx.getTransactionKind() == TransactionKind.CREATE) {
             result = doCreate(ctx, vm);
         } else {
             result = doCall(ctx, vm);
@@ -198,8 +198,8 @@ public class Callback {
     /** The method handles the CALL/CALLCODE/DELEGATECALL opcode. */
     private static FastVmTransactionResult doCall(ExecutionContext ctx, FastVM jit) {
         AionAddress codeAddress = ctx.getDestinationAddress();
-        if (ctx.getTransactionKind() == ExecutionContext.CALLCODE
-                || ctx.getTransactionKind() == ExecutionContext.DELEGATECALL) {
+        if (ctx.getTransactionKind() == TransactionKind.CALLCODE
+                || ctx.getTransactionKind() == TransactionKind.DELEGATE_CALL) {
             ctx.setDestinationAddress(context().getDestinationAddress());
         }
 
@@ -227,8 +227,8 @@ public class Callback {
         context().getSideEffects().addInternalTransaction(internalTx);
 
         // transfer balance
-        if (ctx.getTransactionKind() != ExecutionContext.DELEGATECALL
-                && ctx.getTransactionKind() != ExecutionContext.CALLCODE) {
+        if (ctx.getTransactionKind() != TransactionKind.DELEGATE_CALL
+                && ctx.getTransactionKind() != TransactionKind.CALLCODE) {
             BigInteger transferAmount = ctx.getTransferValue();
             childState.addBalance(ctx.getSenderAddress(), transferAmount.negate());
             childState.addBalance(ctx.getDestinationAddress(), transferAmount);
@@ -387,7 +387,7 @@ public class Callback {
         buffer.get(callData);
 
         int depth = buffer.getInt();
-        int kind = buffer.getInt();
+        TransactionKind kind = TransactionKind.fromInt(buffer.getInt());
         int flags = buffer.getInt();
 
         AionAddress blockCoinbase = prev.getMinerAddress();

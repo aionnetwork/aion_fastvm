@@ -49,7 +49,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(value, context.getTransferValue());
         Assert.assertArrayEquals(data, context.getTransactionData());
         Assert.assertEquals(0, context.getTransactionStackDepth());
-        Assert.assertEquals(ExecutionContext.CALL, context.getTransactionKind());
+        Assert.assertEquals(TransactionKind.CALL, context.getTransactionKind());
         Assert.assertEquals(0, context.getFlags());
         Assert.assertEquals(miner, context.getMinerAddress());
         Assert.assertEquals(blockNumber, context.getBlockNumber());
@@ -89,7 +89,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(value, context.getTransferValue());
         Assert.assertArrayEquals(data, context.getTransactionData());
         Assert.assertEquals(0, context.getTransactionStackDepth());
-        Assert.assertEquals(ExecutionContext.CREATE, context.getTransactionKind());
+        Assert.assertEquals(TransactionKind.CREATE, context.getTransactionKind());
         Assert.assertEquals(0, context.getFlags());
         Assert.assertEquals(miner, context.getMinerAddress());
         Assert.assertEquals(blockNumber, context.getBlockNumber());
