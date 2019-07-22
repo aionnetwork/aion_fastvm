@@ -260,7 +260,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.VM_REJECTED, 0);
 
         // Run the call.
-        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
 
@@ -293,7 +293,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
 
         // Run the call.
-        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.FAILURE, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -326,7 +326,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
 
         // Run the call.
-        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runNonContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.VM_REJECTED, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -360,7 +360,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.FAILURE, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -394,7 +394,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.FAILURE, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -427,7 +427,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
 
@@ -465,7 +465,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.OUT_OF_NRG, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -505,7 +505,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining, code);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
 
@@ -549,7 +549,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining, code);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
 
@@ -585,7 +585,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_JUMP_DESTINATION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.BAD_JUMP_DESTINATION, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -627,7 +627,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_JUMP_DESTINATION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.BAD_JUMP_DESTINATION, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
 
@@ -663,7 +663,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, false);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
 
@@ -701,7 +701,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
 
@@ -743,7 +743,7 @@ public class FastVirtualMachineUnitTest {
         fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
 
         // Run the create.
-        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, result, true);
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
 

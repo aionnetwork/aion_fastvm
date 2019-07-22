@@ -48,11 +48,11 @@ public final class FastVirtualMachine {
         if (transaction.isContractCreationTransaction()) {
             result =
                     runContractCreationTransaction(
-                            new FastVM(), grandChildExternalState, context, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, context, transaction, result, isFork040enabled);
         } else {
             result =
                     runNonContractCreationTransaction(
-                            new FastVM(), grandChildExternalState, context, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, context, transaction, result, isFork040enabled);
         }
 
         // If the execution was successful then we can safely commit any changes in the grandChild
@@ -89,6 +89,7 @@ public final class FastVirtualMachine {
      *
      * @param externalState The world state.
      * @param context The transaction context.
+     * @param transaction The transaction.
      * @param result The current state of the transaction result.
      * @param isFork040enabled Whether or not the 0.4.0 fork is enabled.
      * @return the result of executing the transaction.
@@ -97,9 +98,9 @@ public final class FastVirtualMachine {
             IFastVm fvm,
             IExternalStateForFvm externalState,
             ExecutionContext context,
+            AionTransaction transaction,
             FastVmTransactionResult result,
             boolean isFork040enabled) {
-        AionTransaction transaction = context.getTransaction();
         AionAddress contractAddress = transaction.getContractAddress();
 
         // If the destination address already has state, we attempt to overwrite this address as a
@@ -164,6 +165,7 @@ public final class FastVirtualMachine {
      *
      * @param externalState The world state.
      * @param context The transaction context.
+     * @param transaction The transaction.
      * @param result The current state of the transaction result.
      * @param isFork040enabled Whether or not the 0.4.0 fork is enabled.
      * @return the result of executing the transaction.
@@ -172,10 +174,9 @@ public final class FastVirtualMachine {
             IFastVm fvm,
             IExternalStateForFvm externalState,
             ExecutionContext context,
+            AionTransaction transaction,
             FastVmTransactionResult result,
             boolean isFork040enabled) {
-
-        AionTransaction transaction = context.getTransaction();
 
         // Execute the transaction.
         FastVmTransactionResult newResult = null;

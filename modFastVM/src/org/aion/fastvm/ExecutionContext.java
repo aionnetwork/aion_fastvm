@@ -45,7 +45,6 @@ public class ExecutionContext {
     private SideEffects sideEffects;
     private AionAddress origin;
     private byte[] originalTxHash;
-    private AionTransaction transaction;
 
     public AionAddress address;
     public AionAddress sender;
@@ -62,6 +61,8 @@ public class ExecutionContext {
     private int depth;
     private TransactionKind kind;
     private int flags;
+    private final AionAddress contractAddress;
+    private final boolean isCreate;
 
     private ExecutionContext(
             AionTransaction transaction,
@@ -82,7 +83,6 @@ public class ExecutionContext {
             long blockNrgLimit,
             FvmDataWord blockDifficulty) {
 
-        this.transaction = transaction;
         this.address = destination;
         this.origin = origin;
         this.sender = sender;
@@ -100,7 +100,11 @@ public class ExecutionContext {
         this.blockNrgLimit = blockNrgLimit;
         this.txHash = txHash;
         this.originalTxHash = txHash;
-
+        // TODO: the logic of how we assign contractAddress and isCreate looks incorrect from here but actually it isn't because of how it is consumed.
+        // ie. the consumer is aware of these implementation details, or these details are aware of the consumer.
+        // Somebody should actually investigate this so that the logic can be written correctly with everything working fine.
+        this.contractAddress = (transaction == null) ? null : transaction.getContractAddress();
+        this.isCreate = (transaction == null) ? false : transaction.isContractCreationTransaction();
         this.sideEffects = new SideEffects();
     }
 
@@ -207,7 +211,7 @@ public class ExecutionContext {
     public byte[] toBytes() {
 
         // If this is a CREATE then we do not want to serialize the callData.
-        if (transaction != null && transaction.isContractCreationTransaction()) {
+        if (isCreate) {
             callData = ByteUtil.EMPTY_BYTE_ARRAY;
         }
 
@@ -242,7 +246,7 @@ public class ExecutionContext {
     }
 
     public AionAddress getContractAddress() {
-        return this.transaction.getContractAddress();
+        return this.contractAddress;
     }
 
     /** @return the transaction address. */
@@ -342,9 +346,5 @@ public class ExecutionContext {
     /** @return the original transaction hash. */
     public byte[] getHashOfOriginTransaction() {
         return originalTxHash;
-    }
-
-    public AionTransaction getTransaction() {
-        return this.transaction;
     }
 }
