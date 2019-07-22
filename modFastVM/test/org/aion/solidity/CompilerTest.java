@@ -4,11 +4,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
 import org.aion.solidity.Compiler.Result;
@@ -79,7 +76,7 @@ public class CompilerTest {
         CompilationResult cr = CompilationResult.parse(r.output);
 
         Abi abi = Abi.fromJSON(cr.contracts.get("Register").abi);
-        Abi.Function func = abi.findFunction(f -> f.name.equals("register"));
+        Function func = abi.findFunction(f -> f.name.equals("register"));
 
         System.out.println("Method: name = " + func.name + ", payable = " + func.payable);
         assertTrue(func.payable);
