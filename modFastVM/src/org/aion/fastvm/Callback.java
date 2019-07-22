@@ -374,15 +374,17 @@ public class Callback {
 
         byte[] address = new byte[AionAddress.LENGTH];
         buffer.get(address);
+        AionAddress destination = new AionAddress(address);
         AionAddress origin = prev.getOriginAddress();
         byte[] caller = new byte[AionAddress.LENGTH];
         buffer.get(caller);
+        AionAddress sender = new AionAddress(caller);
 
-        FvmDataWord nrgPrice = FvmDataWord.fromLong(prev.getTransactionEnergyPrice());
+        long nrgPrice = prev.getTransactionEnergyPrice();
         long nrgLimit = buffer.getLong();
         byte[] buf = new byte[16];
         buffer.get(buf);
-        FvmDataWord callValue = FvmDataWord.fromBytes(buf);
+        BigInteger callValue = new BigInteger(1, buf);
         byte[] callData = new byte[buffer.getInt()];
         buffer.get(callData);
 
@@ -394,26 +396,10 @@ public class Callback {
         long blockNumber = prev.getBlockNumber();
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
+
+        //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
         FvmDataWord blockDifficulty = FvmDataWord.fromLong(prev.getBlockDifficulty());
 
-        // TODO: properly construct a transaction first
-        return new ExecutionContext(
-                null,
-                txHash,
-                new AionAddress(address),
-                origin,
-                new AionAddress(caller),
-                nrgPrice,
-                nrgLimit,
-                callValue,
-                callData,
-                depth,
-                kind,
-                flags,
-                blockCoinbase,
-                blockNumber,
-                blockTimestamp,
-                blockNrgLimit,
-                blockDifficulty);
+        return ExecutionContext.from(txHash, destination, origin, sender, nrgPrice, nrgLimit, callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
     }
 }

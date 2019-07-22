@@ -324,7 +324,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -338,7 +338,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -367,7 +367,7 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                            new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             false,
                             false,
                             TransactionKind.DELEGATE_CALL,
@@ -384,7 +384,7 @@ public class CallbackUnitTest {
                     newExecutionContext(
                             getNewAddress(),
                             getNewAddress(),
-                            FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                            new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                             i % 2 == 0,
                             false,
                             TransactionKind.DELEGATE_CALL,
@@ -412,7 +412,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -426,7 +426,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         true,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -454,7 +454,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         getNewAddress(),
                         getNewAddress(),
-                        FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -488,7 +488,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         caller,
                         getNewAddress(),
-                        FvmDataWord.fromBigInteger(balance.add(BigInteger.ONE)),
+                        new BigInteger(1, RandomUtils.nextBytes(FvmDataWord.SIZE)),
                         false,
                         false,
                         TransactionKind.DELEGATE_CALL,
@@ -1412,7 +1412,7 @@ public class CallbackUnitTest {
     private ExecutionContext newExecutionContext(
             AionAddress caller,
             AionAddress recipient,
-            FvmDataWord callValue,
+            BigInteger callValue,
             boolean isEmptyData,
             boolean septForkEnabled,
             TransactionKind kind,
@@ -1420,7 +1420,7 @@ public class CallbackUnitTest {
 
         byte[] txHash = RandomUtils.nextBytes(32);
         AionAddress origin = getNewAddress();
-        FvmDataWord nrgPrice = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
+        long nrgPrice = RandomUtils.nextLong(1, 100);
         byte[] callData;
         if (isEmptyData) {
             callData = new byte[0];
@@ -1438,9 +1438,8 @@ public class CallbackUnitTest {
         }
         long blockTimestamp = RandomUtils.nextLong(100, 100_000);
         long blockNrgLimit = RandomUtils.nextLong(100, 100_000);
-        FvmDataWord blockDifficulty = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
-        return new ExecutionContext(
-                null,
+        FvmDataWord blockDifficulty = FvmDataWord.fromLong(RandomUtils.nextLong(1, 10_000));
+        return ExecutionContext.from(
                 txHash,
                 recipient,
                 origin,
@@ -1596,15 +1595,14 @@ public class CallbackUnitTest {
      */
     private ExecutionContext makeExpectedContext(
             ExecutionContext previous, ExecutionContext context) {
-        return new ExecutionContext(
-                null,
+        return ExecutionContext.from(
                 previous.getTransactionHash(),
                 context.getDestinationAddress(),
                 previous.getOriginAddress(),
                 context.getSenderAddress(),
-                FvmDataWord.fromLong(previous.getTransactionEnergyPrice()),
+                previous.getTransactionEnergyPrice(),
                 context.getTransactionEnergy(),
-                FvmDataWord.fromBigInteger(context.getTransferValue()),
+                context.getTransferValue(),
                 context.getTransactionData(),
                 context.getTransactionStackDepth(),
                 context.getTransactionKind(),
@@ -1925,7 +1923,7 @@ public class CallbackUnitTest {
                 newExecutionContext(
                         caller,
                         recipient,
-                        FvmDataWord.fromBigInteger(callerBalance),
+                        callerBalance,
                         dataIsEmpty,
                         septForkEnabled,
                         kind,

@@ -332,7 +332,7 @@ public class InternalPrecompiledContractCallTest {
     }
 
     private static ExecutionContext newDummyContext(AionAddress originAddress, AionAddress recipient) {
-        return new ExecutionContext(null, null, recipient, originAddress, originAddress, FvmDataWord.fromLong(1L), ENERGY_LIMIT, FvmDataWord.fromBigInteger(BigInteger.ZERO), new byte[0], 0, TransactionKind.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
+        return ExecutionContext.from(new byte[32], recipient, originAddress, originAddress, 1L, ENERGY_LIMIT, BigInteger.ZERO, new byte[0], 0, TransactionKind.CALL, 0, randomAddress(), 0L, 0L, 500_000L, FvmDataWord.fromLong(0L));
     }
 
     private static ExternalStateForTesting newState() {

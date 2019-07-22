@@ -28,6 +28,7 @@ import java.nio.ByteOrder;
 import org.aion.base.AionTransaction;
 import org.aion.types.AionAddress;
 import org.aion.util.bytes.ByteUtil;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Execution context, including both transaction and block information.
@@ -54,7 +55,7 @@ public class ExecutionContext {
     private FvmDataWord blockDifficulty;
     private byte[] callData;
     private byte[] txHash;
-    private long nrg; // NOTE: nrg = tx_nrg_limit - tx_basic_cost
+    private long nrg;
     private long blockNumber;
     private long blockTimestamp;
     private long blockNrgLimit;
@@ -62,29 +63,7 @@ public class ExecutionContext {
     private TransactionKind kind;
     private int flags;
 
-    /**
-     * Creates a VM execution context.
-     *
-     * @param txHash The transaction hash
-     * @param destination The transaction address.
-     * @param origin The sender of the original transaction.
-     * @param sender The transaction caller.
-     * @param nrgPrice The nrg price in current environment.
-     * @param nrg The nrg limit in current environment.
-     * @param callValue The deposited value by instruction/trannsaction.
-     * @param callData The call data.
-     * @param depth The execution stack depth.
-     * @param kind The transaction kind.
-     * @param flags The transaction flags.
-     * @param blockCoinbase The beneficiary of the block.
-     * @param blockNumber The block number.
-     * @param blockTimestamp The block timestamp.
-     * @param blockNrgLimit The block energy limit.
-     * @param blockDifficulty The block difficulty.
-     * @throws IllegalArgumentException if any numeric quantities are negative or txHash is not
-     *     length 32.
-     */
-    public ExecutionContext(
+    private ExecutionContext(
             AionTransaction transaction,
             byte[] txHash,
             AionAddress destination,
@@ -123,6 +102,95 @@ public class ExecutionContext {
         this.originalTxHash = txHash;
 
         this.sideEffects = new SideEffects();
+    }
+
+    /**
+     * Returns a new execution context from a transaction, as well as given the additional parameters
+     * that are not present in transaction objects.
+     *
+     * @param transaction The transaction.
+     * @param miner The miner address.
+     * @param blockNumber The current block number.
+     * @param blockTimestamp The current block's timestamp.
+     * @param blockEnergyLimit The current block's energy limit.
+     * @param blockDifficulty The current block's difficulty.
+     * @return the context.
+     */
+    public static ExecutionContext fromTransaction(AionTransaction transaction, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
+        if (transaction == null) {
+            throw new NullPointerException("Cannot create context from null transaction!");
+        }
+        if (miner == null) {
+            throw new NullPointerException("Cannot create context with null miner!");
+        }
+        if (blockDifficulty == null) {
+            throw new NullPointerException("Cannot create context with null blockDifficulty!");
+        }
+
+        byte[] transactionHash = transaction.getTransactionHash();
+        AionAddress originAddress = transaction.getSenderAddress();
+        AionAddress callerAddress = transaction.getSenderAddress();
+        FvmDataWord energyPrice = FvmDataWord.fromLong(transaction.getEnergyPrice());
+        long energy = transaction.getEnergyLimit() - transaction.getTransactionCost();
+        FvmDataWord transferValue = FvmDataWord.fromBytes(ArrayUtils.nullToEmpty(transaction.getValue()));
+        byte[] data = ArrayUtils.nullToEmpty(transaction.getData());
+        AionAddress destinationAddress = transaction.isContractCreationTransaction() ? transaction.getContractAddress() : transaction.getDestinationAddress();
+        TransactionKind kind = transaction.isContractCreationTransaction() ? TransactionKind.CREATE : TransactionKind.CALL;
+
+        return new ExecutionContext(transaction, transactionHash, destinationAddress, originAddress, callerAddress, energyPrice, energy, transferValue, data, 0, kind, 0, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
+    }
+
+    /**
+     * Returns a new execution context from the specified parameters.
+     *
+     * @param transactionHash The transaction hash.
+     * @param destination The destination (for CREATE this is the new contract address).
+     * @param origin The origin address that sent the initial external transaction.
+     * @param sender The sender address that sent the current transaction.
+     * @param energyPrice The energy price.
+     * @param energy The current amount of energy.
+     * @param value The value to be transferred.
+     * @param data The data.
+     * @param depth The stack depth.
+     * @param kind The transaction kind.
+     * @param flags The flags.
+     * @param miner The miner address.
+     * @param blockNumber The current block number.
+     * @param blockTimestamp The current block's timestamp.
+     * @param blockEnergyLimit The current block's energy limit.
+     * @param blockDifficulty The current block's difficulty.
+     * @return the context.
+     */
+    public static ExecutionContext from(byte[] transactionHash, AionAddress destination, AionAddress origin, AionAddress sender, long energyPrice, long energy, BigInteger value, byte[] data, int depth, TransactionKind kind, int flags, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
+        if (transactionHash == null) {
+            throw new NullPointerException("Cannot create context with null transaction hash!");
+        }
+        if (destination == null) {
+            throw new NullPointerException("Cannot create context with null destination!");
+        }
+        if (origin == null) {
+            throw new NullPointerException("Cannot create context with null origin!");
+        }
+        if (sender == null) {
+            throw new NullPointerException("Cannot create context with null sender!");
+        }
+        if (value == null) {
+            throw new NullPointerException("Cannot create context with null value!");
+        }
+        if (data == null) {
+            throw new NullPointerException("Cannot create context with null data!");
+        }
+        if (kind == null) {
+            throw new NullPointerException("Cannot create context with null kind!");
+        }
+        if (miner == null) {
+            throw new NullPointerException("Cannot create context with null miner!");
+        }
+        if (blockDifficulty == null) {
+            throw new NullPointerException("Cannot create context with null blockDifficulty!");
+        }
+
+        return new ExecutionContext(null, transactionHash, destination, origin, sender, FvmDataWord.fromLong(energyPrice), energy, FvmDataWord.fromBigInteger(value), data, depth, kind, flags, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
     }
 
     /**
@@ -197,7 +265,12 @@ public class ExecutionContext {
         return this.nrgPrice.toLong();
     }
 
-    /** @return the nrg limit in current environment. */
+    /**
+     * Note that this quantity is not the same as the energy limit, and is typically the energy
+     * limit minus the transaction cost.
+     * 
+     * @return the current amount of energy remaining in current environment.
+     */
     public long getTransactionEnergy() {
         return nrg;
     }
@@ -255,15 +328,6 @@ public class ExecutionContext {
     /** @return the transaction helper. */
     public SideEffects getSideEffects() {
         return sideEffects;
-    }
-
-    /**
-     * Sets the transaction hash to txHash.
-     *
-     * @param txHash The new transaction hash.
-     */
-    public void setTransactionHash(byte[] txHash) {
-        this.txHash = txHash;
     }
 
     /**

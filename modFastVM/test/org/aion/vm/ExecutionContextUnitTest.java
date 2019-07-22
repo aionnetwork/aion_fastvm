@@ -3,6 +3,7 @@ package org.aion.vm;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -16,11 +17,12 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
 public class ExecutionContextUnitTest {
     private AionAddress recipient, origin, caller, coinbase;
-    private FvmDataWord blockDifficulty, nrgPrice, callValue;
+    private FvmDataWord blockDifficulty;
+    private BigInteger callValue;
+    private long nrgPrice;
     private byte[] txHash, callData;
     private long nrgLimit, blockNumber, blockTimestamp, blockNrgLimit;
     private int depth, flags;
@@ -36,9 +38,9 @@ public class ExecutionContextUnitTest {
                 AddressUtils.wrapAddress("3333333333333333333333333333333333333333333333333333333333333333");
         coinbase =
                 AddressUtils.wrapAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-        blockDifficulty = FvmDataWord.fromBytes(Hex.decode("0000000000000000000000000000000f"));
-        nrgPrice = FvmDataWord.fromBytes(Hex.decode("00000000000000000000000000000004"));
-        callValue = FvmDataWord.fromBytes(Hex.decode("00000000000000000000000000000006"));
+        blockDifficulty = FvmDataWord.fromLong(16);
+        nrgPrice = 4;
+        callValue = BigInteger.valueOf(6);
         txHash = RandomUtils.nextBytes(32);
         callData = new byte[] {0x07};
         depth = 8;
@@ -56,8 +58,6 @@ public class ExecutionContextUnitTest {
         origin = null;
         caller = null;
         coinbase = null;
-        blockDifficulty = null;
-        nrgPrice = null;
         callValue = null;
         txHash = null;
         callData = null;
@@ -71,21 +71,21 @@ public class ExecutionContextUnitTest {
 
     @Test
     public void testToBytesRandomBlockDifficulty() {
-        blockDifficulty = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
+        blockDifficulty = FvmDataWord.fromLong(RandomUtils.nextLong(1, 10_000));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomNrgPrice() {
-        nrgPrice = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
+        nrgPrice = RandomUtils.nextLong(1, 100);
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
 
     @Test
     public void testToBytesRandomCallValue() {
-        callValue = FvmDataWord.fromBytes(RandomUtils.nextBytes(FvmDataWord.SIZE));
+        callValue = BigInteger.valueOf(RandomUtils.nextLong(1, 100));
         ExecutionContext context = newExecutionContext();
         checkEncoding(context, context.toBytes());
     }
@@ -185,8 +185,7 @@ public class ExecutionContextUnitTest {
      * class.
      */
     private ExecutionContext newExecutionContext() {
-        return new ExecutionContext(
-                null,
+        return ExecutionContext.from(
                 txHash,
                 recipient,
                 origin,

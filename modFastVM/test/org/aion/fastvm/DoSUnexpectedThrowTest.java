@@ -28,9 +28,9 @@ public class DoSUnexpectedThrowTest {
     private long blockNrgLimit = 5000000;
     private FvmDataWord blockDifficulty = FvmDataWord.fromLong(0x100000000L);
 
-    private FvmDataWord nrgPrice;
+    private long nrgPrice;
     private long nrgLimit;
-    private FvmDataWord callValue;
+    private BigInteger callValue;
     private byte[] callData;
 
     private int depth = 0;
@@ -42,16 +42,15 @@ public class DoSUnexpectedThrowTest {
 
     @Before
     public void setup() {
-        nrgPrice = FvmDataWord.fromLong(1);
+        nrgPrice = 1;
         nrgLimit = 500;
-        callValue = FvmDataWord.fromLong(0);
+        callValue = BigInteger.ZERO;
         callData = new byte[0];
         repo = RepositoryForTesting.newRepository();
     }
 
     private ExecutionContext newExecutionContext() {
-        return new ExecutionContext(
-                null,
+        return ExecutionContext.from(
                 txHash,
                 address,
                 origin,

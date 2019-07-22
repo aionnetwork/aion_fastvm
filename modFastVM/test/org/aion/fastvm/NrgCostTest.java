@@ -50,6 +50,7 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
@@ -83,9 +84,9 @@ public class NrgCostTest {
     private long blockNrgLimit = 5000000;
     private FvmDataWord blockDifficulty = FvmDataWord.fromLong(0x100000000L);
 
-    private FvmDataWord nrgPrice;
+    private long nrgPrice;
     private long nrgLimit;
-    private FvmDataWord callValue;
+    private BigInteger callValue;
     private byte[] callData;
 
     private int depth = 0;
@@ -104,9 +105,9 @@ public class NrgCostTest {
 
     @Before
     public void setup() {
-        nrgPrice = FvmDataWord.fromLong(1);
+        nrgPrice = 1;
         nrgLimit = 10_000_000L;
-        callValue = FvmDataWord.fromLong(0);
+        callValue = BigInteger.ZERO;
         callData = new byte[0];
 
         address = new AionAddress(RandomUtils.nextBytes(32));
@@ -636,8 +637,7 @@ public class NrgCostTest {
     }
 
     private ExecutionContext newExecutionContext() {
-        return new ExecutionContext(
-                null,
+        return ExecutionContext.from(
                 txHash,
                 address,
                 origin,

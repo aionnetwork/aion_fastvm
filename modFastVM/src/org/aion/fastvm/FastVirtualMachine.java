@@ -274,44 +274,7 @@ public final class FastVirtualMachine {
      */
     public static ExecutionContext constructTransactionContext(
             AionTransaction transaction, IExternalStateForFvm externalState) {
-        byte[] transactionHash = transaction.getTransactionHash();
-        AionAddress originAddress = transaction.getSenderAddress();
-        AionAddress callerAddress = transaction.getSenderAddress();
-        FvmDataWord energyPrice = FvmDataWord.fromLong(transaction.getEnergyPrice());
-        long energyRemaining = transaction.getEnergyLimit() - transaction.getTransactionCost();
-        FvmDataWord transferValue = FvmDataWord.fromBytes(ArrayUtils.nullToEmpty(transaction.getValue()));
-        byte[] data = ArrayUtils.nullToEmpty(transaction.getData());
-        AionAddress minerAddress = externalState.getMinerAddress();
-        long blockNumber = externalState.getBlockNumber();
-        long blockTimestamp = externalState.getBlockTimestamp();
-        long blockEnergyLimit = externalState.getBlockEnergyLimit();
-        FvmDataWord blockDifficulty = FvmDataWord.fromLong(externalState.getBlockDifficulty());
-        AionAddress destinationAddress =
-                transaction.isContractCreationTransaction()
-                        ? transaction.getContractAddress()
-                        : transaction.getDestinationAddress();
-        TransactionKind kind =
-                transaction.isContractCreationTransaction()
-                        ? TransactionKind.CREATE
-                        : TransactionKind.CALL;
-
-        return new ExecutionContext(
-                transaction,
-                transactionHash,
-                destinationAddress,
-                originAddress,
-                callerAddress,
-                energyPrice,
-                energyRemaining,
-                transferValue,
-                data,
-                0,
-                kind,
-                0,
-                minerAddress,
-                blockNumber,
-                blockTimestamp,
-                blockEnergyLimit,
-                blockDifficulty);
+        //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
+        return ExecutionContext.fromTransaction(transaction, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), FvmDataWord.fromLong(externalState.getBlockDifficulty()));
     }
 }
