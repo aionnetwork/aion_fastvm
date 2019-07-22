@@ -51,6 +51,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
@@ -64,6 +65,7 @@ import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -101,6 +103,13 @@ public class NrgCostTest {
     public static void note() {
         System.out.println(
                 "\nNOTE: compilation time was not counted; extra cpu time was introduced for some opcodes.");
+
+        CapabilitiesProvider.installExternalCapabilities(new ExternalCapabilitiesForTesting());
+    }
+
+    @AfterClass
+    public static void teardownClass() {
+        CapabilitiesProvider.removeExternalCapabilities();
     }
 
     @Before

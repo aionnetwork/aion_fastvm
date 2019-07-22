@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
 import org.aion.solidity.Compiler.Result;
@@ -75,7 +76,7 @@ public class CompilerTest {
                 Compiler.getInstance().compile(contract.getBytes(), Options.ABI, Options.BIN);
         CompilationResult cr = CompilationResult.parse(r.output);
 
-        Abi abi = Abi.fromJSON(cr.contracts.get("Register").abi);
+        Abi abi = Abi.fromJSON(cr.contracts.get("Register").abi, new ExternalCapabilitiesForTesting());
         Function func = abi.findFunction(f -> f.name.equals("register"));
 
         System.out.println("Method: name = " + func.name + ", payable = " + func.payable);

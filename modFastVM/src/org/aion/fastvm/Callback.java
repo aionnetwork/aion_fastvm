@@ -12,7 +12,6 @@ import org.aion.types.AionAddress;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
-import org.aion.crypto.HashUtil;
 import org.aion.base.Constants;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.ArrayUtils;
@@ -275,9 +274,8 @@ public class Callback {
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, ctx.getTransactionEnergy());
 
         // compute new address
-        byte[] nonce = childState.getNonce(ctx.getSenderAddress()).toByteArray();
-        AionAddress newAddress =
-                new AionAddress(HashUtil.calcNewAddr(ctx.getSenderAddress().toByteArray(), nonce));
+        BigInteger nonce = childState.getNonce(ctx.getSenderAddress());
+        AionAddress newAddress = CapabilitiesProvider.getExternalCapabilities().computeNewContractAddress(ctx.getSenderAddress(), nonce);
         ctx.setDestinationAddress(newAddress);
 
         // add internal transaction

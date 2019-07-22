@@ -1,6 +1,7 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.base.AionTransaction;
 import org.aion.contract.ContractUtils;
@@ -46,7 +47,7 @@ public class FastVirtualMachineIntegTest {
         state.addBalance(beneficiary, beneficiaryBalance);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         Assert.assertEquals(energyLimit - transaction.getTransactionCost(), result.getEnergyRemaining());
 
@@ -82,7 +83,7 @@ public class FastVirtualMachineIntegTest {
         state.addBalance(beneficiary, beneficiaryBalance);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         Assert.assertEquals(energyLimit - transaction.getTransactionCost(), result.getEnergyRemaining());
 
@@ -122,7 +123,7 @@ public class FastVirtualMachineIntegTest {
         state.putCode(contract, code);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces.
@@ -161,7 +162,7 @@ public class FastVirtualMachineIntegTest {
         state.putCode(contract, code);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces.
@@ -201,7 +202,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, contract, value.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces.
@@ -241,7 +242,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, contract, value.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces.
@@ -278,7 +279,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(BigInteger.ZERO.toByteArray(), sender, contract, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces and balances.
@@ -292,7 +293,7 @@ public class FastVirtualMachineIntegTest {
         transaction = new AionTransaction(BigInteger.ONE.toByteArray(), sender, contract, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        result = FastVirtualMachine.run(state, transaction, false);
+        result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the output of the contract, which is the counter that should be set to 1.
@@ -330,7 +331,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(BigInteger.ZERO.toByteArray(), sender, contract, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the account nonces and balances.
@@ -344,7 +345,7 @@ public class FastVirtualMachineIntegTest {
         transaction = new AionTransaction(BigInteger.ONE.toByteArray(), sender, contract, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        result = FastVirtualMachine.run(state, transaction, true);
+        result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the output of the contract, which is the counter that should be set to 1.
@@ -377,7 +378,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, null, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         AionAddress contract = transaction.getContractAddress();
@@ -415,7 +416,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, null, BigInteger.ZERO.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         AionAddress contract = transaction.getContractAddress();
@@ -458,7 +459,7 @@ public class FastVirtualMachineIntegTest {
         state.addBalance(contract, beneficiaryBalance);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
         // Verify the destination now has the correct contract code.
@@ -503,7 +504,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, contract, value.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.REVERT, result.getResultCode());
 
         // Verify the account nonces.
@@ -544,7 +545,7 @@ public class FastVirtualMachineIntegTest {
         AionTransaction transaction = new AionTransaction(senderNonce.toByteArray(), sender, contract, value.toByteArray(), data, energyLimit, energyPrice);
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertEquals(FastVmResultCode.REVERT, result.getResultCode());
 
         // Verify the account nonces.
@@ -578,7 +579,7 @@ public class FastVirtualMachineIntegTest {
         AionAddress destination = transaction.getContractAddress();
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertTrue(result.getResultCode().isFailed());
 
         // Verify the destination has no code.
@@ -615,7 +616,7 @@ public class FastVirtualMachineIntegTest {
         AionAddress destination = transaction.getContractAddress();
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, true);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, true);
         Assert.assertTrue(result.getResultCode().isFailed());
 
         // Verify the destination has no code.
@@ -652,7 +653,7 @@ public class FastVirtualMachineIntegTest {
         AionAddress destination = transaction.getContractAddress();
 
         // Run the transaction.
-        FastVmTransactionResult result = FastVirtualMachine.run(state, transaction, false);
+        FastVmTransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false);
         Assert.assertEquals(FastVmResultCode.INSUFFICIENT_BALANCE, result.getResultCode());
 
         // Verify the destination has no code.

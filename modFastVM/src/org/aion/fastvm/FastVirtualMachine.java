@@ -20,7 +20,7 @@ public final class FastVirtualMachine {
      * @return the execution result.
      */
     public static FastVmTransactionResult run(
-            IExternalStateForFvm externalState, AionTransaction transaction, boolean isFork040enabled) {
+            IExternalStateForFvm externalState, IExternalCapabilities capabilities, AionTransaction transaction, boolean isFork040enabled) {
         if (externalState == null) {
             throw new NullPointerException("Cannot run using a null externalState!");
         }
@@ -48,11 +48,11 @@ public final class FastVirtualMachine {
         if (transaction.isContractCreationTransaction()) {
             result =
                     runContractCreationTransaction(
-                            new FastVM(), grandChildExternalState, context, transaction, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, capabilities, context, transaction, result, isFork040enabled);
         } else {
             result =
                     runNonContractCreationTransaction(
-                            new FastVM(), grandChildExternalState, context, transaction, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, capabilities, context, transaction, result, isFork040enabled);
         }
 
         // If the execution was successful then we can safely commit any changes in the grandChild
@@ -97,6 +97,7 @@ public final class FastVirtualMachine {
     public static FastVmTransactionResult runContractCreationTransaction(
             IFastVm fvm,
             IExternalStateForFvm externalState,
+            IExternalCapabilities capabilities,
             ExecutionContext context,
             AionTransaction transaction,
             FastVmTransactionResult result,
@@ -131,11 +132,17 @@ public final class FastVirtualMachine {
         if (!ArrayUtils.isEmpty(transaction.getData())) {
 
             synchronized (FVM_LOCK) {
+                // Install the external capabilities for the fvm to use.
+                CapabilitiesProvider.installExternalCapabilities(capabilities);
+
                 if (isFork040enabled) {
                     newResult = fvm.runPost040Fork(transaction.getData(), context, externalState);
                 } else {
                     newResult = fvm.runPre040Fork(transaction.getData(), context, externalState);
                 }
+
+                // Remove the newly installed capabilities.
+                CapabilitiesProvider.removeExternalCapabilities();
             }
 
             // If the deployment succeeded, then save the contract's code.
@@ -173,6 +180,7 @@ public final class FastVirtualMachine {
     public static FastVmTransactionResult runNonContractCreationTransaction(
             IFastVm fvm,
             IExternalStateForFvm externalState,
+            IExternalCapabilities capabilities,
             ExecutionContext context,
             AionTransaction transaction,
             FastVmTransactionResult result,
@@ -184,11 +192,17 @@ public final class FastVirtualMachine {
         if (!ArrayUtils.isEmpty(code)) {
 
             synchronized (FVM_LOCK) {
+                // Install the external capabilities for the fvm to use.
+                CapabilitiesProvider.installExternalCapabilities(capabilities);
+
                 if (isFork040enabled) {
                     newResult = fvm.runPost040Fork(code, context, externalState);
                 } else {
                     newResult = fvm.runPre040Fork(code, context, externalState);
                 }
+
+                // Remove the newly installed capabilities.
+                CapabilitiesProvider.removeExternalCapabilities();
             }
         }
 
@@ -229,7 +243,6 @@ public final class FastVirtualMachine {
      * @param externalState The world state.
      * @param transaction The transaction to verify.
      * @param result The current state of the transaction result.
-     * @return the rejection-check result.
      */
     public static void performRejectionChecks(
             IExternalStateForFvm externalState, AionTransaction transaction, FastVmTransactionResult result) {

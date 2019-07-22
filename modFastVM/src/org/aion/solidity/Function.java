@@ -4,6 +4,7 @@ import static org.aion.solidity.SolidityType.IntType.encodeInt;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.List;
+import org.aion.fastvm.IExternalCapabilities;
 import org.aion.util.bytes.ByteUtil;
 
 public final class Function extends Entry {
@@ -14,9 +15,9 @@ public final class Function extends Entry {
         boolean payable,
         String name,
         List<Param> inputs,
-        List<Param> outputs) {
-        super(null, constant, payable, name, inputs, outputs, Type.function);
-    }
+        List<Param> outputs,
+        IExternalCapabilities capabilities) {
+        super(null, constant, payable, name, inputs, outputs, Type.function, capabilities);    }
 
     public byte[] encode(Object... args) {
         return ByteUtil.merge(encodeSignature(), encodeArguments(args));

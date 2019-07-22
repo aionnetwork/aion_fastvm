@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
@@ -21,21 +22,33 @@ import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.types.ByteArrayWrapper;
-import org.aion.crypto.HashUtil;
 import org.aion.base.Constants;
 import org.aion.util.types.AddressUtils;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 /** Unit tests for Callback class. */
 public class CallbackUnitTest {
-
+    private static IExternalCapabilities capabilities;
     private RepositoryForTesting dummyRepo;
+
+    @BeforeClass
+    public static void setupCapabilities() {
+        capabilities = new ExternalCapabilitiesForTesting();
+        CapabilitiesProvider.installExternalCapabilities(capabilities);
+    }
+
+    @AfterClass
+    public static void teardownCapabilities() {
+        CapabilitiesProvider.removeExternalCapabilities();
+    }
 
     @Before
     public void setup() {
@@ -1905,9 +1918,7 @@ public class CallbackUnitTest {
         RepositoryForTesting repo = RepositoryForTesting.newRepository();
         AionAddress caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
-            AionAddress contract =
-                    new AionAddress(
-                            HashUtil.calcNewAddr(caller.toByteArray(), callerNonce.toByteArray()));
+            AionAddress contract = capabilities.computeNewContractAddress(caller, callerNonce);
             repo.createAccount(contract);
             repo.addBalance(contract, BigInteger.ZERO);
         }
@@ -2014,11 +2025,7 @@ public class CallbackUnitTest {
         if (isCreateContract && wasSuccess) {
             BigInteger nonce = Callback.externalState().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE);
 
-            AionAddress contract =
-                new AionAddress(
-                    HashUtil.calcNewAddr(
-                        context.getSenderAddress().toByteArray(),
-                        nonce.toByteArray()));
+            AionAddress contract = capabilities.computeNewContractAddress(context.getSenderAddress(), nonce);
             assertTrue(Callback.exists(contract.toByteArray()));
 
             assertEquals(Callback.externalState().getNonce(context.getSenderAddress()).subtract(BigInteger.ONE), tx.senderNonce);
@@ -2116,14 +2123,7 @@ public class CallbackUnitTest {
         BigInteger value = context.getTransferValue();
         AionAddress caller = Callback.context().getSenderAddress();
         AionAddress contract;
-        contract =
-                new AionAddress(
-                        HashUtil.calcNewAddr(
-                                caller.toByteArray(),
-                                Callback.externalState()
-                                        .getNonce(caller)
-                                        .subtract(BigInteger.ONE)
-                                        .toByteArray()));
+        contract = capabilities.computeNewContractAddress(caller, Callback.externalState().getNonce(caller).subtract(BigInteger.ONE));
         if (postExecuteWasSuccess) {
             assertEquals(callerBalance.subtract(value), Callback.externalState().getBalance(caller));
         } else {

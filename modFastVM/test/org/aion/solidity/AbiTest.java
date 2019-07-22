@@ -3,6 +3,7 @@ package org.aion.solidity;
 import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
+import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.contract.ContractUtils;
 import org.aion.solidity.Compiler.Options;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class AbiTest {
         CompilationResult result = CompilationResult.parse(r.output);
 
         assertFalse(result.contracts.isEmpty());
-        Abi abi = Abi.fromJSON(result.contracts.values().iterator().next().abi);
+        Abi abi = Abi.fromJSON(result.contracts.values().iterator().next().abi, new ExternalCapabilitiesForTesting());
         String json = abi.toJSON();
 
         System.out.println(json);
@@ -33,6 +34,6 @@ public class AbiTest {
         CompilationResult result = CompilationResult.parse(r.output);
 
         assertFalse(result.contracts.isEmpty());
-        Abi.fromJSON(result.contracts.values().iterator().next().abi);
+        Abi.fromJSON(result.contracts.values().iterator().next().abi, new ExternalCapabilitiesForTesting());
     }
 }

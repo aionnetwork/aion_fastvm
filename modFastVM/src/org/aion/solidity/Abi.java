@@ -2,6 +2,7 @@ package org.aion.solidity;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.aion.fastvm.IExternalCapabilities;
 import org.apache.commons.collections4.Predicate;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,13 +11,13 @@ public final class Abi {
 
     private List<Entry> entries = new ArrayList<>();
 
-    public static Abi fromJSON(String json) {
+    public static Abi fromJSON(String json, IExternalCapabilities capabilities) {
         Abi abi = new Abi();
 
         JSONArray arr = new JSONArray(json);
         for (int i = 0; i < arr.length(); i++) {
             JSONObject obj = arr.getJSONObject(i);
-            abi.entries.add(Entry.fromJSON(obj));
+            abi.entries.add(Entry.fromJSON(obj, capabilities));
         }
         return abi;
     }

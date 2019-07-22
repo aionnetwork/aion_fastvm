@@ -1,11 +1,11 @@
 package org.aion.solidity;
 
 import static java.lang.String.format;
-import static org.aion.crypto.HashUtil.h256;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.aion.fastvm.IExternalCapabilities;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,6 +24,7 @@ public class Entry {
     public final List<Param> inputs;
     public final List<Param> outputs;
     public final Type type;
+    private final IExternalCapabilities externalCapabilities;
 
     public Entry(
         Boolean anonymous,
@@ -32,7 +33,8 @@ public class Entry {
         String name,
         List<Param> inputs,
         List<Param> outputs,
-        Type type) {
+        Type type,
+        IExternalCapabilities capabilities) {
         this.anonymous = anonymous;
         this.constant = constant;
         this.payable = payable;
@@ -40,10 +42,11 @@ public class Entry {
         this.inputs = inputs;
         this.outputs = outputs;
         this.type = type;
+        this.externalCapabilities = capabilities;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Entry> T fromJSON(JSONObject obj) {
+    public static <T extends Entry> T fromJSON(JSONObject obj, IExternalCapabilities capabilities) {
         Boolean anonymous = obj.has("anonymous") ? obj.getBoolean("anonymous") : null;
         Boolean constant = obj.has("constant") ? obj.getBoolean("constant") : null;
         Boolean payable = obj.has("payable") ? obj.getBoolean("payable") : null;
@@ -65,13 +68,13 @@ public class Entry {
 
         switch (obj.getString("type")) {
             case "constructor":
-                return (T) new Constructor(payable, inputs, outputs);
+                return (T) new Constructor(payable, inputs, outputs, capabilities);
             case "fallback":
-                return (T) new Fallback(payable, inputs, outputs);
+                return (T) new Fallback(payable, inputs, outputs, capabilities);
             case "function":
-                return (T) new Function(constant, payable, name, inputs, outputs);
+                return (T) new Function(constant, payable, name, inputs, outputs, capabilities);
             case "event":
-                return (T) new Event(anonymous, name, inputs, outputs);
+                return (T) new Event(anonymous, name, inputs, outputs, capabilities);
             default:
                 throw new RuntimeException(
                     "Unrecognized ABI entry type: " + obj.getString("type"));
@@ -108,7 +111,7 @@ public class Entry {
     }
 
     public byte[] fingerprintSignature() {
-        return h256(formatSignature().getBytes());
+        return this.externalCapabilities.hash256(formatSignature().getBytes());
     }
 
     public byte[] encodeSignature() {
@@ -122,20 +125,21 @@ public class Entry {
         String name,
         List<Param> inputs,
         List<Param> outputs,
-        Type type) {
+        Type type,
+        IExternalCapabilities capabilities) {
         Entry result = null;
         switch (type) {
             case constructor:
-                result = new Constructor(payable, inputs, outputs);
+                result = new Constructor(payable, inputs, outputs, capabilities);
                 break;
             case fallback:
-                result = new Fallback(payable, inputs, outputs);
+                result = new Fallback(payable, inputs, outputs, capabilities);
                 break;
             case function:
-                result = new Function(constant, payable, name, inputs, outputs);
+                result = new Function(constant, payable, name, inputs, outputs, capabilities);
                 break;
             case event:
-                result = new Event(anonymous, name, inputs, outputs);
+                result = new Event(anonymous, name, inputs, outputs, capabilities);
                 break;
         }
 

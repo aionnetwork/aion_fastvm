@@ -7,13 +7,14 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.aion.fastvm.IExternalCapabilities;
 import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.collections4.Predicate;
 
 public final class Event extends Entry {
 
-    public Event(boolean anonymous, String name, List<Param> inputs, List<Param> outputs) {
-        super(anonymous, null, null, name, inputs, outputs, Type.event);
+    public Event(boolean anonymous, String name, List<Param> inputs, List<Param> outputs, IExternalCapabilities capabilities) {
+        super(anonymous, null, null, name, inputs, outputs, Type.event, capabilities);
     }
 
     public List<?> decode(byte[] data, byte[][] topics) {
