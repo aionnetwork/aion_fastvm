@@ -3,7 +3,7 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import org.aion.util.conversions.Hex;
+import org.aion.util.HexUtil;
 
 /**
  * A data word implementation consisting of 16 bytes.
@@ -114,7 +114,7 @@ public final class FvmDataWord {
 
     @Override
     public String toString() {
-        return Hex.toHexString(this.data);
+        return HexUtil.toHexString(this.data);
     }
 
     @Override

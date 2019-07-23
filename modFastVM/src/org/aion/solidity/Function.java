@@ -5,7 +5,7 @@ import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.List;
 import org.aion.fastvm.IExternalCapabilities;
-import org.aion.util.bytes.ByteUtil;
+import org.aion.util.ByteUtil;
 
 public final class Function extends Entry {
     private static final int ENCODED_SIGN_LENGTH = 4;

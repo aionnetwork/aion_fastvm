@@ -11,9 +11,9 @@ import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
-import org.aion.util.bytes.ByteUtil;
 import org.aion.base.Constants;
 import org.aion.types.InternalTransaction;
+import org.aion.util.ByteUtil;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 

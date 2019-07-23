@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.aion.base.AionTransaction;
 import org.aion.types.AionAddress;
-import org.aion.util.bytes.ByteUtil;
+import org.aion.util.ByteUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**

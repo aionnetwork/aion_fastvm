@@ -6,8 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.aion.util.bytes.ByteUtil;
-import org.aion.util.conversions.Hex;
+import org.aion.util.ByteUtil;
+import org.aion.util.HexUtil;
 
 public abstract class SolidityType {
 
@@ -342,7 +342,7 @@ public abstract class SolidityType {
                 if (str.length() != 64) {
                     throw new RuntimeException("Invalid address: length = " + str.length());
                 }
-                return Hex.decode(str);
+                return HexUtil.decode(str);
 
             } else if (value instanceof byte[]) {
                 byte[] bytes = (byte[]) value;

@@ -1,6 +1,6 @@
 package org.aion.fastvm;
 
-import org.aion.util.file.NativeLoader;
+import org.aion.util.FvmNativeLoader;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -21,7 +21,7 @@ public class FastVM implements IFastVm {
     public static int FLAG_STATIC = 1;
 
     static {
-        NativeLoader.loadLibrary("fastvm");
+        FvmNativeLoader.loadLibrary();
         init();
     }
 

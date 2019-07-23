@@ -8,7 +8,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 import java.util.ArrayList;
 import java.util.List;
 import org.aion.fastvm.IExternalCapabilities;
-import org.aion.util.bytes.ByteUtil;
+import org.aion.util.ByteUtil;
 import org.apache.commons.collections4.Predicate;
 
 public final class Event extends Entry {
