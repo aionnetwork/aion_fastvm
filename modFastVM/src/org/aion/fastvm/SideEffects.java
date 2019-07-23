@@ -27,8 +27,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.aion.mcf.vm.types.InternalTransactionUtil;
 import org.aion.types.AionAddress;
+import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.types.InternalTransaction;
 
@@ -150,7 +150,7 @@ public class SideEffects {
     }
 
     public void markAllInternalTransactionsAsRejected() {
-        internalTxs = InternalTransactionUtil.createRejectedTransactionList(internalTxs);
+        internalTxs = copyAllTransactionsAsRejected(internalTxs);
     }
 
     public void markMostRecentInternalTransactionAsRejected() {
@@ -159,7 +159,7 @@ public class SideEffects {
         }
 
         InternalTransaction toReject = internalTxs.get(internalTxs.size() - 1);
-        InternalTransaction rejected = InternalTransactionUtil.createRejectedTransaction(toReject);
+        InternalTransaction rejected = copyTransactionAsRejected(toReject);
         internalTxs.remove(toReject);
         internalTxs.add(rejected);
     }
@@ -194,5 +194,36 @@ public class SideEffects {
      */
     public List<InternalTransaction> getInternalTransactions() {
         return internalTxs;
+    }
+
+    /**
+     * Returns a list of transactions such that the i'th returned transaction has every field equal
+     * to the i'th input transaction, except that it is marked rejected, for all transactions in the
+     * list.
+     *
+     * @param transactions The transactions that the new transactions are derived from.
+     * @return the new rejected transactions.
+     */
+    private static List<InternalTransaction> copyAllTransactionsAsRejected(List<InternalTransaction> transactions) {
+        List<InternalTransaction> rejectedTransactions = new ArrayList<>();
+        for (InternalTransaction transaction : transactions) {
+            rejectedTransactions.add(copyTransactionAsRejected(transaction));
+        }
+        return rejectedTransactions;
+    }
+
+    /**
+     * Returns a transaction such that every field in the returned transaction are equal to the
+     * input transaction, except that it is marked rejected.
+     *
+     * @param transaction The transaction that the new transaction is derived from.
+     * @return the new rejected transaction.
+     */
+    private static InternalTransaction copyTransactionAsRejected(InternalTransaction transaction) {
+        if (transaction.isCreate) {
+            return InternalTransaction.contractCreateTransaction(RejectedStatus.REJECTED, transaction.sender, transaction.senderNonce, transaction.value, transaction.copyOfData(), transaction.energyLimit, transaction.energyPrice);
+        } else {
+            return InternalTransaction.contractCallTransaction(RejectedStatus.REJECTED, transaction.sender, transaction.destination, transaction.senderNonce, transaction.value, transaction.copyOfData(), transaction.energyLimit, transaction.energyPrice);
+        }
     }
 }
