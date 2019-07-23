@@ -65,9 +65,10 @@ public class ExecutionContext {
     private final boolean isCreate;
 
     private ExecutionContext(
-            AionTransaction transaction,
+            boolean isCreate,
             byte[] txHash,
             AionAddress destination,
+            AionAddress contract,
             AionAddress origin,
             AionAddress sender,
             FvmDataWord nrgPrice,
@@ -100,11 +101,8 @@ public class ExecutionContext {
         this.blockNrgLimit = blockNrgLimit;
         this.txHash = txHash;
         this.originalTxHash = txHash;
-        // TODO: the logic of how we assign contractAddress and isCreate looks incorrect from here but actually it isn't because of how it is consumed.
-        // ie. the consumer is aware of these implementation details, or these details are aware of the consumer.
-        // Somebody should actually investigate this so that the logic can be written correctly with everything working fine.
-        this.contractAddress = (transaction == null) ? null : transaction.getContractAddress();
-        this.isCreate = (transaction == null) ? false : transaction.isContractCreationTransaction();
+        this.contractAddress = contract;
+        this.isCreate = isCreate;
         this.sideEffects = new SideEffects();
     }
 
@@ -120,7 +118,7 @@ public class ExecutionContext {
      * @param blockDifficulty The current block's difficulty.
      * @return the context.
      */
-    public static ExecutionContext fromTransaction(AionTransaction transaction, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
+    public static ExecutionContext fromTransaction(AionTransaction transaction, AionAddress contract, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
         if (transaction == null) {
             throw new NullPointerException("Cannot create context from null transaction!");
         }
@@ -138,10 +136,10 @@ public class ExecutionContext {
         long energy = transaction.getEnergyLimit() - transaction.getTransactionCost();
         FvmDataWord transferValue = FvmDataWord.fromBytes(ArrayUtils.nullToEmpty(transaction.getValue()));
         byte[] data = ArrayUtils.nullToEmpty(transaction.getData());
-        AionAddress destinationAddress = transaction.isContractCreationTransaction() ? transaction.getContractAddress() : transaction.getDestinationAddress();
+        AionAddress destinationAddress = transaction.isContractCreationTransaction() ? contract : transaction.getDestinationAddress();
         TransactionKind kind = transaction.isContractCreationTransaction() ? TransactionKind.CREATE : TransactionKind.CALL;
 
-        return new ExecutionContext(transaction, transactionHash, destinationAddress, originAddress, callerAddress, energyPrice, energy, transferValue, data, 0, kind, 0, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
+        return new ExecutionContext(transaction.isContractCreationTransaction(), transactionHash, destinationAddress, transaction.getContractAddress(), originAddress, callerAddress, energyPrice, energy, transferValue, data, 0, kind, 0, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
     }
 
     /**
@@ -194,7 +192,8 @@ public class ExecutionContext {
             throw new NullPointerException("Cannot create context with null blockDifficulty!");
         }
 
-        return new ExecutionContext(null, transactionHash, destination, origin, sender, FvmDataWord.fromLong(energyPrice), energy, FvmDataWord.fromBigInteger(value), data, depth, kind, flags, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
+        //TODO: AKI-289 stop passing null in as the contract address in all cases. We should pass the address when we have a CREATE.
+        return new ExecutionContext(kind == TransactionKind.CREATE, transactionHash, destination, null, origin, sender, FvmDataWord.fromLong(energyPrice), energy, FvmDataWord.fromBigInteger(value), data, depth, kind, flags, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
     }
 
     /**

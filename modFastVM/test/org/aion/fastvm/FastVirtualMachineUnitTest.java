@@ -39,7 +39,7 @@ public class FastVirtualMachineUnitTest {
         long blockEnergyLimit = 500000;
         IExternalStateForFvm state = newState(miner, blockDifficulty, blockNumber, blockTimestamp, blockEnergyLimit);
 
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
         Assert.assertEquals(sender, context.getOriginAddress());
         Assert.assertEquals(sender, context.getSenderAddress());
         Assert.assertEquals(destination, context.getDestinationAddress());
@@ -79,7 +79,7 @@ public class FastVirtualMachineUnitTest {
         long blockEnergyLimit = 500000;
         IExternalStateForFvm state = newState(miner, blockDifficulty, blockNumber, blockTimestamp, blockEnergyLimit);
 
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
         Assert.assertEquals(sender, context.getOriginAddress());
         Assert.assertEquals(sender, context.getSenderAddress());
         Assert.assertEquals(transaction.getContractAddress(), context.getDestinationAddress());
@@ -250,7 +250,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCallTransaction(sender, beneficiary, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -280,7 +280,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -313,7 +313,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -345,7 +345,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -380,7 +380,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -415,7 +415,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -455,7 +455,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -493,7 +493,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -533,7 +533,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -575,7 +575,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -613,7 +613,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -653,7 +653,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -691,7 +691,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -729,7 +729,7 @@ public class FastVirtualMachineUnitTest {
         AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);

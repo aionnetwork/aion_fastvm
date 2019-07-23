@@ -28,7 +28,8 @@ public final class FastVirtualMachine {
             throw new NullPointerException("Cannot run null transaction!");
         }
 
-        ExecutionContext context = constructTransactionContext(transaction, externalState);
+        AionAddress contract = (transaction.isContractCreationTransaction()) ? capabilities.computeNewContractAddress(transaction.getSenderAddress(), transaction.getNonceBI()) : null;
+        ExecutionContext context = constructTransactionContext(transaction, contract, externalState);
         IExternalStateForFvm childExternalState = externalState.newChildExternalState();
         IExternalStateForFvm grandChildExternalState = childExternalState.newChildExternalState();
 
@@ -283,12 +284,13 @@ public final class FastVirtualMachine {
      * Returns an execution context pertaining to the specified transaction and kernel.
      *
      * @param transaction The transaction.
+     * @param contract The contract.
      * @param externalState The world state.
      * @return the execution context.
      */
     public static ExecutionContext constructTransactionContext(
-            AionTransaction transaction, IExternalStateForFvm externalState) {
+            AionTransaction transaction, AionAddress contract, IExternalStateForFvm externalState) {
         //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
-        return ExecutionContext.fromTransaction(transaction, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), FvmDataWord.fromLong(externalState.getBlockDifficulty()));
+        return ExecutionContext.fromTransaction(transaction, contract, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), FvmDataWord.fromLong(externalState.getBlockDifficulty()));
     }
 }

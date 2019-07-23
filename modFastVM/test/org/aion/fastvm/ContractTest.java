@@ -41,7 +41,7 @@ public class ContractTest {
     private byte[] callData;
 
     private int depth = 0;
-    private TransactionKind kind = TransactionKind.CREATE;
+    private TransactionKind kind = TransactionKind.CALL;
     private int flags = 0;
 
     private RepositoryForTesting repo;
