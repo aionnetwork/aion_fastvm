@@ -4,14 +4,16 @@ import java.math.BigInteger;
 import org.aion.ExternalStateForTesting;
 import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.FastVmForTesting;
-import org.aion.base.AionTransaction;
 import org.aion.repository.AccountStateForTesting.VmType;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.repository.EnergyLimitRuleForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.types.AionAddress;
+import org.aion.types.Transaction;
+import org.aion.util.TransactionUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -21,6 +23,12 @@ import org.junit.Test;
  * use of. The run() method is tested as an integration test in the {@link FastVirtualMachineIntegTest} file.
  */
 public class FastVirtualMachineUnitTest {
+    private static IExternalCapabilities capabilities;
+
+    @BeforeClass
+    public static void setupCapabilities() {
+        capabilities = new ExternalCapabilitiesForTesting();
+    }
 
     @Test
     public void testCallContextConstruction() {
@@ -30,7 +38,7 @@ public class FastVirtualMachineUnitTest {
         byte[] data = RandomUtils.nextBytes(40);
         long energyPrice = 10;
         long energyLimit = 3329870;
-        AionTransaction transaction = new AionTransaction(BigInteger.ZERO.toByteArray(), sender, destination, value.toByteArray(), data, energyLimit, energyPrice);
+        Transaction transaction = Transaction.contractCallTransaction(sender, destination, new byte[32], BigInteger.ZERO, value, data, energyLimit, energyPrice);
 
         AionAddress miner = randomAddress();
         long blockDifficulty = 235;
@@ -39,14 +47,14 @@ public class FastVirtualMachineUnitTest {
         long blockEnergyLimit = 500000;
         IExternalStateForFvm state = newState(miner, blockDifficulty, blockNumber, blockTimestamp, blockEnergyLimit);
 
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, null, state);
         Assert.assertEquals(sender, context.getOriginAddress());
         Assert.assertEquals(sender, context.getSenderAddress());
         Assert.assertEquals(destination, context.getDestinationAddress());
-        Assert.assertArrayEquals(transaction.getTransactionHash(), context.getTransactionHash());
+        Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getTransactionHash());
         Assert.assertNull(context.getContractAddress());
         Assert.assertEquals(energyPrice, context.getTransactionEnergyPrice());
-        Assert.assertEquals(energyLimit - transaction.getTransactionCost(), context.getTransactionEnergy());
+        Assert.assertEquals(energyLimit - TransactionUtil.computeTransactionCost(transaction), context.getTransactionEnergy());
         Assert.assertEquals(value, context.getTransferValue());
         Assert.assertArrayEquals(data, context.getTransactionData());
         Assert.assertEquals(0, context.getTransactionStackDepth());
@@ -57,7 +65,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(blockTimestamp, context.getBlockTimestamp());
         Assert.assertEquals(blockEnergyLimit, context.getBlockEnergyLimit());
         Assert.assertEquals(blockDifficulty, context.getBlockDifficulty());
-        Assert.assertArrayEquals(transaction.getTransactionHash(), context.getHashOfOriginTransaction());
+        Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getHashOfOriginTransaction());
         Assert.assertTrue(context.getSideEffects().getInternalTransactions().isEmpty());
         Assert.assertTrue(context.getSideEffects().getAddressesToBeDeleted().isEmpty());
         Assert.assertTrue(context.getSideEffects().getExecutionLogs().isEmpty());
@@ -70,7 +78,7 @@ public class FastVirtualMachineUnitTest {
         byte[] data = new byte[0];
         long energyPrice = Long.MAX_VALUE;
         long energyLimit = 456845;
-        AionTransaction transaction = new AionTransaction(BigInteger.ZERO.toByteArray(), sender, null, value.toByteArray(), data, energyLimit, energyPrice);
+        Transaction transaction = Transaction.contractCreateTransaction(sender, new byte[32], BigInteger.ZERO, value, data, energyLimit, energyPrice);
 
         AionAddress miner = randomAddress();
         long blockDifficulty = Long.MAX_VALUE;
@@ -79,14 +87,16 @@ public class FastVirtualMachineUnitTest {
         long blockEnergyLimit = 500000;
         IExternalStateForFvm state = newState(miner, blockDifficulty, blockNumber, blockTimestamp, blockEnergyLimit);
 
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
+
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
         Assert.assertEquals(sender, context.getOriginAddress());
         Assert.assertEquals(sender, context.getSenderAddress());
-        Assert.assertEquals(transaction.getContractAddress(), context.getDestinationAddress());
-        Assert.assertArrayEquals(transaction.getTransactionHash(), context.getTransactionHash());
-        Assert.assertEquals(transaction.getContractAddress(), context.getContractAddress());
+        Assert.assertEquals(contract, context.getDestinationAddress());
+        Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getTransactionHash());
+        Assert.assertEquals(contract, context.getContractAddress());
         Assert.assertEquals(energyPrice, context.getTransactionEnergyPrice());
-        Assert.assertEquals(energyLimit - transaction.getTransactionCost(), context.getTransactionEnergy());
+        Assert.assertEquals(energyLimit - TransactionUtil.computeTransactionCost(transaction), context.getTransactionEnergy());
         Assert.assertEquals(value, context.getTransferValue());
         Assert.assertArrayEquals(data, context.getTransactionData());
         Assert.assertEquals(0, context.getTransactionStackDepth());
@@ -97,7 +107,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(blockTimestamp, context.getBlockTimestamp());
         Assert.assertEquals(blockEnergyLimit, context.getBlockEnergyLimit());
         Assert.assertEquals(blockDifficulty, context.getBlockDifficulty());
-        Assert.assertArrayEquals(transaction.getTransactionHash(), context.getHashOfOriginTransaction());
+        Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getHashOfOriginTransaction());
         Assert.assertTrue(context.getSideEffects().getInternalTransactions().isEmpty());
         Assert.assertTrue(context.getSideEffects().getAddressesToBeDeleted().isEmpty());
         Assert.assertTrue(context.getSideEffects().getExecutionLogs().isEmpty());
@@ -107,7 +117,7 @@ public class FastVirtualMachineUnitTest {
     public void testCallEnergyLimitRejectionChecks() {
         // Test the minimum.
         long energyLimitTooLowForCall = EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT - 1;
-        AionTransaction transaction = randomCallTransaction(energyLimitTooLowForCall);
+        Transaction transaction = randomCallTransaction(energyLimitTooLowForCall);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimitTooLowForCall);
 
@@ -130,7 +140,7 @@ public class FastVirtualMachineUnitTest {
     public void testCreateEnergyLimitRejectionChecks() {
         // Test the minimum.
         long energyLimitTooLowForCreate = EnergyLimitRuleForTesting.MIN_CREATE_ENERGY_LIMIT - 1;
-        AionTransaction transaction = randomCreateTransaction(energyLimitTooLowForCreate);
+        Transaction transaction = randomCreateTransaction(energyLimitTooLowForCreate);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimitTooLowForCreate);
 
@@ -160,7 +170,7 @@ public class FastVirtualMachineUnitTest {
         state.setNonce(sender, nonce);
 
         // First try with a nonce that is too small.
-        AionTransaction transaction = randomCallTransaction(sender, nonce.subtract(BigInteger.ONE), EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT);
+        Transaction transaction = randomCallTransaction(sender, nonce.subtract(BigInteger.ONE), EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT);
         FastVirtualMachine.performRejectionChecks(state, transaction, result);
         Assert.assertEquals(FastVmResultCode.INVALID_NONCE, result.getResultCode());
         Assert.assertEquals(0, result.getEnergyRemaining());
@@ -179,7 +189,7 @@ public class FastVirtualMachineUnitTest {
         long energyLimit = EnergyLimitRuleForTesting.MAX_CREATE_ENERGY_LIMIT;
         long energyPrice = 13L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, energyLimit, energyPrice);
+        Transaction transaction = randomCreateTransaction(sender, value, energyLimit, energyPrice);
         IExternalStateForFvm state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
 
@@ -201,7 +211,7 @@ public class FastVirtualMachineUnitTest {
         long energyLimit = EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT;
         long energyPrice = 50L;
 
-        AionTransaction transaction = randomCallTransaction(sender, nonce, value, energyLimit, energyPrice);
+        Transaction transaction = randomCallTransaction(sender, nonce, value, energyLimit, energyPrice);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
 
@@ -226,7 +236,7 @@ public class FastVirtualMachineUnitTest {
         long energyPrice = 3L;
         BigInteger energyCost = BigInteger.valueOf(energyLimit).multiply(BigInteger.valueOf(energyPrice));
 
-        AionTransaction transaction = randomCallTransaction(sender, nonce, BigInteger.ZERO, energyLimit, energyPrice);
+        Transaction transaction = randomCallTransaction(sender, nonce, BigInteger.ZERO, energyLimit, energyPrice);
         ExternalStateForTesting state = newState();
 
         // Set the sender's nonce and balance.
@@ -244,13 +254,14 @@ public class FastVirtualMachineUnitTest {
     public void testRunNonCreateForBalanceTransfer() {
         AionAddress sender = randomAddress();
         AionAddress beneficiary = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(23875);
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCallTransaction(sender, beneficiary, value, energyLimit);
+        Transaction transaction = randomCallTransaction(sender, beneficiary, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -274,13 +285,14 @@ public class FastVirtualMachineUnitTest {
     public void testRunNonCreateForCallForkEnabled() {
         AionAddress sender = randomAddress();
         AionAddress destination = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(23875);
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
+        Transaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -307,13 +319,14 @@ public class FastVirtualMachineUnitTest {
     public void testRunNonCreateForCallForkDisabled() {
         AionAddress sender = randomAddress();
         AionAddress destination = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(23875);
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
+        Transaction transaction = randomCallTransaction(sender, destination, value, energyLimit);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -339,21 +352,21 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreateWhenDestinationAlreadyExistsPre040Fork() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
 
         // Give the destination account state.
-        AionAddress destination = transaction.getContractAddress();
         BigInteger contractBalance = BigInteger.ONE;
-        state.addBalance(destination, contractBalance);
+        state.addBalance(contract, contractBalance);
 
         // We expect to fail out before the vm ever gets run, so we should never see these errors.
         FastVmForTesting fvm = new FastVmForTesting();
@@ -367,27 +380,26 @@ public class FastVirtualMachineUnitTest {
 
         // Verify no balance was transferred.
         Assert.assertEquals(value, state.getBalance(sender));
-        Assert.assertEquals(destination, transaction.getContractAddress());
-        Assert.assertEquals(contractBalance, state.getBalance(destination));
+        Assert.assertEquals(contractBalance, state.getBalance(contract));
     }
 
     @Test
     public void testRunCreateWhenContractAlreadyExistsPost040Fork() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
 
         // Give the destination some code so that it is already a contract.
-        AionAddress destination = transaction.getContractAddress();
-        state.putCode(destination, new byte[1]);
+        state.putCode(contract, new byte[1]);
 
         // We expect to fail out before the vm ever gets run, so we should never see these errors.
         FastVmForTesting fvm = new FastVmForTesting();
@@ -401,21 +413,21 @@ public class FastVirtualMachineUnitTest {
 
         // Verify no balance was transferred.
         Assert.assertEquals(value, state.getBalance(sender));
-        Assert.assertEquals(destination, transaction.getContractAddress());
-        Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(contract));
     }
 
     @Test
     public void testRunCreatePre040ForkSuccessful() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -432,8 +444,6 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
 
-        AionAddress contract = transaction.getContractAddress();
-
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
 
@@ -448,14 +458,15 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePre040ForkUnsuccessful() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -469,8 +480,6 @@ public class FastVirtualMachineUnitTest {
         FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.OUT_OF_NRG, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
-
-        AionAddress contract = transaction.getContractAddress();
 
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
@@ -486,14 +495,15 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkSuccessful() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -510,8 +520,6 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
 
-        AionAddress contract = transaction.getContractAddress();
-
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
 
@@ -526,20 +534,20 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkSuccessfulWhenDestinationIsRegularAccount() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
 
         // Give the destination some account state, no code.
-        AionAddress contract = transaction.getContractAddress();
         state.incrementNonce(contract);
 
         // We expect to see the post 040 successful result, which we can identify primarily by its remaining energy.
@@ -568,14 +576,15 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkUnsuccessful() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -589,8 +598,6 @@ public class FastVirtualMachineUnitTest {
         FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.BAD_JUMP_DESTINATION, runResult.getResultCode());
         Assert.assertEquals(0, runResult.getEnergyRemaining());
-
-        AionAddress contract = transaction.getContractAddress();
 
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
@@ -606,20 +613,20 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkUnsuccessfulWhenDestinationIsRegularAccount() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[1];
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
 
         // Give the destination some account state, but no code.
-        AionAddress contract = transaction.getContractAddress();
         state.incrementNonce(contract);
 
         // We expect to see the post 040 result.
@@ -646,14 +653,15 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePre040ForkNoData() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[0];  // we give an empty byte array.
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -667,8 +675,6 @@ public class FastVirtualMachineUnitTest {
         FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, false);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
-
-        AionAddress contract = transaction.getContractAddress();
 
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
@@ -684,14 +690,15 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkNoData() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[0];  // we give an empty byte array.
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
@@ -705,8 +712,6 @@ public class FastVirtualMachineUnitTest {
         FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, true);
         Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
         Assert.assertEquals(energyLimit, runResult.getEnergyRemaining());
-
-        AionAddress contract = transaction.getContractAddress();
 
         // Verify the destination has been marked as an FVM contract.
         Assert.assertEquals(VmType.FVM, state.getVmType(contract));
@@ -722,20 +727,20 @@ public class FastVirtualMachineUnitTest {
     @Test
     public void testRunCreatePost040ForkNoDataWhenDestinationIsRegularAccount() {
         AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
         byte[] data = new byte[0];  // we give an empty byte array.
         long energyLimit = 100_000L;
 
-        AionTransaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
         ExternalStateForTesting state = newState();
         FastVmTransactionResult result = newSuccessfulResult(energyLimit);
-        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, transaction.getContractAddress(), state);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
 
         // Give the destination some account state, but no code.
-        AionAddress contract = transaction.getContractAddress();
         state.incrementNonce(contract);
 
         // We do not expect to see either result, since we gave no data the vm won't be run.
@@ -763,32 +768,32 @@ public class FastVirtualMachineUnitTest {
         return new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining);
     }
 
-    private static AionTransaction randomCallTransaction(AionAddress sender, AionAddress destination, BigInteger value, long energyLimit) {
-        return new AionTransaction(BigInteger.ZERO.toByteArray(), sender, destination, value.toByteArray(), RandomUtils.nextBytes(61), energyLimit, 1L);
+    private static Transaction randomCallTransaction(AionAddress sender, AionAddress destination, BigInteger value, long energyLimit) {
+        return Transaction.contractCallTransaction(sender, destination, new byte[32], BigInteger.ZERO, value, RandomUtils.nextBytes(61), energyLimit, 1L);
     }
 
-    private static AionTransaction randomCallTransaction(AionAddress sender, BigInteger nonce, BigInteger value, long energyLimit, long energyPrice) {
-        return new AionTransaction(nonce.toByteArray(), sender, randomAddress(), value.toByteArray(), RandomUtils.nextBytes(61), energyLimit, energyPrice);
+    private static Transaction randomCallTransaction(AionAddress sender, BigInteger nonce, BigInteger value, long energyLimit, long energyPrice) {
+        return Transaction.contractCallTransaction(sender, randomAddress(), new byte[32], nonce, value, RandomUtils.nextBytes(61), energyLimit, energyPrice);
     }
 
-    private static AionTransaction randomCreateTransaction(AionAddress sender, BigInteger value, byte[] data, long energyLimit, long energyPrice) {
-        return new AionTransaction(BigInteger.ZERO.toByteArray(), sender, null, value.toByteArray(), data, energyLimit, energyPrice);
+    private static Transaction randomCreateTransaction(AionAddress sender, BigInteger value, byte[] data, long energyLimit, long energyPrice) {
+        return Transaction.contractCreateTransaction(sender, new byte[32], BigInteger.ZERO, value, data, energyLimit, energyPrice);
     }
 
-    private static AionTransaction randomCreateTransaction(AionAddress sender, BigInteger value, long energyLimit, long energyPrice) {
-        return new AionTransaction(BigInteger.ZERO.toByteArray(), sender, null, value.toByteArray(), RandomUtils.nextBytes(61), energyLimit, energyPrice);
+    private static Transaction randomCreateTransaction(AionAddress sender, BigInteger value, long energyLimit, long energyPrice) {
+        return Transaction.contractCreateTransaction(sender, new byte[32], BigInteger.ZERO, value, RandomUtils.nextBytes(61), energyLimit, energyPrice);
     }
 
-    private static AionTransaction randomCallTransaction(AionAddress sender, BigInteger nonce, long energyLimit) {
-        return new AionTransaction(nonce.toByteArray(), sender, randomAddress(), BigInteger.ZERO.toByteArray(), RandomUtils.nextBytes(61), energyLimit, 1L);
+    private static Transaction randomCallTransaction(AionAddress sender, BigInteger nonce, long energyLimit) {
+        return Transaction.contractCallTransaction(sender, randomAddress(), new byte[32], nonce, BigInteger.ZERO, RandomUtils.nextBytes(61), energyLimit, 1L);
     }
 
-    private static AionTransaction randomCreateTransaction(long energyLimit) {
-        return new AionTransaction(BigInteger.ZERO.toByteArray(), randomAddress(), null, BigInteger.ZERO.toByteArray(), RandomUtils.nextBytes(61), energyLimit, 1L);
+    private static Transaction randomCreateTransaction(long energyLimit) {
+        return Transaction.contractCreateTransaction(randomAddress(), new byte[32], BigInteger.ZERO, BigInteger.ZERO, RandomUtils.nextBytes(61), energyLimit, 1L);
     }
 
-    private static AionTransaction randomCallTransaction(long energyLimit) {
-        return new AionTransaction(BigInteger.ZERO.toByteArray(), randomAddress(), randomAddress(), BigInteger.ZERO.toByteArray(), RandomUtils.nextBytes(61), energyLimit, 1L);
+    private static Transaction randomCallTransaction(long energyLimit) {
+        return Transaction.contractCallTransaction(randomAddress(), randomAddress(), new byte[32], BigInteger.ZERO, BigInteger.ZERO, RandomUtils.nextBytes(61), energyLimit, 1L);
     }
 
     private static ExternalStateForTesting newState() {

@@ -1,8 +1,9 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import org.aion.base.AionTransaction;
 import org.aion.types.AionAddress;
+import org.aion.types.Transaction;
+import org.aion.util.TransactionUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 public final class FastVirtualMachine {
@@ -20,7 +21,7 @@ public final class FastVirtualMachine {
      * @return the execution result.
      */
     public static FastVmTransactionResult run(
-            IExternalStateForFvm externalState, IExternalCapabilities capabilities, AionTransaction transaction, boolean isFork040enabled) {
+            IExternalStateForFvm externalState, IExternalCapabilities capabilities, Transaction transaction, boolean isFork040enabled) {
         if (externalState == null) {
             throw new NullPointerException("Cannot run using a null externalState!");
         }
@@ -28,7 +29,7 @@ public final class FastVirtualMachine {
             throw new NullPointerException("Cannot run null transaction!");
         }
 
-        AionAddress contract = (transaction.isContractCreationTransaction()) ? capabilities.computeNewContractAddress(transaction.getSenderAddress(), transaction.getNonceBI()) : null;
+        AionAddress contract = (transaction.isCreate) ? capabilities.computeNewContractAddress(transaction.senderAddress, transaction.nonce) : null;
         ExecutionContext context = constructTransactionContext(transaction, contract, externalState);
         IExternalStateForFvm childExternalState = externalState.newChildExternalState();
         IExternalStateForFvm grandChildExternalState = childExternalState.newChildExternalState();
@@ -36,7 +37,7 @@ public final class FastVirtualMachine {
         FastVmTransactionResult result =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS,
-                        transaction.getEnergyLimit() - transaction.getTransactionCost());
+                        transaction.energyLimit - TransactionUtil.computeTransactionCost(transaction));
 
         // Perform the rejection checks and return immediately if transaction is rejected.
         performRejectionChecks(childExternalState, transaction, result);
@@ -46,7 +47,7 @@ public final class FastVirtualMachine {
 
         incrementNonceAndDeductEnergyCost(childExternalState, transaction);
 
-        if (transaction.isContractCreationTransaction()) {
+        if (transaction.isCreate) {
             result =
                     runContractCreationTransaction(
                             new FastVM(), grandChildExternalState, capabilities, context, transaction, result, isFork040enabled);
@@ -100,10 +101,10 @@ public final class FastVirtualMachine {
             IExternalStateForFvm externalState,
             IExternalCapabilities capabilities,
             ExecutionContext context,
-            AionTransaction transaction,
+            Transaction transaction,
             FastVmTransactionResult result,
             boolean isFork040enabled) {
-        AionAddress contractAddress = transaction.getContractAddress();
+        AionAddress contractAddress = capabilities.computeNewContractAddress(transaction.senderAddress, transaction.nonce);
 
         // If the destination address already has state, we attempt to overwrite this address as a
         // contract if possible.
@@ -130,16 +131,16 @@ public final class FastVirtualMachine {
 
         // Execute the transaction.
         FastVmTransactionResult newResult = null;
-        if (!ArrayUtils.isEmpty(transaction.getData())) {
+        if (!ArrayUtils.isEmpty(transaction.copyOfTransactionData())) {
 
             synchronized (FVM_LOCK) {
                 // Install the external capabilities for the fvm to use.
                 CapabilitiesProvider.installExternalCapabilities(capabilities);
 
                 if (isFork040enabled) {
-                    newResult = fvm.runPost040Fork(transaction.getData(), context, externalState);
+                    newResult = fvm.runPost040Fork(transaction.copyOfTransactionData(), context, externalState);
                 } else {
-                    newResult = fvm.runPre040Fork(transaction.getData(), context, externalState);
+                    newResult = fvm.runPre040Fork(transaction.copyOfTransactionData(), context, externalState);
                 }
 
                 // Remove the newly installed capabilities.
@@ -153,9 +154,8 @@ public final class FastVirtualMachine {
         }
 
         // Transfer any specified value from the sender to the contract.
-        BigInteger transferValue = new BigInteger(1, transaction.getValue());
-        externalState.addBalance(transaction.getSenderAddress(), transferValue.negate());
-        externalState.addBalance(contractAddress, transferValue);
+        externalState.addBalance(transaction.senderAddress, transaction.value.negate());
+        externalState.addBalance(contractAddress, transaction.value);
 
         return (newResult == null) ? result : newResult;
     }
@@ -183,13 +183,13 @@ public final class FastVirtualMachine {
             IExternalStateForFvm externalState,
             IExternalCapabilities capabilities,
             ExecutionContext context,
-            AionTransaction transaction,
+            Transaction transaction,
             FastVmTransactionResult result,
             boolean isFork040enabled) {
 
         // Execute the transaction.
         FastVmTransactionResult newResult = null;
-        byte[] code = externalState.getCode(transaction.getDestinationAddress());
+        byte[] code = externalState.getCode(transaction.destinationAddress);
         if (!ArrayUtils.isEmpty(code)) {
 
             synchronized (FVM_LOCK) {
@@ -208,9 +208,8 @@ public final class FastVirtualMachine {
         }
 
         // Transfer any specified value from the sender to the recipient.
-        BigInteger transferValue = new BigInteger(1, transaction.getValue());
-        externalState.addBalance(transaction.getSenderAddress(), transferValue.negate());
-        externalState.addBalance(transaction.getDestinationAddress(), transferValue);
+        externalState.addBalance(transaction.senderAddress, transaction.value.negate());
+        externalState.addBalance(transaction.destinationAddress, transaction.value);
 
         return (newResult == null) ? result : newResult;
     }
@@ -226,13 +225,13 @@ public final class FastVirtualMachine {
      * @param transaction The transaction.
      */
     public static void incrementNonceAndDeductEnergyCost(
-            IExternalStateForFvm externalState, AionTransaction transaction) {
+            IExternalStateForFvm externalState, Transaction transaction) {
         IExternalStateForFvm childExternalState = externalState.newChildExternalState();
-        childExternalState.incrementNonce(transaction.getSenderAddress());
-        BigInteger energyLimit = BigInteger.valueOf(transaction.getEnergyLimit());
-        BigInteger energyPrice = BigInteger.valueOf(transaction.getEnergyPrice());
+        childExternalState.incrementNonce(transaction.senderAddress);
+        BigInteger energyLimit = BigInteger.valueOf(transaction.energyLimit);
+        BigInteger energyPrice = BigInteger.valueOf(transaction.energyPrice);
         BigInteger energyCost = energyLimit.multiply(energyPrice);
-        childExternalState.deductEnergyCost(transaction.getSenderAddress(), energyCost);
+        childExternalState.deductEnergyCost(transaction.senderAddress, energyCost);
         childExternalState.commit();
     }
 
@@ -246,11 +245,11 @@ public final class FastVirtualMachine {
      * @param result The current state of the transaction result.
      */
     public static void performRejectionChecks(
-            IExternalStateForFvm externalState, AionTransaction transaction, FastVmTransactionResult result) {
-        BigInteger energyPrice = BigInteger.valueOf(transaction.getEnergyPrice());
-        long energyLimit = transaction.getEnergyLimit();
+            IExternalStateForFvm externalState, Transaction transaction, FastVmTransactionResult result) {
+        BigInteger energyPrice = BigInteger.valueOf(transaction.energyPrice);
+        long energyLimit = transaction.energyLimit;
 
-        if (transaction.isContractCreationTransaction()) {
+        if (transaction.isCreate) {
             if (!externalState.isValidEnergyLimitForCreate(energyLimit)) {
                 result.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 result.setEnergyRemaining(energyLimit);
@@ -264,17 +263,15 @@ public final class FastVirtualMachine {
             }
         }
 
-        BigInteger txNonce = new BigInteger(1, transaction.getNonce());
-        if (!externalState.accountNonceEquals(transaction.getSenderAddress(), txNonce)) {
+        if (!externalState.accountNonceEquals(transaction.senderAddress, transaction.nonce)) {
             result.setResultCode(FastVmResultCode.INVALID_NONCE);
             result.setEnergyRemaining(0);
             return;
         }
 
-        BigInteger transferValue = new BigInteger(1, transaction.getValue());
         BigInteger transactionCost =
-                energyPrice.multiply(BigInteger.valueOf(energyLimit)).add(transferValue);
-        if (!externalState.accountBalanceIsAtLeast(transaction.getSenderAddress(), transactionCost)) {
+                energyPrice.multiply(BigInteger.valueOf(energyLimit)).add(transaction.value);
+        if (!externalState.accountBalanceIsAtLeast(transaction.senderAddress, transactionCost)) {
             result.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
             result.setEnergyRemaining(0);
         }
@@ -289,7 +286,7 @@ public final class FastVirtualMachine {
      * @return the execution context.
      */
     public static ExecutionContext constructTransactionContext(
-            AionTransaction transaction, AionAddress contract, IExternalStateForFvm externalState) {
+            Transaction transaction, AionAddress contract, IExternalStateForFvm externalState) {
         //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
         return ExecutionContext.fromTransaction(transaction, contract, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), FvmDataWord.fromLong(externalState.getBlockDifficulty()));
     }

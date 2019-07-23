@@ -25,9 +25,10 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.aion.base.AionTransaction;
 import org.aion.types.AionAddress;
 import org.aion.util.ByteUtil;
+import org.aion.types.Transaction;
+import org.aion.util.TransactionUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -118,7 +119,7 @@ public class ExecutionContext {
      * @param blockDifficulty The current block's difficulty.
      * @return the context.
      */
-    public static ExecutionContext fromTransaction(AionTransaction transaction, AionAddress contract, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
+    public static ExecutionContext fromTransaction(Transaction transaction, AionAddress contract, AionAddress miner, long blockNumber, long blockTimestamp, long blockEnergyLimit, FvmDataWord blockDifficulty) {
         if (transaction == null) {
             throw new NullPointerException("Cannot create context from null transaction!");
         }
@@ -129,17 +130,17 @@ public class ExecutionContext {
             throw new NullPointerException("Cannot create context with null blockDifficulty!");
         }
 
-        byte[] transactionHash = transaction.getTransactionHash();
-        AionAddress originAddress = transaction.getSenderAddress();
-        AionAddress callerAddress = transaction.getSenderAddress();
-        FvmDataWord energyPrice = FvmDataWord.fromLong(transaction.getEnergyPrice());
-        long energy = transaction.getEnergyLimit() - transaction.getTransactionCost();
-        FvmDataWord transferValue = FvmDataWord.fromBytes(ArrayUtils.nullToEmpty(transaction.getValue()));
-        byte[] data = ArrayUtils.nullToEmpty(transaction.getData());
-        AionAddress destinationAddress = transaction.isContractCreationTransaction() ? contract : transaction.getDestinationAddress();
-        TransactionKind kind = transaction.isContractCreationTransaction() ? TransactionKind.CREATE : TransactionKind.CALL;
+        byte[] transactionHash = transaction.copyOfTransactionHash();
+        AionAddress originAddress = transaction.senderAddress;
+        AionAddress callerAddress = transaction.senderAddress;
+        FvmDataWord energyPrice = FvmDataWord.fromLong(transaction.energyPrice);
+        long energy = transaction.energyLimit - TransactionUtil.computeTransactionCost(transaction);
+        FvmDataWord transferValue = FvmDataWord.fromBigInteger(transaction.value);
+        byte[] data = ArrayUtils.nullToEmpty(transaction.copyOfTransactionData());
+        AionAddress destinationAddress = transaction.isCreate ? contract : transaction.destinationAddress;
+        TransactionKind kind = transaction.isCreate ? TransactionKind.CREATE : TransactionKind.CALL;
 
-        return new ExecutionContext(transaction.isContractCreationTransaction(), transactionHash, destinationAddress, transaction.getContractAddress(), originAddress, callerAddress, energyPrice, energy, transferValue, data, 0, kind, 0, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
+        return new ExecutionContext(transaction.isCreate, transactionHash, destinationAddress, contract, originAddress, callerAddress, energyPrice, energy, transferValue, data, 0, kind, 0, miner, blockNumber, blockTimestamp, blockEnergyLimit, blockDifficulty);
     }
 
     /**
