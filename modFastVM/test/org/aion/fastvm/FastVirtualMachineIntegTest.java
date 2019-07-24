@@ -1,6 +1,7 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.contract.ContractUtils;
@@ -9,6 +10,7 @@ import org.aion.repository.EnergyLimitRuleForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.types.AionAddress;
 import org.aion.types.Transaction;
+import org.aion.util.HexUtil;
 import org.aion.util.TransactionUtil;
 import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.lang3.RandomUtils;
@@ -678,15 +680,15 @@ public class FastVirtualMachineIntegTest {
 
     private static byte[] encodeCallToDefaultPayableContract(DefaultPayableFunction function) {
         switch (function) {
-            case NON_PAYABLE: return ByteUtil.hexStringToBytes("52da86d5");
+            case NON_PAYABLE: return HexUtil.hexStringToBytes("52da86d5");
             default: throw new IllegalArgumentException("Expected: NON_PAYABLE. Found: " + function);
         }
     }
 
     private static byte[] encodeCallToTickerContract(TickerFunction function) {
         switch (function) {
-            case TICKING: return ByteUtil.hexStringToBytes("dae29f29");
-            case GET_TICKER: return ByteUtil.hexStringToBytes("c0004213");
+            case TICKING: return HexUtil.hexStringToBytes("dae29f29");
+            case GET_TICKER: return HexUtil.hexStringToBytes("c0004213");
             default: throw new IllegalArgumentException("Expected: TICKING, GET_TICKER. Found: " + function);
         }
     }

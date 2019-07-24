@@ -15,7 +15,7 @@ import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.util.bytes.ByteUtil;
+import org.aion.util.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
 import org.apache.commons.lang3.RandomUtils;
