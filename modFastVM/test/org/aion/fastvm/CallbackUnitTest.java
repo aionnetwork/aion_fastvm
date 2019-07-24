@@ -22,7 +22,6 @@ import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.util.ByteUtil;
-import org.aion.base.Constants;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -728,7 +727,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataIsEmptyNrgLessThanDepositSeptForkDisabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT - 1;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -765,7 +764,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataIsEmptyNrgLessThanDepositSeptForkEnabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT - 1;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -802,7 +801,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataIsEmptyNrgMoreThanDepositSeptForkDisabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -815,7 +814,7 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
 
         runPerformCallAndCheck(
@@ -836,7 +835,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataIsEmptyNrgMoreThanDepositSeptForkEnabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -849,7 +848,7 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
         FastVM vm = mockFastVM(null); // we bypass vm
 
         runPerformCallAndCheck(
@@ -870,7 +869,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataNotEmptyNrgLessThanDepositSeptForkDisabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT - 1;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -883,7 +882,7 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
 
         mockedResult.setResultCodeAndEnergyRemaining(
@@ -906,7 +905,7 @@ public class CallbackUnitTest {
             testPerformCallCreateCallContractIsNewDataNotEmptyNrgLessThanDepositSeptForkEnabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT - 1;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT - 1;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -919,7 +918,7 @@ public class CallbackUnitTest {
                         nrgLimit);
 
         FastVmTransactionResult mockedResult =
-                new FastVmTransactionResult(FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT);
+                new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
         FastVM vm = mockFastVM(mockedResult);
 
         mockedResult.setResultCodeAndEnergyRemaining(
@@ -941,7 +940,7 @@ public class CallbackUnitTest {
     public void testPerformCallCreateCallContractIsNewDataNotEmptyIsSuccessSeptForkDisabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -956,7 +955,7 @@ public class CallbackUnitTest {
         byte[] code = RandomUtils.nextBytes(50);
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+                        FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
 
         runPerformCallAndCheck(
@@ -976,7 +975,7 @@ public class CallbackUnitTest {
     public void testPerformCallCreateCallContractIsNewDataNotEmptyIsSuccessSeptForkEnabled() {
         BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
         BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+        long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
         ExecutionContext context =
                 setupTestForPerformCall(
                         callerBalance,
@@ -991,7 +990,7 @@ public class CallbackUnitTest {
         byte[] code = RandomUtils.nextBytes(50);
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
-                        FastVmResultCode.SUCCESS, Constants.NRG_CODE_DEPOSIT, code);
+                        FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT, code);
         FastVM vm = mockFastVM(mockedResult);
 
         runPerformCallAndCheck(
@@ -1013,7 +1012,7 @@ public class CallbackUnitTest {
             if (!resCode.equals(FastVmResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-                long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+                long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
                 ExecutionContext context =
                         setupTestForPerformCall(
                                 callerBalance,
@@ -1027,7 +1026,7 @@ public class CallbackUnitTest {
 
                 byte[] code = RandomUtils.nextBytes(50);
                 FastVmTransactionResult mockedResult =
-                        new FastVmTransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                        new FastVmTransactionResult(resCode, FvmConstants.ENERGY_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
 
                 runPerformCallAndCheck(
@@ -1051,7 +1050,7 @@ public class CallbackUnitTest {
             if (!resCode.equals(FastVmResultCode.SUCCESS)) {
                 BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
                 BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-                long nrgLimit = Constants.NRG_CODE_DEPOSIT;
+                long nrgLimit = FvmConstants.ENERGY_CODE_DEPOSIT;
                 ExecutionContext context =
                         setupTestForPerformCall(
                                 callerBalance,
@@ -1065,7 +1064,7 @@ public class CallbackUnitTest {
 
                 byte[] code = RandomUtils.nextBytes(50);
                 FastVmTransactionResult mockedResult =
-                        new FastVmTransactionResult(resCode, Constants.NRG_CODE_DEPOSIT, code);
+                        new FastVmTransactionResult(resCode, FvmConstants.ENERGY_CODE_DEPOSIT, code);
                 FastVM vm = mockFastVM(mockedResult);
 
                 runPerformCallAndCheck(
@@ -1439,7 +1438,7 @@ public class CallbackUnitTest {
         } else {
             callData = RandomUtils.nextBytes(RandomUtils.nextInt(10, 50));
         }
-        int depth = RandomUtils.nextInt(0, Constants.MAX_CALL_DEPTH - 1);
+        int depth = RandomUtils.nextInt(0, FvmConstants.MAX_CALL_DEPTH - 1);
         int flags = RandomUtils.nextInt(100, 100_000);
         AionAddress blockCoinbase = getNewAddress();
         long blockNumber;

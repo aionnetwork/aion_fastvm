@@ -4,7 +4,6 @@ module aion.fastvm {
     requires commons.collections4;
     requires org.json;
     requires aion.types;
-    requires aion.base;
 
     exports org.aion.solidity;
     exports org.aion.fastvm;

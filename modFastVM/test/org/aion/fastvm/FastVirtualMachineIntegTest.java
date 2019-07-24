@@ -1,7 +1,6 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.contract.ContractUtils;
@@ -12,7 +11,6 @@ import org.aion.types.AionAddress;
 import org.aion.types.Transaction;
 import org.aion.util.HexUtil;
 import org.aion.util.TransactionUtil;
-import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;

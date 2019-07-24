@@ -11,7 +11,6 @@ import java.util.List;
 import org.aion.types.AionAddress;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
-import org.aion.base.Constants;
 import org.aion.types.InternalTransaction;
 import org.aion.util.ByteUtil;
 import org.apache.commons.lang3.ArrayUtils;
@@ -158,7 +157,7 @@ public class Callback {
         ExecutionContext ctx = parseMessage(message);
 
         // check call stack depth
-        if (ctx.getTransactionStackDepth() >= Constants.MAX_CALL_DEPTH) {
+        if (ctx.getTransactionStackDepth() >= FvmConstants.MAX_CALL_DEPTH) {
             return new FastVmTransactionResult(FastVmResultCode.FAILURE, 0).toBytes();
         }
 
@@ -342,7 +341,7 @@ public class Callback {
             childState.rollback();
         } else {
             // charge the codedeposit
-            if (result.getEnergyRemaining() < Constants.NRG_CODE_DEPOSIT) {
+            if (result.getEnergyRemaining() < FvmConstants.ENERGY_CODE_DEPOSIT) {
                 result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
                 context().getSideEffects().markMostRecentInternalTransactionAsRejected();
                 ctx.getSideEffects().markAllInternalTransactionsAsRejected(); // reject all

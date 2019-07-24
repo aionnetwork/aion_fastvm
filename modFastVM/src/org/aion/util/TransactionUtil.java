@@ -1,6 +1,6 @@
 package org.aion.util;
 
-import org.aion.base.Constants;
+import org.aion.fastvm.FvmConstants;
 import org.aion.types.Transaction;
 
 public final class TransactionUtil {
@@ -10,10 +10,10 @@ public final class TransactionUtil {
         long nonZeroes = nonZeroBytesInData(data);
         long zeroes = zeroBytesInData(data);
 
-        return (transaction.isCreate ? Constants.NRG_CREATE_CONTRACT_MIN : 0)
-            + Constants.NRG_TRANSACTION_MIN
-            + zeroes * Constants.NRG_TX_DATA_ZERO
-            + nonZeroes * Constants.NRG_TX_DATA_NONZERO;
+        return (transaction.isCreate ? FvmConstants.CREATE_TRANSACTION_FEE : 0)
+            + FvmConstants.TRANSACTION_BASE_FEE
+            + zeroes * FvmConstants.ZERO_BYTE_FEE
+            + nonZeroes * FvmConstants.NONZERO_BYTE_FEE;
     }
 
     private static long nonZeroBytesInData(byte[] data) {
