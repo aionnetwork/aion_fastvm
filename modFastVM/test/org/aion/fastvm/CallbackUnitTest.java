@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.aion.ByteArrayWrapper;
 import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
@@ -21,7 +22,6 @@ import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.util.ByteUtil;
-import org.aion.util.types.ByteArrayWrapper;
 import org.aion.base.Constants;
 import org.aion.util.types.AddressUtils;
 import org.aion.types.InternalTransaction;
@@ -1672,7 +1672,7 @@ public class CallbackUnitTest {
         int len = packs.size();
         AionAddress[] addresses = new AionAddress[len];
         for (int i = 0; i < len; i++) {
-            byte[] pack = packs.get(i).toBytes();
+            byte[] pack = packs.get(i).copyOfBytes();
             addresses[i] = new AionAddress(Arrays.copyOfRange(pack, 0, AionAddress.LENGTH));
         }
         return addresses;
@@ -1682,7 +1682,7 @@ public class CallbackUnitTest {
         int len = packs.size();
         byte[][] keys = new byte[len][];
         for (int i = 0; i < len; i++) {
-            byte[] pack = packs.get(i).toBytes();
+            byte[] pack = packs.get(i).copyOfBytes();
             keys[i] =
                     Arrays.copyOfRange(
                             pack, AionAddress.LENGTH, AionAddress.LENGTH + FvmDataWord.SIZE);
@@ -1694,7 +1694,7 @@ public class CallbackUnitTest {
         int len = packs.size();
         byte[][] values = new byte[len][];
         for (int i = 0; i < len; i++) {
-            byte[] pack = packs.get(i).toBytes();
+            byte[] pack = packs.get(i).copyOfBytes();
             values[i] = Arrays.copyOfRange(pack, pack.length - FvmDataWord.SIZE, pack.length);
         }
         return values;
