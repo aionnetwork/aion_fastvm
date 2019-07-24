@@ -12,7 +12,7 @@ import org.aion.fastvm.FvmDataWord;
 import org.aion.fastvm.TransactionKind;
 import org.aion.types.AionAddress;
 import org.aion.fastvm.ExecutionContext;
-import org.aion.util.types.AddressUtils;
+import org.aion.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -31,13 +31,13 @@ public class ExecutionContextUnitTest {
     @Before
     public void setup() {
         recipient =
-                AddressUtils.wrapAddress("1111111111111111111111111111111111111111111111111111111111111111");
+                new AionAddress(HexUtil.hexStringToBytes("1111111111111111111111111111111111111111111111111111111111111111"));
         origin =
-                AddressUtils.wrapAddress("2222222222222222222222222222222222222222222222222222222222222222");
+                new AionAddress(HexUtil.hexStringToBytes("2222222222222222222222222222222222222222222222222222222222222222"));
         caller =
-                AddressUtils.wrapAddress("3333333333333333333333333333333333333333333333333333333333333333");
+                new AionAddress(HexUtil.hexStringToBytes("3333333333333333333333333333333333333333333333333333333333333333"));
         coinbase =
-                AddressUtils.wrapAddress("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+                new AionAddress(HexUtil.hexStringToBytes("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
         blockDifficulty = FvmDataWord.fromLong(16);
         nrgPrice = 4;
         callValue = BigInteger.valueOf(6);

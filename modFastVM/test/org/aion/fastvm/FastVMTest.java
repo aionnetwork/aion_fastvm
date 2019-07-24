@@ -14,7 +14,6 @@ import org.aion.types.AionAddress;
 import org.aion.util.ByteUtil;
 import org.aion.contract.ContractUtils;
 import org.aion.util.HexUtil;
-import org.aion.util.types.AddressUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -114,8 +113,8 @@ public class FastVMTest {
         byte[] code =
                 HexUtil.decode(
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113C602060E0F3");
-        repo.saveCode(AddressUtils.wrapAddress(
-                "1111111111111111111111111111111111111111111111111111111111111111"), HexUtil.decode("11223344"));
+        repo.saveCode(new AionAddress(HexUtil.hexStringToBytes(
+                "1111111111111111111111111111111111111111111111111111111111111111")), HexUtil.decode("11223344"));
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
         System.out.println(result);
@@ -136,8 +135,8 @@ public class FastVMTest {
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113B60E052601060E0F3");
 
         repo.saveCode(
-                AddressUtils.wrapAddress(
-                                "1111111111111111111111111111111111111111111111111111111111111111"),
+                new AionAddress(HexUtil.hexStringToBytes(
+                                "1111111111111111111111111111111111111111111111111111111111111111")),
                 HexUtil.decode("11223344"));
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
@@ -157,8 +156,8 @@ public class FastVMTest {
                         "6F111111111111111111111111111111116F111111111111111111111111111111113160E052601060E0F3");
 
         repo.addBalance(
-            AddressUtils.wrapAddress(
-                                "1111111111111111111111111111111111111111111111111111111111111111"),
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "1111111111111111111111111111111111111111111111111111111111111111")),
                 BigInteger.valueOf(0x34));
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
@@ -174,12 +173,12 @@ public class FastVMTest {
         byte[] callerCtr = ContractUtils.getContractBody("Call.sol", "Caller");
 
         caller =
-            AddressUtils.wrapAddress(
-                                "3333333333333333333333333333333333333333333333333333333333333333");
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "3333333333333333333333333333333333333333333333333333333333333333"));
         origin = caller;
         address =
-            AddressUtils.wrapAddress(
-                                "2222222222222222222222222222222222222222222222222222222222222222");
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "2222222222222222222222222222222222222222222222222222222222222222"));
 
         callData =
                 HexUtil.decode(
@@ -189,18 +188,18 @@ public class FastVMTest {
         FastVM vm = new FastVM();
 
         repo.createAccount(
-            AddressUtils.wrapAddress(
-                                "1111111111111111111111111111111111111111111111111111111111111111"));
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "1111111111111111111111111111111111111111111111111111111111111111")));
         repo.createAccount(
-            AddressUtils.wrapAddress(
-                                "2222222222222222222222222222222222222222222222222222222222222222"));
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "2222222222222222222222222222222222222222222222222222222222222222")));
         repo.saveCode(
-            AddressUtils.wrapAddress(
-                                "1111111111111111111111111111111111111111111111111111111111111111"),
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "1111111111111111111111111111111111111111111111111111111111111111")),
                 calleeCtr);
         repo.saveCode(
-            AddressUtils.wrapAddress(
-                                "2222222222222222222222222222222222222222222222222222222222222222"),
+            new AionAddress(HexUtil.hexStringToBytes(
+                                "2222222222222222222222222222222222222222222222222222222222222222")),
                 callerCtr);
 
         FastVmTransactionResult result = vm.runPre040Fork(callerCtr, ctx, newState(repo));

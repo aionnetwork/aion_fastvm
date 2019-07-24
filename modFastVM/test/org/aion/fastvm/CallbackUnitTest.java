@@ -23,7 +23,6 @@ import org.aion.types.AionAddress;
 import org.aion.types.Log;
 import org.aion.util.ByteUtil;
 import org.aion.base.Constants;
-import org.aion.util.types.AddressUtils;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1393,7 +1392,7 @@ public class CallbackUnitTest {
                         new ExternalStateForTesting(
                                 RepositoryForTesting.newRepository(),
                                 new BlockchainForTesting(),
-                                AddressUtils.ZERO_ADDRESS,
+                                new AionAddress(new byte[32]),
                                 FvmDataWord.fromBytes(new byte[0]),
                                 false,
                                 true,
@@ -2142,6 +2141,6 @@ public class CallbackUnitTest {
 
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
-                cache, new BlockchainForTesting(), AddressUtils.ZERO_ADDRESS, FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
+                cache, new BlockchainForTesting(), new AionAddress(new byte[32]), FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
     }
 }
