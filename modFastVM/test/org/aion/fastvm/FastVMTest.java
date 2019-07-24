@@ -12,8 +12,8 @@ import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.util.ByteUtil;
-import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
+import org.aion.util.HexUtil;
 import org.aion.util.types.AddressUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -78,7 +78,7 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
 
-        byte[] code = Hex.decode("6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60020160E052601060E0F3");
+        byte[] code = HexUtil.decode("6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60020160E052601060E0F3");
         FastVmTransactionResult result =
                 vm.runPre040Fork(code, ctx, newState(repo));
         System.out.println(result);
@@ -94,7 +94,7 @@ public class FastVMTest {
         FastVM vm = new FastVM();
 
         byte[] code =
-                Hex.decode(
+                HexUtil.decode(
                         "6020600060E06F111111111111111111111111111111116F000000000000000000000000111111113C602060E0F3");
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
@@ -103,7 +103,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "0000000000000000000000000000000000000000000000000000000000000000",
-                Hex.toHexString(result.getReturnData()));
+                HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -112,10 +112,10 @@ public class FastVMTest {
         FastVM vm = new FastVM();
 
         byte[] code =
-                Hex.decode(
+                HexUtil.decode(
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113C602060E0F3");
         repo.saveCode(AddressUtils.wrapAddress(
-                "1111111111111111111111111111111111111111111111111111111111111111"), Hex.decode("11223344"));
+                "1111111111111111111111111111111111111111111111111111111111111111"), HexUtil.decode("11223344"));
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
         System.out.println(result);
@@ -123,7 +123,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "1122334400000000000000000000000000000000000000000000000000000000",
-                Hex.toHexString(result.getReturnData()));
+                HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -132,19 +132,19 @@ public class FastVMTest {
         FastVM vm = new FastVM();
 
         byte[] code =
-                Hex.decode(
+                HexUtil.decode(
                         "6020600060E06F111111111111111111111111111111116F111111111111111111111111111111113B60E052601060E0F3");
 
         repo.saveCode(
                 AddressUtils.wrapAddress(
                                 "1111111111111111111111111111111111111111111111111111111111111111"),
-                Hex.decode("11223344"));
+                HexUtil.decode("11223344"));
 
         FastVmTransactionResult result = vm.runPre040Fork(code, ctx, newState(repo));
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000004", Hex.toHexString(result.getReturnData()));
+        assertEquals("00000000000000000000000000000004", HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -153,7 +153,7 @@ public class FastVMTest {
         FastVM vm = new FastVM();
 
         byte[] code =
-                Hex.decode(
+                HexUtil.decode(
                         "6F111111111111111111111111111111116F111111111111111111111111111111113160E052601060E0F3");
 
         repo.addBalance(
@@ -165,7 +165,7 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000034", Hex.toHexString(result.getReturnData()));
+        assertEquals("00000000000000000000000000000034", HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class FastVMTest {
                                 "2222222222222222222222222222222222222222222222222222222222222222");
 
         callData =
-                Hex.decode(
+                HexUtil.decode(
                         "fc68521a1111111111111111111111111111111111111111111111111111111111111111");
 
         ExecutionContext ctx = newExecutionContext();
@@ -207,14 +207,14 @@ public class FastVMTest {
         System.out.println(result);
 
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
-        assertEquals("00000000000000000000000000000003", Hex.toHexString(result.getReturnData()));
+        assertEquals("00000000000000000000000000000003", HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
     public void testCreate() throws IOException {
         byte[] contract = ContractUtils.getContractBody("Create.sol", "Create");
 
-        callData = Hex.decode("26121ff0");
+        callData = HexUtil.decode("26121ff0");
         nrgLimit = 600_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -232,7 +232,7 @@ public class FastVMTest {
     public void testDynamicArray1() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("a76af697"), FvmDataWord.fromLong(512L).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("a76af697"), FvmDataWord.fromLong(512L).copyOfData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -248,7 +248,7 @@ public class FastVMTest {
     public void testDynamicArray2() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("a76af697"), FvmDataWord.fromLong(1_000_000_000L).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("a76af697"), FvmDataWord.fromLong(1_000_000_000L).copyOfData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -264,7 +264,7 @@ public class FastVMTest {
     public void testDynamicArray3() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("e59cc974"), FvmDataWord.fromLong(512L).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("e59cc974"), FvmDataWord.fromLong(512L).copyOfData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -280,7 +280,7 @@ public class FastVMTest {
     public void testDynamicArray4() throws IOException {
         byte[] contract = ContractUtils.getContractBody("DynamicArray.sol", "DynamicArray");
 
-        callData = ByteUtil.merge(Hex.decode("e59cc974"), FvmDataWord.fromLong(1_000_000_000L).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("e59cc974"), FvmDataWord.fromLong(1_000_000_000L).copyOfData());
         nrgLimit = 100_000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -305,7 +305,7 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
 
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.runPre040Fork(Hex.decode(code), ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(HexUtil.decode(code), ctx, newState(repo));
         System.out.println(result);
         assertEquals(0, result.getEnergyRemaining());
     }
@@ -317,7 +317,7 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
 
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.runPre040Fork(Hex.decode(code), ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(HexUtil.decode(code), ctx, newState(repo));
         System.out.println(result);
         assertEquals(0, result.getEnergyRemaining());
     }
@@ -329,7 +329,7 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
 
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.runPre040Fork(Hex.decode(code), ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(HexUtil.decode(code), ctx, newState(repo));
         System.out.println(result);
         assertEquals(0, result.getEnergyRemaining());
     }
@@ -344,7 +344,7 @@ public class FastVMTest {
         ExecutionContext ctx = newExecutionContext();
 
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.runPre040Fork(Hex.decode(code), ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(HexUtil.decode(code), ctx, newState(repo));
         System.out.println(result);
         assertEquals(0, result.getEnergyRemaining());
     }
@@ -406,7 +406,7 @@ public class FastVMTest {
     public void testBytes32Array() throws IOException {
         byte[] code = ContractUtils.getContractBody("Bytes32.sol", "Test");
 
-        callData = Hex.decode("26121ff0");
+        callData = HexUtil.decode("26121ff0");
         nrgLimit = 100000L;
 
         ExecutionContext ctx = newExecutionContext();
@@ -418,7 +418,7 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "0011223344556677889900112233445566778899001122334455667788990011",
-                Hex.toHexString(result.getReturnData()));
+                HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
@@ -426,7 +426,7 @@ public class FastVMTest {
         byte[] code = ContractUtils.getContractBody("Bytes32.sol", "Test");
 
         callData =
-                Hex.decode(
+                HexUtil.decode(
                         "31e9552c"
                                 + "00000000000000000000000000000010"
                                 + "00000000000000000000000000000001"
@@ -443,14 +443,14 @@ public class FastVMTest {
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(
                 "00000000000000000000000000000010000000000000000000000000000000010011223344556677889900112233445566778899001122334455667788990011",
-                Hex.toHexString(result.getReturnData()));
+                HexUtil.toHexString(result.getReturnData()));
     }
 
     @Test
     public void testLocalVarDepth() throws IOException {
         byte[] code = ContractUtils.getContractBody("LocalVarDepth.sol", "LocalVar");
 
-        callData = Hex.decode("f220ff7b"
+        callData = HexUtil.decode("f220ff7b"
                 + "0000000000000000000000000000000000000000000000000000000000000001"
                 + "0000000000000000000000000000000000000000000000000000000000000002"
                 + "0000000000000000000000000000000000000000000000000000000000000003"

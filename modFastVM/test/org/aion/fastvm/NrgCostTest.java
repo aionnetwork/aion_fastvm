@@ -56,8 +56,8 @@ import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
+import org.aion.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -251,7 +251,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+                    HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
             byte[] code =
                     repeat(
                             x,
@@ -302,7 +302,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+                    HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
             byte[] code =
                     repeat(
                             x,
@@ -355,7 +355,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode(
+                    HexUtil.decode(
                             "000000000000000000000000000000010000000000000000000000000000000200000000000000000000000000000003");
             byte[] code =
                     repeat(
@@ -407,7 +407,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode(
+                    HexUtil.decode(
                             "000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000003");
             byte[] code =
                     repeat(
@@ -459,7 +459,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+                    HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
             byte[] code =
                     repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
 
@@ -500,7 +500,7 @@ public class NrgCostTest {
 
         for (Instruction inst : instructions) {
             callData =
-                    Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+                    HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
             byte[] code =
                     repeat(
                             x,

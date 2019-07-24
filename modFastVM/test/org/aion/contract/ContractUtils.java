@@ -3,10 +3,10 @@ package org.aion.contract;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.aion.util.conversions.Hex;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
+import org.aion.util.HexUtil;
 
 public class ContractUtils {
 
@@ -41,7 +41,7 @@ public class ContractUtils {
         Compiler.Result r = Compiler.getInstance().compile(readContract(fileName), Options.BIN);
         CompilationResult cr = CompilationResult.parse(r.output);
         String deployer = cr.contracts.get(contractName).bin;
-        return Hex.decode(deployer);
+        return HexUtil.decode(deployer);
     }
 
     /**
@@ -59,6 +59,6 @@ public class ContractUtils {
         CompilationResult cr = CompilationResult.parse(r.output);
         String deployer = cr.contracts.get(contractName).bin;
         String contract = deployer.substring(deployer.indexOf("60506040", 1));
-        return Hex.decode(contract);
+        return HexUtil.decode(contract);
     }
 }

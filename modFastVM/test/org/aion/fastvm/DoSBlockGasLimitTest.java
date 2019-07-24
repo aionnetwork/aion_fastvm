@@ -12,8 +12,8 @@ import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 
 import org.aion.util.ByteUtil;
-import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
+import org.aion.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -71,7 +71,7 @@ public class DoSBlockGasLimitTest {
         BigInteger balance = BigInteger.valueOf(1000L);
         repo.addBalance(address, balance);
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -102,7 +102,7 @@ public class DoSBlockGasLimitTest {
 
         nrgLimit = 200;
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
@@ -133,7 +133,7 @@ public class DoSBlockGasLimitTest {
 
         nrgLimit = 405;
 
-        callData = ByteUtil.merge(Hex.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();

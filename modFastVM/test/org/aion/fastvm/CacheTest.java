@@ -8,7 +8,7 @@ import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.util.conversions.Hex;
+import org.aion.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -64,7 +64,7 @@ public class CacheTest {
     @Test
     @Ignore
     public void testCache() {
-        callData = Hex.decode("8256cff3");
+        callData = HexUtil.decode("8256cff3");
         ExecutionContext ctx =
                 ExecutionContext.from(
                         txHash,
@@ -129,7 +129,7 @@ public class CacheTest {
         // }
         final String contract =
                 "60506040526000356c01000000000000000000000000900463ffffffff1680638256cff314602d575b600080fd5b3415603757600080fd5b604b60048080359060100190919050506061565b6040518082815260100191505060405180910390f35b600080600063123456789150600090505b83811015608b5780820191505b80806001019150506072565b8192505b50509190505600a165627a7a7230582031f5099d322de19215175c3f31d2afdc1cb3ce6ffd6c8541681584cad8a075c60029";
-        byte[] ops = Hex.decode(contract);
+        byte[] ops = HexUtil.decode(contract);
 
         ops[104] = (byte) ((baseSum >>> 24) & 0xff);
         ops[105] = (byte) ((baseSum >>> 16) & 0xff);

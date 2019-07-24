@@ -16,8 +16,8 @@ import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.util.ByteUtil;
-import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
+import org.aion.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -90,7 +90,7 @@ public class MultiThreadTest {
 
                             callData =
                                     ByteUtil.merge(
-                                            Hex.decode("8256cff3"), FvmDataWord.fromLong(64).copyOfData());
+                                            HexUtil.decode("8256cff3"), FvmDataWord.fromLong(64).copyOfData());
 
                             ExecutionContext ctx =
                                     ExecutionContext.from(
@@ -141,14 +141,14 @@ public class MultiThreadTest {
 
     private byte[] generateContract(int baseSum) {
         try {
-            String code = Hex.toHexString(ContractUtils.getContractBody("Simple.sol", "Simple"));
+            String code = HexUtil.toHexString(ContractUtils.getContractBody("Simple.sol", "Simple"));
 
             ByteBuffer buf = ByteBuffer.allocate(4);
             buf.putInt(baseSum);
             byte[] bytes = buf.array();
 
-            code = code.replace("12345678", Hex.toHexString(bytes));
-            return Hex.decode(code);
+            code = code.replace("12345678", HexUtil.toHexString(bytes));
+            return HexUtil.decode(code);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
