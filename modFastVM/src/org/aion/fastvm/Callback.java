@@ -190,7 +190,12 @@ public class Callback {
 
     /** Process CALL/CALLCODE/DELEGATECALL/CREATE opcode. */
     public static byte[] call(byte[] message) {
-        return performCall(message, new FastVM());
+        try {
+            return performCall(message, new FastVM());
+        } catch (Throwable t) {
+            //TODO: when we upgrade to aion_types result we should actually include the error message in our failure result
+            return new FastVmTransactionResult(FastVmResultCode.VM_INTERNAL_ERROR, 0).toBytes();
+        }
     }
 
     /** The method handles the CALL/CALLCODE/DELEGATECALL opcode. */
