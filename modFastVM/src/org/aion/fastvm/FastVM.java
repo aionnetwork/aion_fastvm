@@ -47,8 +47,6 @@ public class FastVM {
     /**
      * Run the specified code in the given context.
      *
-     * <p>This method is thread-safe.
-     *
      * @implNote Since all contracts can possibly interact with the static state of the {@link
      *     Callback} class, this method is synchronized.
      * @param code The code to run.
@@ -57,7 +55,7 @@ public class FastVM {
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
-    public synchronized FastVmTransactionResult run(
+    public FastVmTransactionResult run(
             byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
         Callback.push(Pair.of(ctx, externalState));
@@ -72,8 +70,6 @@ public class FastVM {
     /**
      * Run the specified code in the given context.
      *
-     * <p>This method is thread-safe.
-     *
      * <p>This is the new Fvm execution point as of the 0.4.0 fork.
      *
      * @implNote Since all contracts can possibly interact with the static state of the {@link
@@ -84,7 +80,7 @@ public class FastVM {
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
-    public synchronized FastVmTransactionResult run_v1(
+    public FastVmTransactionResult run_v1(
             byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
         Callback.push(Pair.of(ctx, externalState));

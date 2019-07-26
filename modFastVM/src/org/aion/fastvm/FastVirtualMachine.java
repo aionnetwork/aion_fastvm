@@ -6,11 +6,14 @@ import org.aion.types.AionAddress;
 import org.apache.commons.lang3.ArrayUtils;
 
 public final class FastVirtualMachine {
+    private static final Object FVM_LOCK = new Object();
 
     /**
      * Returns the result of executing the specified transaction.
      *
      * <p>Any state changes that occur during execution will be committed to the provided kernel.
+     * 
+     * <p>This method is thread-safe.
      *
      * @param externalState The world state.
      * @param transaction The transaction to run.
@@ -124,10 +127,13 @@ public final class FastVirtualMachine {
         // Execute the transaction.
         FastVmTransactionResult newResult = null;
         if (!ArrayUtils.isEmpty(transaction.getData())) {
-            if (isFork040enabled) {
-                newResult = new FastVM().run_v1(transaction.getData(), context, externalState);
-            } else {
-                newResult = new FastVM().run(transaction.getData(), context, externalState);
+
+            synchronized (FVM_LOCK) {
+                if (isFork040enabled) {
+                    newResult = new FastVM().run_v1(transaction.getData(), context, externalState);
+                } else {
+                    newResult = new FastVM().run(transaction.getData(), context, externalState);
+                }
             }
 
             // If the deployment succeeded, then save the contract's code.
@@ -173,10 +179,13 @@ public final class FastVirtualMachine {
         FastVmTransactionResult newResult = null;
         byte[] code = externalState.getCode(transaction.getDestinationAddress());
         if (!ArrayUtils.isEmpty(code)) {
-            if (isFork040enabled) {
-                newResult = new FastVM().run_v1(code, context, externalState);
-            } else {
-                newResult = new FastVM().run(code, context, externalState);
+
+            synchronized (FVM_LOCK) {
+                if (isFork040enabled) {
+                    newResult = new FastVM().run_v1(code, context, externalState);
+                } else {
+                    newResult = new FastVM().run(code, context, externalState);
+                }
             }
         }
 
