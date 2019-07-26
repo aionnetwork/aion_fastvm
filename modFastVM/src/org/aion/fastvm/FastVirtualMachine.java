@@ -48,11 +48,11 @@ public final class FastVirtualMachine {
         if (transaction.isContractCreationTransaction()) {
             result =
                     runContractCreationTransaction(
-                            grandChildExternalState, context, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, context, result, isFork040enabled);
         } else {
             result =
                     runNonContractCreationTransaction(
-                            grandChildExternalState, context, result, isFork040enabled);
+                            new FastVM(), grandChildExternalState, context, result, isFork040enabled);
         }
 
         // If the execution was successful then we can safely commit any changes in the grandChild
@@ -94,6 +94,7 @@ public final class FastVirtualMachine {
      * @return the result of executing the transaction.
      */
     public static FastVmTransactionResult runContractCreationTransaction(
+            IFastVm fvm,
             IExternalStateForFvm externalState,
             ExecutionContext context,
             FastVmTransactionResult result,
@@ -130,9 +131,9 @@ public final class FastVirtualMachine {
 
             synchronized (FVM_LOCK) {
                 if (isFork040enabled) {
-                    newResult = new FastVM().run_v1(transaction.getData(), context, externalState);
+                    newResult = fvm.runPost040Fork(transaction.getData(), context, externalState);
                 } else {
-                    newResult = new FastVM().run(transaction.getData(), context, externalState);
+                    newResult = fvm.runPre040Fork(transaction.getData(), context, externalState);
                 }
             }
 
@@ -168,6 +169,7 @@ public final class FastVirtualMachine {
      * @return the result of executing the transaction.
      */
     public static FastVmTransactionResult runNonContractCreationTransaction(
+            IFastVm fvm,
             IExternalStateForFvm externalState,
             ExecutionContext context,
             FastVmTransactionResult result,
@@ -182,9 +184,9 @@ public final class FastVirtualMachine {
 
             synchronized (FVM_LOCK) {
                 if (isFork040enabled) {
-                    newResult = new FastVM().run_v1(code, context, externalState);
+                    newResult = fvm.runPost040Fork(code, context, externalState);
                 } else {
-                    newResult = new FastVM().run(code, context, externalState);
+                    newResult = fvm.runPre040Fork(code, context, externalState);
                 }
             }
         }

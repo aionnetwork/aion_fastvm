@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * @author yulong
  */
-public class FastVM {
+public class FastVM implements IFastVm {
 
     public static int REVISION_FRONTIER = 0;
     public static int REVISION_HOMESTEAD = 1;
@@ -55,7 +55,8 @@ public class FastVM {
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
-    public FastVmTransactionResult run(
+    @Override
+    public FastVmTransactionResult runPre040Fork(
             byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
         Callback.push(Pair.of(ctx, externalState));
@@ -80,7 +81,8 @@ public class FastVM {
      * @return the execution result.
      */
     @SuppressWarnings("unchecked")
-    public FastVmTransactionResult run_v1(
+    @Override
+    public FastVmTransactionResult runPost040Fork(
             byte[] code, ExecutionContext ctx, IExternalStateForFvm externalState) {
 
         Callback.push(Pair.of(ctx, externalState));

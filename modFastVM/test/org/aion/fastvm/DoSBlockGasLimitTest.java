@@ -64,7 +64,7 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new ExternalStateForTesting(
+                vm.runPre040Fork(contract, ctx, new ExternalStateForTesting(
                     repo,
                     new BlockchainForTesting(),
                     blockCoinbase,
@@ -95,7 +95,7 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new ExternalStateForTesting(
+                vm.runPre040Fork(contract, ctx, new ExternalStateForTesting(
                     repo,
                     new BlockchainForTesting(),
                     blockCoinbase,
@@ -126,7 +126,7 @@ public class DoSBlockGasLimitTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result =
-                vm.run(contract, ctx, new ExternalStateForTesting(
+                vm.runPre040Fork(contract, ctx, new ExternalStateForTesting(
                     repo,
                     new BlockchainForTesting(),
                     blockCoinbase,

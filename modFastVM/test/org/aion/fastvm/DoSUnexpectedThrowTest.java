@@ -87,7 +87,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 69;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -110,7 +110,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -133,7 +133,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -156,7 +156,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 10000;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -179,7 +179,7 @@ public class DoSUnexpectedThrowTest {
         nrgLimit = 369;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newState(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }

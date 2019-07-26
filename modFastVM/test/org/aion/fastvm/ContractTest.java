@@ -64,7 +64,7 @@ public class ContractTest {
 
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -73,7 +73,7 @@ public class ContractTest {
 
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, newStateImpl(repo));
+        result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
@@ -92,7 +92,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(FvmDataWord.fromLong(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -101,7 +101,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, newStateImpl(repo));
+        result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(FvmDataWord.fromLong(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -110,7 +110,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, newStateImpl(repo));
+        result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(FvmDataWord.fromLong(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -119,7 +119,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, newStateImpl(repo));
+        result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
         assertEquals(FvmDataWord.fromLong(8L).toString(), Hex.toHexString(result.getReturnData()));
@@ -128,7 +128,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ctx = newExecutionContext();
         vm = new FastVM();
-        result = vm.run(contract, ctx, newStateImpl(repo));
+        result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
         assertTrue(result.getEnergyRemaining() > 0);
@@ -149,7 +149,7 @@ public class ContractTest {
         nrgLimit = 100_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result
@@ -186,7 +186,7 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result
@@ -217,7 +217,7 @@ public class ContractTest {
         nrgLimit = 10_000_000L;
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
-        FastVmTransactionResult result = vm.run(contract, ctx, newStateImpl(repo));
+        FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newStateImpl(repo));
         System.out.println(result);
 
         // verify result

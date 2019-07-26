@@ -247,7 +247,7 @@ public class Callback {
 
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
-                result = jit.run(code, ctx, childState);
+                result = jit.runPre040Fork(code, ctx, childState);
             }
         }
 
@@ -332,7 +332,7 @@ public class Callback {
             result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getTransactionData())) {
-                result = jit.run(ctx.getTransactionData(), ctx, childState);
+                result = jit.runPre040Fork(ctx.getTransactionData(), ctx, childState);
             }
         }
 

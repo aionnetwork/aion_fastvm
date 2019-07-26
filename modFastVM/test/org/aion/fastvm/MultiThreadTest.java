@@ -100,7 +100,7 @@ public class MultiThreadTest {
 
                             FastVM vm = new FastVM();
                             FastVmTransactionResult result =
-                                    vm.run(
+                                    vm.runPre040Fork(
                                             code,
                                             ctx,
                                             new ExternalStateForTesting(

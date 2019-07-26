@@ -78,7 +78,7 @@ public class CacheTest {
         for (int i = 0; i < repeat; i++) {
             byte[] code = generateContract(i);
             FastVmTransactionResult result =
-                    vm.run(
+                    vm.runPre040Fork(
                             code,
                             ctx,
                         new ExternalStateForTesting(

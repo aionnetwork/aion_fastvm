@@ -118,7 +118,7 @@ public class NrgCostTest {
         repo.createAccount(address);
         repo.saveCode(address, code);
         for (int i = 0; i < 10000; i++) {
-            new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+            new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
         }
     }
 
@@ -194,12 +194,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -267,12 +267,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -318,12 +318,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -372,12 +372,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -424,12 +424,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -464,13 +464,13 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             System.out.println(result);
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 
@@ -516,12 +516,12 @@ public class NrgCostTest {
 
             // compile
             FastVmTransactionResult result =
-                    new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                    new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
-                new FastVM().run(code, ctx, wrapInKernelInterface(repo));
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
             }
             long t2 = System.nanoTime();
 

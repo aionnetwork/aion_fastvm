@@ -1773,7 +1773,7 @@ public class CallbackUnitTest {
     /** Returns a mocked FastVM whose run method returns result. */
     private FastVM mockFastVM(FastVmTransactionResult result) {
         FastVM vm = mock(FastVM.class);
-        when(vm.run(
+        when(vm.runPre040Fork(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
                         Mockito.any(IExternalStateForFvm.class)))
