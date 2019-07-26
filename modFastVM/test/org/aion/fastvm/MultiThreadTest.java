@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aion.ExternalStateForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -140,6 +141,7 @@ public class MultiThreadTest {
                                             ctx,
                                             new ExternalStateForTesting(
                                                 repo,
+                                                new BlockchainForTesting(),
                                                 blockCoinbase,
                                                 blockDifficulty,
                                                 false,

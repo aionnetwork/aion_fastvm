@@ -7,6 +7,7 @@ import java.math.BigInteger;
 
 import java.util.Properties;
 import org.aion.ExternalStateForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -101,6 +102,7 @@ public class DoSBlockGasLimitTest {
         FastVmTransactionResult result =
                 vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    new BlockchainForTesting(),
                     blockCoinbase,
                     blockDifficulty,
                     false,
@@ -131,6 +133,7 @@ public class DoSBlockGasLimitTest {
         FastVmTransactionResult result =
                 vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    new BlockchainForTesting(),
                     blockCoinbase,
                     blockDifficulty,
                     false,
@@ -161,6 +164,7 @@ public class DoSBlockGasLimitTest {
         FastVmTransactionResult result =
                 vm.run(contract, ctx, new ExternalStateForTesting(
                     repo,
+                    new BlockchainForTesting(),
                     blockCoinbase,
                     blockDifficulty,
                     false,

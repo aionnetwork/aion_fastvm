@@ -11,11 +11,13 @@ import org.aion.mcf.db.InternalVmType;
 import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.valid.TxNrgRule;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.util.types.ByteArrayWrapper;
 
 public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final RepositoryCache<AccountState, IBlockStoreBase> repository;
+    private final BlockchainForTesting blockchain;
     private final AionAddress miner;
     private final boolean isLocalCall;
     private final boolean allowNonceIncrement;
@@ -25,8 +27,9 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final long blockEnergyLimit;
     private final FvmDataWord blockDifficulty;
 
-    public ExternalStateForTesting(RepositoryCache<AccountState, IBlockStoreBase> repository, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
+    public ExternalStateForTesting(RepositoryCache<AccountState, IBlockStoreBase> repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         this.repository = repository;
+        this.blockchain = blockchain;
         this.miner = miner;
         this.blockDifficulty = blockDifficulty;
         this.isLocalCall = isLocalCall;
@@ -35,16 +38,6 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
         this.blockNumber = blockNumber;
         this.blockTimestamp = blockTimestamp;
         this.blockEnergyLimit = blockEnergyLimit;
-    }
-
-    /**
-     * TEMPORARY!
-     *
-     * @return the underlying repo.
-     */
-    @Override
-    public RepositoryCache getUnderlyingRepository() {
-        return this.repository;
     }
 
     /**
@@ -78,7 +71,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public ExternalStateForTesting newChildExternalState() {
-        return new ExternalStateForTesting(this.repository.startTracking(), this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
+        return new ExternalStateForTesting(this.repository.startTracking(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
     }
 
     /**
@@ -452,7 +445,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public byte[] getBlockHashByNumber(long blockNumber) {
-        return this.repository.getBlockStore().getBlockHashByNumber(blockNumber);
+        return this.blockchain.getBlockHashByNumber(blockNumber);
     }
 
     /**

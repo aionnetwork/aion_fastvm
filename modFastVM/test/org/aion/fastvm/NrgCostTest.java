@@ -52,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
 import org.aion.ExternalStateForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -672,6 +673,7 @@ public class NrgCostTest {
     private IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
         return new ExternalStateForTesting(
             cache,
+            new BlockchainForTesting(),
             blockCoinbase,
             blockDifficulty,
             false,

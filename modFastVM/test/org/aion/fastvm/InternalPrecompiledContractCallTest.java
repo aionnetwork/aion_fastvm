@@ -16,6 +16,7 @@ import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.db.RepositoryConfig;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.precompiled.PrecompiledForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
@@ -347,7 +348,7 @@ public class InternalPrecompiledContractCallTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return new ExternalStateForTesting(newRepository(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
+        return new ExternalStateForTesting(newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
     }
 
     private static RepositoryCache<AccountState, IBlockStoreBase> newRepository() {

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
 import org.aion.ExternalStateForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -118,6 +119,7 @@ public class CacheTest {
                             ctx,
                         new ExternalStateForTesting(
                             repo,
+                            new BlockchainForTesting(),
                             blockCoinbase,
                             blockDifficulty,
                             false,

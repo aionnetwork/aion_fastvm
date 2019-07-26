@@ -1,7 +1,6 @@
 package org.aion.fastvm;
 
 import java.math.BigInteger;
-import org.aion.mcf.db.RepositoryCache;
 import org.aion.types.AionAddress;
 
 /**
@@ -9,15 +8,6 @@ import org.aion.types.AionAddress;
  * queries.
  */
 public interface IExternalStateForFvm {
-
-    /**
-     * TEMPORARY!
-     *
-     * Returns the underlying repository backing this object.
-     *
-     * @return the underlying repository.
-     */
-    RepositoryCache getUnderlyingRepository();
 
     /**
      * Commits any state changes in this world state to its parent world state.

@@ -2,10 +2,8 @@ package org.aion.fastvm;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +16,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import org.aion.ExternalStateForTesting;
+import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.db.impl.DBVendor;
 import org.aion.db.impl.DatabaseFactory;
@@ -94,161 +93,6 @@ public class CallbackUnitTest {
         }
     }
 
-    @Test(expected = NoSuchElementException.class)
-    public void testPopEmptyStack() {
-        Callback.pop();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testPeekAtEmptyStack() {
-        Callback.context();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testPeekAtEmptyStack2() {
-        Callback.externalState();
-    }
-
-    @Test
-    public void testPeekAtContextInStackSizeOne() {
-        ExecutionContext context = mockContext();
-        Pair pair = mockEmptyPair();
-        when(pair.getLeft()).thenReturn(context);
-        Callback.push(pair);
-        ExecutionContext stackContext = Callback.context();
-        compareMockContexts(context, stackContext);
-    }
-
-    @Test
-    public void testPeekAtRepoInStackSizeOne() {
-        IExternalStateForFvm externalState = mockState();
-        Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(externalState);
-        Callback.push(pair);
-        RepositoryCache<AccountState, IBlockStoreBase> stackRepo =
-                Callback.externalState().getUnderlyingRepository();
-        System.out.println(externalState.getUnderlyingRepository());
-        compareRepos(externalState.getUnderlyingRepository(), stackRepo);
-    }
-
-    @Test
-    public void testPushesAndPopsUntilEmpty() {
-        int reps = RandomUtils.nextInt(10, 50);
-        for (int i = 0; i < reps; i++) {
-            Callback.push(mockEmptyPair());
-        }
-        for (int i = 0; i < reps; i++) {
-            Callback.pop();
-        }
-        try {
-            Callback.pop();
-        } catch (NoSuchElementException e) {
-            return;
-        } // hit bottom as wanted.
-        fail();
-    }
-
-    @Test
-    public void testEachDepthOfPoppingLargeStack() {
-        int reps = RandomUtils.nextInt(10, 30);
-        Pair[] pairs = new Pair[reps];
-        for (int i = 0; i < reps; i++) {
-            ExecutionContext ctx = mockContext();
-            IExternalStateForFvm externalState = mockState();
-            Pair<ExecutionContext, IExternalStateForFvm> mockedPair = mockEmptyPair();
-            when(mockedPair.getLeft()).thenReturn(ctx);
-            when(mockedPair.getRight()).thenReturn(externalState);
-            pairs[i] = mockedPair;
-        }
-        for (int i = 0; i < reps; i++) {
-            Callback.push(pairs[reps - 1 - i]);
-        }
-        for (Pair pair : pairs) {
-            compareMockContexts((ExecutionContext) pair.getLeft(), Callback.context());
-            compareRepos(
-                    ((IExternalStateForFvm) pair.getRight()).getUnderlyingRepository(),
-                    Callback.externalState().getUnderlyingRepository());
-            Callback.pop();
-        }
-        try {
-            Callback.pop();
-        } catch (NoSuchElementException e) {
-            return;
-        } // hit bottom as wanted.
-        fail();
-    }
-
-    @Test
-    public void testGetBlockHashOnValidBlock() {
-        long blockNum = RandomUtils.nextLong(10, 10_000);
-        byte[] hash = RandomUtils.nextBytes(50);
-        pushNewBlockHash(blockNum, hash);
-        assertArrayEquals(hash, Callback.getBlockHash(blockNum));
-    }
-
-    @Test
-    public void testGetBlockHashOnInvalidBlock() {
-        long blockNum = RandomUtils.nextLong(10, 10_000);
-        pushNewBlockHash(blockNum, null);
-        assertArrayEquals(new byte[32], Callback.getBlockHash(blockNum));
-    }
-
-    @Test
-    public void testGetBlockHashAtMultipleStackDepths() {
-        int depths = RandomUtils.nextInt(3, 10);
-        long[] blockNums = new long[depths];
-        byte[][] hashes = new byte[depths][];
-        for (int i = 0; i < depths; i++) {
-            blockNums[depths - 1 - i] = RandomUtils.nextLong(10, 10_000);
-            hashes[depths - 1 - i] = RandomUtils.nextBytes(RandomUtils.nextInt(5, 25));
-            pushNewBlockHash(blockNums[depths - 1 - i], hashes[depths - 1 - i]);
-        }
-        for (int i = 0; i < depths; i++) {
-            assertArrayEquals(hashes[i], Callback.getBlockHash(blockNums[i]));
-            Callback.pop();
-        }
-    }
-
-    @Test
-    public void testGetCodeIsValidCode() {
-        AionAddress address = getNewAddress();
-        byte[] code = RandomUtils.nextBytes(30);
-        pushNewCode(address, code);
-        assertArrayEquals(code, Callback.getCode(address.toByteArray()));
-    }
-
-    @Test
-    public void testGetCodeIsNoCode() {
-        AionAddress address = getNewAddress();
-        pushNewCode(address, null);
-        assertArrayEquals(new byte[0], Callback.getCode(address.toByteArray()));
-    }
-
-    @Test
-    public void testGetCodeAtMultipleStackDepths() {
-        int depths = RandomUtils.nextInt(3, 10);
-        AionAddress[] addresses = new AionAddress[depths];
-        byte[][] codes = new byte[depths][];
-        for (int i = 0; i < depths; i++) {
-            addresses[depths - 1 - i] = getNewAddress();
-            // test half the methods on no valid code.
-            if ((depths - 1 - i) % 2 == 0) {
-                codes[depths - 1 - i] = null;
-            } else {
-                codes[depths - 1 - i] = RandomUtils.nextBytes(25);
-            }
-            pushNewCode(addresses[depths - 1 - i], codes[depths - 1 - i]);
-        }
-        for (int i = 0; i < depths; i++) {
-            if (codes[i] == null) {
-                assertArrayEquals(new byte[0], Callback.getCode(addresses[i].toByteArray()));
-            } else {
-                assertArrayEquals(codes[i], Callback.getCode(addresses[i].toByteArray()));
-            }
-            Callback.pop();
-        }
-    }
-
     @Test
     public void testGetBalanceAccountExists() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(100, 10_000));
@@ -281,28 +125,6 @@ public class CallbackUnitTest {
                     Callback.getBalance(addresses[i].toByteArray()));
             Callback.pop();
         }
-    }
-
-    @Test
-    public void testHasAccountStateWhenAccountExists() {
-        AionAddress address = getNewAddress();
-        IExternalStateForFvm externalState = mockState();
-        when(externalState.hasAccountState(address)).thenReturn(true);
-        Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(externalState);
-        Callback.push(pair);
-        assertTrue(Callback.exists(address.toByteArray()));
-    }
-
-    @Test
-    public void testHasAccountStateWhenAccountDoesNotExist() {
-        AionAddress address = getNewAddress();
-        IExternalStateForFvm externalState = mockState();
-        when(externalState.hasAccountState(address)).thenReturn(false);
-        Pair pair = mockEmptyPair();
-        when(pair.getRight()).thenReturn(externalState);
-        Callback.push(pair);
-        assertFalse(Callback.exists(address.toByteArray()));
     }
 
     @Test
@@ -511,75 +333,6 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j], Callback.getStorage(addresses[j].toByteArray(), keys[j]));
-            }
-            Callback.pop();
-        }
-    }
-
-    @Test
-    public void testSelfDestructOwnerIsBeneficiary() {
-        BigInteger ownerBalance = new BigInteger("2385234");
-        BigInteger ownerNonce = new BigInteger("353245");
-        AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        AionAddress beneficiary =
-                new AionAddress(Arrays.copyOf(owner.toByteArray(), AionAddress.LENGTH));
-        SideEffects helper = new SideEffects();
-        ExecutionContext ctx = mockContext();
-        when(ctx.getSideEffects()).thenReturn(helper);
-        Pair pair = mockEmptyPair();
-        when(pair.getLeft()).thenReturn(ctx);
-        when(pair.getRight()).thenReturn(wrapInKernelInterface(dummyRepo));
-        Callback.push(pair);
-
-        Callback.selfDestruct(owner.toByteArray(), owner.toByteArray());
-        checkSelfDestruct(owner, ownerBalance, ownerNonce, beneficiary, BigInteger.ZERO);
-    }
-
-    @Test
-    public void testSelfDestructOwnerNotBeneficiary() {
-        BigInteger ownerBalance = new BigInteger("32542345634");
-        BigInteger ownerNonce = new BigInteger("32565378");
-        BigInteger benBalance = new BigInteger("3252323");
-        BigInteger benNonce = new BigInteger("4334342355");
-        AionAddress owner = getNewAddressInRepo(ownerBalance, ownerNonce);
-        AionAddress beneficiary = getNewAddressInRepo(benBalance, benNonce);
-        SideEffects helper = new SideEffects();
-        ExecutionContext ctx = mockContext();
-        when(ctx.getSideEffects()).thenReturn(helper);
-        Pair pair = mockEmptyPair();
-        when(pair.getLeft()).thenReturn(ctx);
-        when(pair.getRight()).thenReturn(wrapInKernelInterface(dummyRepo));
-        Callback.push(pair);
-
-        Callback.selfDestruct(owner.toByteArray(), beneficiary.toByteArray());
-        checkSelfDestruct(owner, ownerBalance, ownerNonce, beneficiary, benBalance);
-    }
-
-    @Test
-    public void testSelfDestructOnMultipleStackDepths() {
-        int depths = RandomUtils.nextInt(3, 10);
-        for (int i = 0; i < depths; i++) {
-            Callback.push(mockPair());
-        }
-        for (int i = 0; i < depths; i++) {
-            BigInteger ownerBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            BigInteger ownerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            BigInteger benBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            BigInteger benNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 1_000_000));
-            AionAddress owner =
-                    getNewAddressInRepo(
-                            Callback.externalState().getUnderlyingRepository(), ownerBalance, ownerNonce);
-            AionAddress beneficiary =
-                    getNewAddressInRepo(
-                            Callback.externalState().getUnderlyingRepository(), benBalance, benNonce);
-
-            // Test every other with owner as beneficiary
-            if (i % 2 == 0) {
-                Callback.selfDestruct(owner.toByteArray(), beneficiary.toByteArray());
-                checkSelfDestruct(owner, ownerBalance, ownerNonce, beneficiary, benBalance);
-            } else {
-                Callback.selfDestruct(owner.toByteArray(), owner.toByteArray());
-                checkSelfDestruct(owner, ownerBalance, ownerNonce, owner, BigInteger.ZERO);
             }
             Callback.pop();
         }
@@ -1701,6 +1454,7 @@ public class CallbackUnitTest {
                         new ExternalStateForTesting(
                                 new AionRepositoryCache(
                                         AionRepositoryImpl.createForTesting(repoConfig)),
+                                new BlockchainForTesting(),
                                 AddressUtils.ZERO_ADDRESS,
                                 FvmDataWord.fromBytes(new byte[0]),
                                 false,
@@ -1839,7 +1593,6 @@ public class CallbackUnitTest {
         RepositoryCache cache = mock(RepositoryCache.class);
         when(cache.toString()).thenReturn("mocked repo.");
         IExternalStateForFvm externalState = mock(IExternalStateForFvm.class);
-        when(externalState.getUnderlyingRepository()).thenReturn(cache);
         when(externalState.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
         return externalState;
     }
@@ -1881,40 +1634,6 @@ public class CallbackUnitTest {
         byte[] bytes = RandomUtils.nextBytes(AionAddress.LENGTH);
         bytes[0] = (byte) 0xa0;
         return new AionAddress(bytes);
-    }
-
-    /**
-     * Checks the state after selfDestruct is called to ensure it is as expected.
-     *
-     * @param owner The transaction owner.
-     * @param ownerBalance The owner's balance prior to selfDestruct.
-     * @param ownerNonce The owner's nonce prior to selfDestruct.
-     * @param beneficiary The transaction beneficiary.
-     * @param beneficiaryOldBalance The beneficiary's balance prior to selfDestruct.
-     */
-    private void checkSelfDestruct(
-            AionAddress owner,
-            BigInteger ownerBalance,
-            BigInteger ownerNonce,
-            AionAddress beneficiary,
-            BigInteger beneficiaryOldBalance) {
-
-        RepositoryCache repo = Callback.externalState().getUnderlyingRepository();
-        ExecutionContext ctx = Callback.context();
-        SideEffects helper = ctx.getSideEffects();
-        assertEquals(BigInteger.ZERO, repo.getBalance(owner));
-        if (!owner.equals(beneficiary)) {
-            assertEquals(beneficiaryOldBalance.add(ownerBalance), repo.getBalance(beneficiary));
-        }
-        assertEquals(1, helper.getAddressesToBeDeleted().size());
-        assertEquals(helper.getAddressesToBeDeleted().get(0), owner);
-        assertEquals(1, helper.getInternalTransactions().size());
-        InternalTransaction tx = helper.getInternalTransactions().get(0);
-        assertEquals(owner, tx.sender);
-        assertEquals(beneficiary, tx.destination);
-        assertEquals(ownerNonce, tx.senderNonce);
-        assertEquals(ownerBalance, tx.value);
-        assertArrayEquals(new byte[0], tx.copyOfData());
     }
 
     private byte[] makeTopics(int num) {
@@ -2502,6 +2221,6 @@ public class CallbackUnitTest {
 
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
         return new ExternalStateForTesting(
-                cache, AddressUtils.ZERO_ADDRESS, FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
+                cache, new BlockchainForTesting(), AddressUtils.ZERO_ADDRESS, FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
     }
 }
