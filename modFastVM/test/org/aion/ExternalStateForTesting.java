@@ -421,4 +421,12 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     public byte[] getBlockHashByNumber(long blockNumber) {
         return this.blockchain.getBlockHashByNumber(blockNumber);
     }
+
+    public void setNonce(AionAddress address, BigInteger nonce) {
+        this.repository.setNonce(address, nonce);
+    }
+
+    public VmType getVmType(AionAddress address) {
+        return this.repository.getVmType(address);
+    }
 }

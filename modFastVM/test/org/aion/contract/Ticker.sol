@@ -4,11 +4,11 @@ contract Ticker {
     
    uint128 ticks;
 
-   function ticking(){
+   function ticking() payable {
         ticks++;
     }
 
-   function getTicker() constant returns (uint128){
+   function getTicker() payable returns (uint128){
         return ticks;
     }
 }
