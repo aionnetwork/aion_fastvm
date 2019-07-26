@@ -14,28 +14,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.db.impl.DBVendor;
-import org.aion.db.impl.DatabaseFactory;
-import org.aion.mcf.db.ContractDetails;
-import org.aion.mcf.db.PruneConfig;
-import org.aion.mcf.db.RepositoryCache;
-import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.config.CfgPrune;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.types.ByteArrayWrapper;
 import org.aion.crypto.HashUtil;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.base.Constants;
 import org.aion.util.types.AddressUtils;
-import org.aion.zero.impl.db.AionRepositoryCache;
-import org.aion.zero.impl.db.AionRepositoryImpl;
-import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,38 +35,11 @@ import org.mockito.Mockito;
 /** Unit tests for Callback class. */
 public class CallbackUnitTest {
 
-    private AionRepositoryCache dummyRepo;
-    private RepositoryConfig repoConfig;
+    private RepositoryForTesting dummyRepo;
 
     @Before
     public void setup() {
-        repoConfig =
-                new RepositoryConfig() {
-                    @Override
-                    public String getDbPath() {
-                        return "";
-                    }
-
-                    @Override
-                    public PruneConfig getPruneConfig() {
-                        return new CfgPrune(false);
-                    }
-
-                    @Override
-                    public ContractDetails contractDetailsImpl() {
-                        return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                    }
-
-                    @Override
-                    public Properties getDatabaseConfig(String db_name) {
-                        Properties props = new Properties();
-                        props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                        props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                        return props;
-                    }
-                };
-
-        dummyRepo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        dummyRepo = RepositoryForTesting.newRepository();
     }
 
     @After
@@ -103,8 +64,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetBalanceNoSuchAccount() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         assertArrayEquals(
                 new byte[FvmDataWord.SIZE], Callback.getBalance(getNewAddress().toByteArray()));
@@ -129,8 +89,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageIsValidEntry() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
         byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
@@ -140,8 +99,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageNoSuchEntry() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
         byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
@@ -154,8 +112,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testGetStorageMultipleAddresses() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -172,8 +129,7 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            RepositoryCache repo =
-                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+            RepositoryForTesting repo = RepositoryForTesting.newRepository();
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, true);
@@ -193,8 +149,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutStorage() {
-        RepositoryCache<AccountState, IBlockStoreBase> repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
         byte[] value = RandomUtils.nextBytes(FvmDataWord.SIZE);
@@ -202,16 +157,14 @@ public class CallbackUnitTest {
         assertArrayEquals(
                 value,
                 FvmDataWord.fromBytes(
-                                repo.getStorageValue(address, new ByteArrayWrapper(FvmDataWord.fromBytes(key).copyOfData()))
-                                        .getData())
-                        .copyOfData());
+                                repo.getStorageValue(address, FvmDataWord.fromBytes(key)).copyOfData())
+                                        .copyOfData());
     }
 
     @Test
     public void testPutStorageMultipleEntries() {
         int num = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase> repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         AionAddress[] addresses = new AionAddress[num];
         byte[][] keys = new byte[num][];
@@ -224,19 +177,13 @@ public class CallbackUnitTest {
         for (int i = 0; i < num; i++) {
             assertArrayEquals(
                     values[i],
-                    FvmDataWord.fromBytes(
-                                    repo.getStorageValue(
-                                                    addresses[i],
-                                                    new ByteArrayWrapper(FvmDataWord.fromBytes(keys[i]).copyOfData()))
-                                            .getData())
-                            .copyOfData());
+                    repo.getStorageValue(addresses[i], FvmDataWord.fromBytes(keys[i])).copyOfData());
         }
     }
 
     @Test
     public void testPutStorageMultipleAddresses() {
-        RepositoryCache<AccountState, IBlockStoreBase> repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -246,23 +193,17 @@ public class CallbackUnitTest {
         for (int i = 0; i < numAddrs; i++) {
             assertArrayEquals(
                     values[i],
-                    FvmDataWord.fromBytes(
-                                    repo.getStorageValue(
-                                                    addresses[i],
-                                                    new ByteArrayWrapper(FvmDataWord.fromBytes(keys[i]).copyOfData()))
-                                            .getData())
-                            .copyOfData());
+                    repo.getStorageValue(addresses[i], FvmDataWord.fromBytes(keys[i])).copyOfData());
         }
     }
 
     @Test
     public void testPutStorageMultipleAddressesAtMultipleStackDepths() {
         int depths = RandomUtils.nextInt(3, 10);
-        RepositoryCache<AccountState, IBlockStoreBase>[] repos = new RepositoryCache[depths];
+        RepositoryForTesting[] repos = new RepositoryForTesting[depths];
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            repos[depths - 1 - i] =
-                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+            repos[depths - 1 - i] = RepositoryForTesting.newRepository();
             pushNewRepo(repos[depths - 1 - i]);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs =
@@ -276,12 +217,7 @@ public class CallbackUnitTest {
             for (int j = 0; j < addresses.length; j++) {
                 assertArrayEquals(
                         values[j],
-                        FvmDataWord.fromBytes(
-                                        repos[i].getStorageValue(
-                                                        addresses[j],
-                                                        new ByteArrayWrapper(FvmDataWord.fromBytes(keys[j]).copyOfData()))
-                                                .getData())
-                                .copyOfData());
+                        repos[i].getStorageValue(addresses[j], FvmDataWord.fromBytes(keys[j])).copyOfData());
             }
             Callback.pop();
         }
@@ -289,8 +225,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutThenGetStorage() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         AionAddress address = getNewAddress();
         byte[] key = RandomUtils.nextBytes(FvmDataWord.SIZE);
@@ -301,8 +236,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testPutThenGetStorageMultipleTimes() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         pushNewRepo(repo);
         int numAddrs = RandomUtils.nextInt(5, 10);
         List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -319,8 +253,7 @@ public class CallbackUnitTest {
         int depths = RandomUtils.nextInt(3, 10);
         List<List<ByteArrayWrapper>> packsPerDepth = new ArrayList<>();
         for (int i = 0; i < depths; i++) {
-            RepositoryCache repo =
-                    new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+            RepositoryForTesting repo = RepositoryForTesting.newRepository();
             pushNewRepo(repo);
             int numAddrs = RandomUtils.nextInt(5, 10);
             List<ByteArrayWrapper> packs = pushNewStorageEntries(repo, numAddrs, false);
@@ -399,8 +332,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight())
-                .thenReturn(
-                        new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig)));
+                .thenReturn(RepositoryForTesting.newRepository());
         Callback.push(pair);
         ExecutionContext ctx =
                 newExecutionContext(
@@ -443,9 +375,7 @@ public class CallbackUnitTest {
             Pair pair = mockEmptyPair();
             when(pair.getLeft()).thenReturn(context);
             when(pair.getRight())
-                    .thenReturn(
-                            new AionRepositoryCache(
-                                    AionRepositoryImpl.createForTesting(repoConfig)));
+                    .thenReturn(RepositoryForTesting.newRepository());
             Callback.push(pair);
         }
         for (int i = 0; i < depths; i++) {
@@ -490,8 +420,7 @@ public class CallbackUnitTest {
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
         when(pair.getRight())
-                .thenReturn(
-                        new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig)));
+                .thenReturn(RepositoryForTesting.newRepository());
         Callback.push(pair);
         ExecutionContext ctx =
                 newExecutionContext(
@@ -519,8 +448,7 @@ public class CallbackUnitTest {
 
     @Test
     public void testCallStackDepthTooLarge() {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
                 newExecutionContext(
@@ -553,8 +481,7 @@ public class CallbackUnitTest {
     @Test
     public void testCallCallersBalanceLessThanCallValue() {
         BigInteger balance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         AionAddress caller = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         long nrgLimit = RandomUtils.nextLong(0, 10_000);
         ExecutionContext context =
@@ -1452,8 +1379,7 @@ public class CallbackUnitTest {
         when(pair.getRight())
                 .thenReturn(
                         new ExternalStateForTesting(
-                                new AionRepositoryCache(
-                                        AionRepositoryImpl.createForTesting(repoConfig)),
+                                RepositoryForTesting.newRepository(),
                                 new BlockchainForTesting(),
                                 AddressUtils.ZERO_ADDRESS,
                                 FvmDataWord.fromBytes(new byte[0]),
@@ -1590,7 +1516,7 @@ public class CallbackUnitTest {
     }
 
     private IExternalStateForFvm mockState() {
-        RepositoryCache cache = mock(RepositoryCache.class);
+        RepositoryForTesting cache = mock(RepositoryForTesting.class);
         when(cache.toString()).thenReturn("mocked repo.");
         IExternalStateForFvm externalState = mock(IExternalStateForFvm.class);
         when(externalState.getCode(Mockito.any(AionAddress.class))).thenReturn(RandomUtils.nextBytes(30));
@@ -1607,14 +1533,14 @@ public class CallbackUnitTest {
         assertEquals(context.getTransactionStackDepth(), other.getTransactionStackDepth());
     }
 
-    private void compareRepos(RepositoryCache cache, RepositoryCache other) {
+    private void compareRepos(RepositoryForTesting cache, RepositoryForTesting other) {
         AionAddress addr = getNewAddress();
         assertEquals(cache.toString(), other.toString());
         assertEquals(cache.getCode(addr), other.getCode(addr));
     }
 
     private AionAddress getNewAddressInRepo(
-            RepositoryCache repo, BigInteger balance, BigInteger nonce) {
+            RepositoryForTesting repo, BigInteger balance, BigInteger nonce) {
         AionAddress address = getNewAddress();
         repo.createAccount(address);
         repo.addBalance(address, balance);
@@ -1724,8 +1650,7 @@ public class CallbackUnitTest {
      * The newly created account with this balance is returned.
      */
     private AionAddress pushNewBalance(BigInteger balance) {
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         AionAddress address = getNewAddressInRepo(repo, balance, BigInteger.ZERO);
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
@@ -1792,7 +1717,7 @@ public class CallbackUnitTest {
      * wrapper.
      */
     private List<ByteArrayWrapper> pushNewStorageEntries(
-            RepositoryCache repo, int num, boolean pushToRepo) {
+            RepositoryForTesting repo, int num, boolean pushToRepo) {
 
         AionAddress[] addresses = new AionAddress[num];
         byte[][] keys = new byte[num][];
@@ -1811,14 +1736,14 @@ public class CallbackUnitTest {
      * with key and value as the key-value pair for some random address, which is then returned.
      */
     private AionAddress pushNewStorageEntry(
-            RepositoryCache repo, byte[] key, byte[] value, boolean pushToRepo) {
+            RepositoryForTesting repo, byte[] key, byte[] value, boolean pushToRepo) {
 
         AionAddress address = getNewAddress();
         if (pushToRepo) {
-            repo.addStorageRow(
+            repo.addToStorage(
                     address,
-                    new ByteArrayWrapper(FvmDataWord.fromBytes(key).copyOfData()),
-                    new ByteArrayWrapper(ByteUtil.stripLeadingZeroes(FvmDataWord.fromBytes(value).copyOfData())));
+                    FvmDataWord.fromBytes(key),
+                    FvmDataWord.fromBytes(ByteUtil.stripLeadingZeroes(value)));
         } else {
             Callback.putStorage(address.toByteArray(), key, value);
         }
@@ -1829,7 +1754,7 @@ public class CallbackUnitTest {
      * Pushes repo onto the top of the Callback stack by adding a new mocked Pair whose right entry
      * is repo.
      */
-    private void pushNewRepo(RepositoryCache repo) {
+    private void pushNewRepo(RepositoryForTesting repo) {
         Pair pair = mockEmptyPair();
         when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
         Callback.push(pair);
@@ -1980,8 +1905,7 @@ public class CallbackUnitTest {
             long nrgLimit) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
-        RepositoryCache repo =
-                new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        RepositoryForTesting repo = RepositoryForTesting.newRepository();
         AionAddress caller = getNewAddressInRepo(repo, callerBalance, callerNonce);
         if (contractExists) {
             AionAddress contract =
@@ -2219,7 +2143,7 @@ public class CallbackUnitTest {
         }
     }
 
-    private static IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
+    private static IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
                 cache, new BlockchainForTesting(), AddressUtils.ZERO_ADDRESS, FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
     }

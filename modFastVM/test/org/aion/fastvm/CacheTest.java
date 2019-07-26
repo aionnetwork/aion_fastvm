@@ -2,20 +2,11 @@ package org.aion.fastvm;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Properties;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.db.impl.DBVendor;
-import org.aion.db.impl.DatabaseFactory;
-import org.aion.mcf.db.ContractDetails;
-import org.aion.mcf.db.PruneConfig;
-import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.config.CfgPrune;
 import org.aion.util.conversions.Hex;
-import org.aion.zero.impl.db.AionRepositoryCache;
-import org.aion.zero.impl.db.AionRepositoryImpl;
-import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -44,7 +35,7 @@ public class CacheTest {
 
     private SideEffects helper;
 
-    private AionRepositoryCache repo;
+    private RepositoryForTesting repo;
 
 
     @Before
@@ -54,34 +45,7 @@ public class CacheTest {
         callValue = FvmDataWord.fromLong(0);
         callData = new byte[0];
         helper = new SideEffects();
-
-        RepositoryConfig repoConfig =
-            new RepositoryConfig() {
-                @Override
-                public String getDbPath() {
-                    return "";
-                }
-
-                @Override
-                public PruneConfig getPruneConfig() {
-                    return new CfgPrune(false);
-                }
-
-                @Override
-                public ContractDetails contractDetailsImpl() {
-                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                }
-
-                @Override
-                public Properties getDatabaseConfig(String db_name) {
-                    Properties props = new Properties();
-                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                    return props;
-                }
-            };
-
-        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        repo = RepositoryForTesting.newRepository();
     }
 
     @Test

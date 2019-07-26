@@ -50,26 +50,18 @@ import static org.aion.fastvm.Instruction.XOR;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Properties;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.db.impl.DBVendor;
-import org.aion.db.impl.DatabaseFactory;
-import org.aion.mcf.db.ContractDetails;
-import org.aion.mcf.db.PruneConfig;
 import org.aion.mcf.db.RepositoryCache;
-import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.config.CfgPrune;
 import org.aion.util.types.ByteArrayWrapper;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.fastvm.Instruction.Tier;
 import org.aion.mcf.core.AccountState;
 import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.zero.impl.db.AionRepositoryCache;
 import org.aion.zero.impl.db.AionRepositoryImpl;
-import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -102,7 +94,7 @@ public class NrgCostTest {
 
     public NrgCostTest() {}
 
-    private AionRepositoryCache repo;
+    private RepositoryForTesting repo;
 
     @BeforeClass
     public static void note() {
@@ -118,34 +110,7 @@ public class NrgCostTest {
         callData = new byte[0];
 
         address = new AionAddress(RandomUtils.nextBytes(32));
-
-        RepositoryConfig repoConfig =
-            new RepositoryConfig() {
-                @Override
-                public String getDbPath() {
-                    return "";
-                }
-
-                @Override
-                public PruneConfig getPruneConfig() {
-                    return new CfgPrune(false);
-                }
-
-                @Override
-                public ContractDetails contractDetailsImpl() {
-                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                }
-
-                @Override
-                public Properties getDatabaseConfig(String db_name) {
-                    Properties props = new Properties();
-                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                    return props;
-                }
-            };
-
-        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        repo = RepositoryForTesting.newRepository();
 
         // JVM warm up
         byte[] code = {0x00};
@@ -226,8 +191,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -301,8 +264,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -354,8 +315,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -410,8 +369,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -464,8 +421,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -506,8 +461,6 @@ public class NrgCostTest {
                     repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -560,8 +513,6 @@ public class NrgCostTest {
                             inst);
 
             ExecutionContext ctx = newExecutionContext();
-            repo.createAccount(address);
-            repo.saveCode(address, code);
 
             // compile
             FastVmTransactionResult result =
@@ -670,7 +621,7 @@ public class NrgCostTest {
         }
     }
 
-    private IExternalStateForFvm wrapInKernelInterface(RepositoryCache cache) {
+    private IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
             cache,
             new BlockchainForTesting(),

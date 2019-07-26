@@ -1,22 +1,19 @@
 package org.aion;
 
 import java.math.BigInteger;
+import org.aion.repository.AccountStateForTesting.VmType;
 import org.aion.fastvm.ExecutionContext;
 import org.aion.fastvm.FastVmTransactionResult;
 import org.aion.fastvm.FvmDataWord;
 import org.aion.fastvm.IExternalStateForFvm;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.db.InternalVmType;
-import org.aion.mcf.db.RepositoryCache;
 import org.aion.mcf.valid.TxNrgRule;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.repository.BlockchainForTesting;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.types.AionAddress;
-import org.aion.util.types.ByteArrayWrapper;
 
 public final class ExternalStateForTesting implements IExternalStateForFvm {
-    private final RepositoryCache<AccountState, IBlockStoreBase> repository;
+    private final RepositoryForTesting repository;
     private final BlockchainForTesting blockchain;
     private final AionAddress miner;
     private final boolean isLocalCall;
@@ -27,7 +24,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final long blockEnergyLimit;
     private final FvmDataWord blockDifficulty;
 
-    public ExternalStateForTesting(RepositoryCache<AccountState, IBlockStoreBase> repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
+    public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         this.repository = repository;
         this.blockchain = blockchain;
         this.miner = miner;
@@ -45,7 +42,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public void commit() {
-        this.repository.flush();
+        this.repository.commit();
     }
 
     /**
@@ -71,7 +68,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public ExternalStateForTesting newChildExternalState() {
-        return new ExternalStateForTesting(this.repository.startTracking(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
+        return new ExternalStateForTesting(this.repository.newChildRepository(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
     }
 
     /**
@@ -109,21 +106,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public void addStorageValue(AionAddress address, FvmDataWord key, FvmDataWord value) {
-        byte[] valueBytes = value.copyOfData();
-        if (valueBytes == null || valueBytes.length == 0) {
-            // used to ensure FVM correctness
-            throw new IllegalArgumentException("Put with null, empty or zero byte array values is not allowed for the FVM. For deletions, make explicit calls to the delete method.");
-        }
-
-        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
-        ByteArrayWrapper storageValue = alignValueToWordSizeForPut(valueBytes);
-        if (storageValue.isZero()) {
-            // used to ensure FVM correctness
-            throw new IllegalArgumentException("Put with null, empty or zero byte array values is not allowed for the FVM. For deletions, make explicit calls to the delete method.");
-        }
-
-        this.repository.addStorageRow(address, storageKey, storageValue);
-        setVmType(address);
+        this.repository.addToStorage(address, key, value);
     }
 
     /**
@@ -135,9 +118,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public void removeStorage(AionAddress address, FvmDataWord key) {
-        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
-        this.repository.removeStorageRow(address, storageKey);
-        setVmType(address);
+        this.repository.removeFromStorage(address, key);
     }
 
     /**
@@ -150,13 +131,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public FvmDataWord getStorageValue(AionAddress address, FvmDataWord key) {
-        ByteArrayWrapper storageKey = new ByteArrayWrapper(key.copyOfData());
-        ByteArrayWrapper value = this.repository.getStorageValue(address, storageKey);
-        if (value != null && (value.isZero() || value.isEmpty())) {
-            // used to ensure FVM correctness
-            throw new IllegalStateException("A zero or empty value was retrieved from storage. Storing zeros is not allowed by the FVM. An incorrect put was previously performed instead of an explicit call to the delete method.");
-        }
-        return (value == null) ? FvmDataWord.fromBytes(new byte[FvmDataWord.SIZE]) : FvmDataWord.fromBytes(value.toBytes());
+        FvmDataWord value = this.repository.getStorageValue(address, key);
+        return (value == null) ? FvmDataWord.fromBytes(new byte[FvmDataWord.SIZE]) : value;
     }
 
     /**
@@ -169,7 +145,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public boolean destinationAddressIsSafeForFvm(AionAddress destination) {
-        return getVmType(destination) != InternalVmType.AVM;
+        return this.repository.getVmType(destination) != VmType.AVM;
     }
 
     /**
@@ -191,9 +167,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public void putCode(AionAddress address, byte[] code) {
-        // ensure the vm type is set as soon as the account becomes a contract
         this.repository.saveCode(address, code);
-        setVmType(address);
     }
 
     /**
@@ -224,7 +198,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public void setVmType(AionAddress address) {
-        this.repository.saveVmType(address, InternalVmType.FVM);
+        this.repository.setVmType(address, VmType.FVM);
     }
 
     /**
@@ -446,78 +420,5 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     @Override
     public byte[] getBlockHashByNumber(long blockNumber) {
         return this.blockchain.getBlockHashByNumber(blockNumber);
-    }
-
-    /**
-     * If data.length > 16 then data is aligned to be 32 bytes.
-     *
-     * <p>Otherwise it is aligned to be 16 bytes with all of its leading zero bytes removed.
-     *
-     * <p>This method should only be used for putting data into storage.
-     */
-    private ByteArrayWrapper alignValueToWordSizeForPut(byte[] bytes) {
-        return (allBytesAreZero(bytes)) ? new ByteArrayWrapper(bytes) : new ByteArrayWrapper(dropLeadingZeroes(bytes));
-    }
-
-    private static boolean allBytesAreZero(byte[] bytes) {
-        for (byte singleByte : bytes) {
-            if (singleByte != 0x0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static int findIndexOfFirstNonZeroByte(byte[] bytes) {
-        int indexOfFirstNonZeroByte = 0;
-        for (byte singleByte : bytes) {
-            if (singleByte != 0x0) {
-                return indexOfFirstNonZeroByte;
-            }
-            indexOfFirstNonZeroByte++;
-        }
-        return indexOfFirstNonZeroByte;
-    }
-
-    private InternalVmType getVmType(AionAddress destination) {
-        // will load contract into memory otherwise leading to consensus issues
-        RepositoryCache<AccountState, IBlockStoreBase> track = this.repository.startTracking();
-        AccountState accountState = track.getAccountState(destination);
-
-        InternalVmType vm;
-        if (accountState == null) {
-            // the address doesn't exist yet, so it can be used by either vm
-            vm = InternalVmType.EITHER;
-        } else {
-            vm = this.repository.getVMUsed(destination, accountState.getCodeHash());
-
-            // UNKNOWN is returned when there was no contract information stored
-            if (vm == InternalVmType.UNKNOWN) {
-                // use the in-memory value
-                vm = track.getVmType(destination);
-            }
-        }
-        return vm;
-    }
-
-    /**
-     * Returns the input bytes but with all leading zero bytes removed.
-     *
-     * If the input bytes consists of all zero bytes then an array of length 1 whose only byte is
-     * a zero byte is returned.
-     *
-     * @param bytes The bytes to chop.
-     * @return the chopped bytes.
-     */
-    private static byte[] dropLeadingZeroes(byte[] bytes) {
-        int indexOfFirstNonZeroByte = findIndexOfFirstNonZeroByte(bytes);
-
-        if (indexOfFirstNonZeroByte == bytes.length) {
-            return new byte[1];
-        }
-
-        byte[] nonZeroBytes = new byte[bytes.length - indexOfFirstNonZeroByte];
-        System.arraycopy(bytes, indexOfFirstNonZeroByte, nonZeroBytes, 0, bytes.length - indexOfFirstNonZeroByte);
-        return nonZeroBytes;
     }
 }

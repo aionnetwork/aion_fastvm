@@ -3,24 +3,12 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Properties;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
-import org.aion.db.impl.DBVendor;
-import org.aion.db.impl.DatabaseFactory;
-import org.aion.mcf.config.CfgPrune;
-import org.aion.mcf.core.AccountState;
-import org.aion.mcf.db.ContractDetails;
-import org.aion.mcf.db.IBlockStoreBase;
-import org.aion.mcf.db.PruneConfig;
-import org.aion.mcf.db.RepositoryCache;
-import org.aion.mcf.db.RepositoryConfig;
 import org.aion.precompiled.PrecompiledFactoryForTesting;
 import org.aion.precompiled.PrecompiledForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.zero.impl.db.AionRepositoryCache;
-import org.aion.zero.impl.db.AionRepositoryImpl;
-import org.aion.zero.impl.db.ContractDetailsAion;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -348,34 +336,6 @@ public class InternalPrecompiledContractCallTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return new ExternalStateForTesting(newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
-    }
-
-    private static RepositoryCache<AccountState, IBlockStoreBase> newRepository() {
-        RepositoryConfig repoConfig = new RepositoryConfig() {
-                @Override
-                public String getDbPath() {
-                    return "";
-                }
-
-                @Override
-                public PruneConfig getPruneConfig() {
-                    return new CfgPrune(false);
-                }
-
-                @Override
-                public ContractDetails contractDetailsImpl() {
-                    return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                }
-
-                @Override
-                public Properties getDatabaseConfig(String db_name) {
-                    Properties props = new Properties();
-                    props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                    props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                    return props;
-                }
-            };
-        return new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
     }
 }

@@ -5,24 +5,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
+import org.aion.repository.RepositoryForTesting;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
-import org.aion.db.impl.DBVendor;
-import org.aion.db.impl.DatabaseFactory;
-import org.aion.mcf.db.ContractDetails;
-import org.aion.mcf.db.PruneConfig;
-import org.aion.mcf.db.RepositoryCache;
-import org.aion.mcf.db.RepositoryConfig;
-import org.aion.mcf.config.CfgPrune;
 import org.aion.types.Log;
 import org.aion.util.bytes.ByteUtil;
 import org.aion.util.conversions.Hex;
 import org.aion.contract.ContractUtils;
-import org.aion.zero.impl.db.AionRepositoryCache;
-import org.aion.zero.impl.db.AionRepositoryImpl;
-import org.aion.zero.impl.db.ContractDetailsAion;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -50,7 +40,7 @@ public class ContractTest {
     private int kind = ExecutionContext.CREATE;
     private int flags = 0;
 
-    private AionRepositoryCache repo;
+    private RepositoryForTesting repo;
 
     public ContractTest() {}
 
@@ -60,34 +50,7 @@ public class ContractTest {
         nrgLimit = 20000;
         callValue = FvmDataWord.fromLong(0);
         callData = new byte[0];
-
-        RepositoryConfig repoConfig =
-                new RepositoryConfig() {
-                    @Override
-                    public String getDbPath() {
-                        return "";
-                    }
-
-                    @Override
-                    public PruneConfig getPruneConfig() {
-                        return new CfgPrune(false);
-                    }
-
-                    @Override
-                    public ContractDetails contractDetailsImpl() {
-                        return ContractDetailsAion.createForTesting(0, 1000000).getDetails();
-                    }
-
-                    @Override
-                    public Properties getDatabaseConfig(String db_name) {
-                        Properties props = new Properties();
-                        props.setProperty(DatabaseFactory.Props.DB_TYPE, DBVendor.MOCKDB.toValue());
-                        props.setProperty(DatabaseFactory.Props.ENABLE_HEAP_CACHE, "false");
-                        return props;
-                    }
-                };
-
-        repo = new AionRepositoryCache(AionRepositoryImpl.createForTesting(repoConfig));
+        repo = RepositoryForTesting.newRepository();
     }
 
     @Test
@@ -261,7 +224,7 @@ public class ContractTest {
         assertEquals(FastVmResultCode.REVERT, result.getResultCode());
     }
 
-    private IExternalStateForFvm newStateImpl(RepositoryCache cache) {
+    private IExternalStateForFvm newStateImpl(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
             cache,
             new BlockchainForTesting(),
