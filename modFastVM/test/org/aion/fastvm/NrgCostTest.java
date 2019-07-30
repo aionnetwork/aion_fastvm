@@ -140,7 +140,7 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test1Base() {
+    public void test1BasePreFork() {
         /**
          * Number of repeats of the instruction. You may get different results by adjusting this
          * number. It's a tradeoff between the instruction execution and system cost. We should only
@@ -216,7 +216,83 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test2VeryLow() {
+    public void test1BasePostFork() {
+        /**
+         * Number of repeats of the instruction. You may get different results by adjusting this
+         * number. It's a tradeoff between the instruction execution and system cost. We should only
+         * interpret the results relatively.
+         */
+        int x = 64;
+
+        /** Number of VM invoking. */
+        int y = 1000;
+
+        /** Energy cost for this group of instructions. */
+        int z = Tier.BASE.cost(); // energy cost
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the Base tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {
+            ADDRESS,
+            ORIGIN,
+            CALLER,
+            CALLVALUE,
+            CALLDATASIZE,
+            CODESIZE,
+            GASPRICE,
+            COINBASE,
+            TIMESTAMP,
+            NUMBER,
+            DIFFICULTY,
+            GASLIMIT, /* POP, */
+            PC,
+            MSIZE,
+            GAS
+        };
+
+        for (Instruction inst : instructions) {
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPre040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+
+        System.out.println();
+    }
+
+    @Test
+    public void test2VeryLowPreFork() {
         int x = 64;
         int y = 1000;
         int z = Tier.VERY_LOW.cost();
@@ -287,7 +363,78 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test3Low() {
+    public void test2VeryLowPostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = Tier.VERY_LOW.cost();
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the VeryLow tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {
+            ADD,
+            SUB,
+            NOT,
+            LT,
+            GT,
+            SLT,
+            SGT,
+            EQ,
+            ISZERO,
+            AND,
+            OR,
+            XOR,
+            BYTE,
+            CALLDATALOAD,
+            MLOAD,
+            MSTORE,
+            MSTORE8, /* PUSH1, */
+            DUP1,
+            SWAP1
+        };
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test3LowPreFork() {
         int x = 64;
         int y = 1000;
         int z = Tier.LOW.cost();
@@ -338,7 +485,58 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test4Mid() {
+    public void test3LowPostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = Tier.LOW.cost();
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the Low tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND};
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test4MidPreFork() {
         int x = 64;
         int y = 1000;
         int z = Tier.MID.cost();
@@ -392,7 +590,61 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test5High() {
+    public void test4MidPostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = Tier.MID.cost();
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the Mid tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {
+            ADDMOD, MULMOD, /* JUMP */
+        };
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode(
+                    "000000000000000000000000000000010000000000000000000000000000000200000000000000000000000000000003");
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test5HighPreFork() {
         int x = 64;
         int y = 1000;
         int z = Tier.HIGH.cost();
@@ -444,7 +696,59 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test6SHA3() {
+    public void test5HighPostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = Tier.HIGH.cost();
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the high tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {JUMPI};
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode(
+                    "000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000003");
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test6SHA3PreFork() {
         int x = 64;
         int y = 1000;
         int z = Tier.HIGH.cost();
@@ -485,7 +789,48 @@ public class NrgCostTest {
     }
 
     @Test
-    public void test7Exp() {
+    public void test6SHA3PostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = Tier.HIGH.cost();
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the high tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {SHA3};
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code =
+                repeat(x, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst, POP, POP);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            System.out.println(result);
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test7ExpPreFork() {
         int x = 64;
         int y = 1000;
         int z = 10;
@@ -532,6 +877,57 @@ public class NrgCostTest {
             System.out.printf(
                     "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
                     inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+
+    @Test
+    public void test7ExpPostFork() {
+        int x = 64;
+        int y = 1000;
+        int z = 10;
+
+        System.out.println(
+            "\n========================================================================");
+        System.out.println("Cost for instructions of the VeryLow tier");
+        System.out.println(
+            "========================================================================");
+
+        Instruction[] instructions = {EXP};
+
+        for (Instruction inst : instructions) {
+            callData =
+                HexUtil.decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code =
+                repeat(
+                    x,
+                    PUSH1,
+                    32,
+                    CALLDATALOAD,
+                    PUSH1,
+                    16,
+                    CALLDATALOAD,
+                    PUSH1,
+                    0,
+                    CALLDATALOAD,
+                    inst);
+
+            ExecutionContext ctx = newExecutionContext();
+
+            // compile
+            FastVmTransactionResult result =
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().runPost040Fork(code, ctx, wrapInKernelInterface(repo));
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf(
+                "%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n",
+                inst.name(), c, (nrgLimit / z) * c / 1_000_000, nrgLimit);
         }
     }
 

@@ -82,7 +82,7 @@ public class DoSUnexpectedThrowTest {
     }
 
     @Test
-    public void testUnexpectedThrowFail() throws IOException {
+    public void testUnexpectedThrowFailPreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
 
         repo.saveCode(address, contract);
@@ -104,7 +104,29 @@ public class DoSUnexpectedThrowTest {
     }
 
     @Test
-    public void testUnexpectedThrowSuccess() throws IOException {
+    public void testUnexpectedThrowFailPostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        int bid = 100;
+
+        callData =
+            ByteUtil.merge(
+                HexUtil.decode("4dc80107"), address.toByteArray(), FvmDataWord.fromInt(bid).copyOfData());
+        nrgLimit = 69;
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.runPost040Fork(contract, ctx, newState(repo));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+    }
+
+    @Test
+    public void testUnexpectedThrowSuccessPreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
 
         repo.saveCode(address, contract);
@@ -127,7 +149,30 @@ public class DoSUnexpectedThrowTest {
     }
 
     @Test
-    public void testUnexpectedThrowRefundAll1() throws IOException {
+    public void testUnexpectedThrowSuccessPostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        int bid = 100;
+
+        callData =
+            ByteUtil.merge(
+                HexUtil.decode("4dc80107"), address.toByteArray(), FvmDataWord.fromInt(bid).copyOfData());
+
+        nrgLimit = 100_000L;
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.runPost040Fork(contract, ctx, newState(repo));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+    }
+
+    @Test
+    public void testUnexpectedThrowRefundAll1PreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
 
         repo.saveCode(address, contract);
@@ -150,7 +195,30 @@ public class DoSUnexpectedThrowTest {
     }
 
     @Test
-    public void testUnexpectedThrowRefundAll2() throws IOException {
+    public void testUnexpectedThrowRefundAll1Postfork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        int bid = 100;
+
+        callData =
+            ByteUtil.merge(
+                HexUtil.decode("38e771ab"), address.toByteArray(), FvmDataWord.fromInt(bid).copyOfData());
+
+        nrgLimit = 100_000L;
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.runPost040Fork(contract, ctx, newState(repo));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+    }
+
+    @Test
+    public void testUnexpectedThrowRefundAll2PreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
 
         repo.saveCode(address, contract);
@@ -173,7 +241,30 @@ public class DoSUnexpectedThrowTest {
     }
 
     @Test
-    public void testUnexpectedThrowRefundAllFail() throws IOException {
+    public void testUnexpectedThrowRefundAll2PostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        int bid = 100;
+
+        callData =
+            ByteUtil.merge(
+                HexUtil.decode("38e771ab"), address.toByteArray(), FvmDataWord.fromInt(bid).copyOfData());
+
+        nrgLimit = 10000;
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.runPost040Fork(contract, ctx, newState(repo));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+    }
+
+    @Test
+    public void testUnexpectedThrowRefundAllFailPreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
 
         repo.saveCode(address, contract);
@@ -191,6 +282,29 @@ public class DoSUnexpectedThrowTest {
         ExecutionContext ctx = newExecutionContext();
         FastVM vm = new FastVM();
         FastVmTransactionResult result = vm.runPre040Fork(contract, ctx, newState(repo));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+    }
+
+    @Test
+    public void testUnexpectedThrowRefundAllFailPostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("FailedRefund.sol", "FailedRefund");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        int bid = 100;
+
+        callData =
+            ByteUtil.merge(
+                HexUtil.decode("38e771ab"), address.toByteArray(), FvmDataWord.fromInt(bid).copyOfData());
+
+        nrgLimit = 369;
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result = vm.runPost040Fork(contract, ctx, newState(repo));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }

@@ -63,7 +63,7 @@ public class DoSBlockGasLimitTest {
     }
 
     @Test
-    public void testGasOverLimit() throws IOException {
+    public void testGasOverLimitPreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
 
         repo.saveCode(address, contract);
@@ -92,7 +92,36 @@ public class DoSBlockGasLimitTest {
     }
 
     @Test
-    public void testGasOverLimitFail1() throws IOException {
+    public void testGasOverLimitPostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result =
+            vm.runPost040Fork(contract, ctx, new ExternalStateForTesting(
+                repo,
+                new BlockchainForTesting(),
+                blockCoinbase,
+                blockDifficulty,
+                false,
+                true,
+                false,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+    }
+
+    @Test
+    public void testGasOverLimitFail1PreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
 
         repo.saveCode(address, contract);
@@ -123,7 +152,38 @@ public class DoSBlockGasLimitTest {
     }
 
     @Test
-    public void testGasOverLimitFail2() throws IOException {
+    public void testGasOverLimitFail1PostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        nrgLimit = 200;
+
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result =
+            vm.runPost040Fork(contract, ctx, new ExternalStateForTesting(
+                repo,
+                new BlockchainForTesting(),
+                blockCoinbase,
+                blockDifficulty,
+                false,
+                true,
+                false,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+    }
+
+    @Test
+    public void testGasOverLimitFail2PreFork() throws IOException {
         byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
 
         repo.saveCode(address, contract);
@@ -149,6 +209,37 @@ public class DoSBlockGasLimitTest {
                     blockNumber,
                     blockTimestamp,
                     blockNrgLimit));
+        System.out.println(result);
+        assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
+    }
+
+    @Test
+    public void testGasOverLimitFail2PostFork() throws IOException {
+        byte[] contract = ContractUtils.getContractBody("BlockGasLimit.sol", "BlockGasLimit");
+
+        repo.saveCode(address, contract);
+
+        BigInteger balance = BigInteger.valueOf(1000L);
+        repo.addBalance(address, balance);
+
+        nrgLimit = 405;
+
+        callData = ByteUtil.merge(HexUtil.decode("e0aeb5e1"), FvmDataWord.fromLong(nrgLimit).copyOfData());
+
+        ExecutionContext ctx = newExecutionContext();
+        FastVM vm = new FastVM();
+        FastVmTransactionResult result =
+            vm.runPost040Fork(contract, ctx, new ExternalStateForTesting(
+                repo,
+                new BlockchainForTesting(),
+                blockCoinbase,
+                blockDifficulty,
+                false,
+                true,
+                false,
+                blockNumber,
+                blockTimestamp,
+                blockNrgLimit));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
