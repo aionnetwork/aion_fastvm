@@ -1,0 +1,8 @@
+libicudata.so.55
+libicuuc.so.55
+libicui18n.so.55
+libjsoncpp.so.1
+libboost_system.so.1.58.0
+libboost_regex.so.1.58.0
+libboost_program_options.so.1.58.0
+libboost_filesystem.so.1.58.0
