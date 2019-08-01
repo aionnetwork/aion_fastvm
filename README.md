@@ -28,6 +28,13 @@ sudo apt install build-essential libboost-all-dev libjsoncpp-dev
 make
 ```
 
+### Build and Test Java Source
+```bash
+cd modFastVM
+ant		# to build
+ant test	# to test
+```
+
 ### Benchmark
 
 Test code:
