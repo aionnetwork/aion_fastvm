@@ -276,9 +276,6 @@ public class InternalPrecompiledContractCallTest {
     private static void assertResultCorrect(FastVmTransactionResult expected, FastVmTransactionResult actual) {
         Assert.assertEquals(expected.getResultCode(), actual.getResultCode());
         Assert.assertEquals(expected.getEnergyRemaining(), actual.getEnergyRemaining());
-        Assert.assertEquals(expected.getInternalTransactions(), actual.getInternalTransactions());
-        Assert.assertEquals(expected.getDeletedAddresses(), actual.getDeletedAddresses());
-        Assert.assertEquals(expected.getLogs(), actual.getLogs());
         Assert.assertArrayEquals(expected.getReturnData(), actual.getReturnData());
     }
 

@@ -3,6 +3,7 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import org.aion.types.AionAddress;
 import org.aion.types.Transaction;
+import org.aion.util.TransactionResultUtil;
 import org.aion.util.TransactionUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -20,7 +21,7 @@ public final class FastVirtualMachine {
      * @param transaction The transaction to run.
      * @return the execution result.
      */
-    public static FastVmTransactionResult run(
+    public static FvmWrappedTransactionResult run(
             IExternalStateForFvm externalState, IExternalCapabilities capabilities, Transaction transaction, boolean isFork040enabled) {
         if (externalState == null) {
             throw new NullPointerException("Cannot run using a null externalState!");
@@ -42,7 +43,9 @@ public final class FastVirtualMachine {
         // Perform the rejection checks and return immediately if transaction is rejected.
         performRejectionChecks(childExternalState, transaction, result);
         if (!result.getResultCode().isSuccess()) {
-            return result;
+            return TransactionResultUtil.createWithCodeAndEnergyRemaining(
+                    result.getResultCode(),
+                    transaction.energyLimit - result.getEnergyRemaining());
         }
 
         incrementNonceAndDeductEnergyCost(childExternalState, transaction);
@@ -71,11 +74,14 @@ public final class FastVirtualMachine {
 
         // Propagate any side-effects.
         SideEffects sideEffects = context.getSideEffects();
-        result.addLogs(sideEffects.getExecutionLogs());
-        result.addInternalTransactions(sideEffects.getInternalTransactions());
-        result.addDeletedAddresses(sideEffects.getAddressesToBeDeleted());
 
-        return result;
+        return TransactionResultUtil.createFvmWrappedTransactionResult(
+                result.getResultCode(),
+                sideEffects.getInternalTransactions(),
+                sideEffects.getExecutionLogs(),
+                transaction.energyLimit - result.getEnergyRemaining(),
+                result.getReturnData(),
+                sideEffects.getAddressesToBeDeleted());
     }
 
     /**

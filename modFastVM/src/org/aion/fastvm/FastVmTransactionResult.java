@@ -2,74 +2,52 @@ package org.aion.fastvm;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
-import org.aion.types.AionAddress;
-import org.aion.types.Log;
-import org.aion.types.InternalTransaction;
 
 public final class FastVmTransactionResult {
 
-    private IExternalStateForFvm externalState;
     private FastVmResultCode code;
     private byte[] output;
     private long energyRemaining;
-    private List<Log> logs = new ArrayList<>();
-    private List<InternalTransaction> internalTransactions = new ArrayList<>();
-    private List<AionAddress> deletedAddresses = new ArrayList<>();
 
     /**
-     * Constructs a new {@code TransactionResult} with no side-effects, with zero energy remaining,
-     * with an empty byte array as its output and {@link FastVmResultCode#SUCCESS} as its result
-     * code.
+     * Constructs a new {@code TransactionResult} with zero energy remaining, with an empty byte
+     * array as its output and {@link FastVmResultCode#SUCCESS} as its result code.
      */
     public FastVmTransactionResult() {
-        this.externalState = null;
         this.code = FastVmResultCode.SUCCESS;
         this.output = new byte[0];
         this.energyRemaining = 0;
     }
 
     /**
-     * Constructs a new {@code TransactionResult} with no side-effects and with the specified result
-     * code and remaining energy.
+     * Constructs a new {@code TransactionResult} with the specified result code and remaining energy.
      *
      * @param code The transaction result code.
      * @param energyRemaining The energy remaining after executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
-        this.externalState = null;
         this.code = code;
         this.energyRemaining = energyRemaining;
         this.output = new byte[0];
     }
 
     /**
-     * Constructs a new {@code TransactionResult} with no side-effects and with the specified result
-     * code, remaining energy and output.
+     * Constructs a new {@code TransactionResult} with the specified result code, remaining energy and output.
      *
      * @param code The transaction result code.
      * @param energyRemaining The energy remaining after executing the transaction.
      * @param output The output of executing the transaction.
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
-        this.externalState = null;
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
         this.energyRemaining = energyRemaining;
     }
 
     /**
-     * Returns a <i>partial</i> byte array representation of this {@code TransactionResult}.
+     * Returns a byte array representation of this {@code TransactionResult}.
      *
-     * <p>The representation is partial because it only represents the {@link FastVmResultCode}, the
-     * amount of energy remaining, and the output.
-     *
-     * <p>In particular, the {@link IExternalStateForFvm} is not included in this representation, meaning
-     * these components of this object will be lost when the byte array representation is
-     * transformed back into a {@code TransactionResult} via the {@code fromBytes()} method.
-     *
-     * @return A partial byte array representation of this object.
+     * @return A byte array representation of this object.
      */
     public byte[] toBytes() {
         ByteBuffer buffer =
@@ -86,13 +64,10 @@ public final class FastVmTransactionResult {
     // TODO: document exception / maybe catch it and throw something more informative
 
     /**
-     * Returns a {@code TransactionResult} object from a partial byte array representation obtained
+     * Returns a {@code TransactionResult} object from a byte array representation obtained
      * via the {@code toBytes()} method.
      *
-     * <p>The returned object will be constructed from the partial representation, which, because it
-     * is partial, will have no {@link IExternalStateForFvm}.
-     *
-     * @param bytes A partial byte array representation of a {@code TransactionResult}.
+     * @param bytes A byte array representation of a {@code TransactionResult}.
      * @return The {@code TransactionResult} object obtained from the byte array representation.
      */
     public static FastVmTransactionResult fromBytes(byte[] bytes) {
@@ -121,10 +96,6 @@ public final class FastVmTransactionResult {
         this.code = code;
     }
 
-    public void setKernelInterface(IExternalStateForFvm state) {
-        this.externalState = state;
-    }
-
     public void setReturnData(byte[] output) {
         this.output = (output == null) ? new byte[0] : output;
     }
@@ -145,34 +116,6 @@ public final class FastVmTransactionResult {
         return this.energyRemaining;
     }
 
-    public IExternalStateForFvm getKernelInterface() {
-        return this.externalState;
-    }
-
-    public void addLogs(List<Log> logs) {
-        this.logs.addAll(logs);
-    }
-
-    public void addInternalTransactions(List<InternalTransaction> internalTransactions) {
-        this.internalTransactions.addAll(internalTransactions);
-    }
-
-    public void addDeletedAddresses(List<AionAddress> deletedAddresses) {
-        this.deletedAddresses.addAll(deletedAddresses);
-    }
-
-    public List<Log> getLogs() {
-        return this.logs;
-    }
-
-    public List<InternalTransaction> getInternalTransactions() {
-        return this.internalTransactions;
-    }
-
-    public List<AionAddress> getDeletedAddresses() {
-        return this.deletedAddresses;
-    }
-
     @Override
     public String toString() {
         return "TransactionResult { code = "
@@ -180,15 +123,5 @@ public final class FastVmTransactionResult {
                 + ", energy remaining = "
                 + this.energyRemaining
                 + "}";
-        //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
-    }
-
-    public String toStringWithSideEffects() {
-        return "TransactionResult { code = "
-                + this.code
-                + ", energy remaining = "
-                + this.energyRemaining
-                + "}";
-        //            + ", output = " + ByteUtil.toHexString(this.output) + " }";
     }
 }
