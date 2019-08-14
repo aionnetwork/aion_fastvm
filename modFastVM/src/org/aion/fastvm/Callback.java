@@ -208,8 +208,10 @@ public class Callback {
 
         // Check that the destination address is safe to call from this VM.
         if (!externalState().destinationAddressIsSafeForFvm(codeAddress)) {
+            // Base on the fastvm definitaion, an invalid transaction should 
+            // eat all of the transaction energy.
             return new FastVmTransactionResult(
-                    FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, ctx.getTransactionEnergy());
+                    FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, 0);
         }
 
         IExternalStateForFvm childState = externalState().newChildExternalState();
