@@ -17,6 +17,7 @@ import java.util.NoSuchElementException;
 import org.aion.ByteArrayWrapper;
 import org.aion.ExternalCapabilitiesForTesting;
 import org.aion.repository.RepositoryForTesting;
+import org.aion.repository.AccountStateForTesting.VmType;
 import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
@@ -521,6 +522,11 @@ public class CallbackUnitTest {
         FastVmTransactionResult result = FastVmTransactionResult.fromBytes(Callback.call(message));
         assertEquals(FastVmResultCode.FAILURE, result.getResultCode());
         assertEquals(0, result.getEnergyRemaining());
+    }
+
+    @Test
+    public void testPerformCallCallIsPrecompiledNotSuccessSeptForkEnabledwithAVMCheck() {
+        performCallIsPrecompiledNotSuccessSeptForkEnabledwithAVMCheck(TransactionKind.CALL);
     }
 
     @Test
@@ -1083,6 +1089,47 @@ public class CallbackUnitTest {
     }
 
     // <----------METHODS BELOW ARE TESTS THAT ARE SHARED BY MULTIPLE TESTS AND SO REUSED---------->
+    private void performCallIsPrecompiledNotSuccessSeptForkEnabledwithAVMCheck(TransactionKind kind) {
+        for (FastVmResultCode code : FastVmResultCode.values()) {
+            if (!code.equals(FastVmResultCode.SUCCESS)) {
+                BigInteger callerBalance = BigInteger.valueOf(RandomUtils.nextLong(10, 10_000));
+                BigInteger recipientBalance = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
+                long nrgLimit = RandomUtils.nextLong(0, 10_000);
+                ExecutionContext context =
+                    setupTestForPerformCall(
+                        callerBalance,
+                        recipientBalance,
+                        true,
+                        kind,
+                        new byte[0],
+                        false,
+                        false,
+                        nrgLimit,
+                        VmType.AVM);
+
+                FastVmTransactionResult mockedResult = new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, 0);
+                FastVM vm = mockFastVM(mockedResult);
+
+                runPerformCallAndCheck(
+                    context, vm, mockedResult, false, kind, false, false, null);
+                checkHelperForRejections(Callback.context().getSideEffects());
+
+                // before create a new internal tx, the callback.call already set the transaction to fail state.
+                assertEquals(0, Callback.context().getSideEffects().getInternalTransactions().size());
+                assertEquals(0, Callback.context().getSideEffects().getExecutionLogs().size());
+                assertEquals(0, Callback.context().getSideEffects().getAddressesToBeDeleted().size());
+
+                checkPerformCallResults(
+                    context,
+                    callerBalance,
+                    recipientBalance,
+                    false,
+                    false,
+                    kind,
+                    mockedResult.getResultCode());
+            }
+        }
+    }
 
     private void performCallIsNotPrecompiledContractNoRecipientSeptForkDisabled(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
@@ -1557,6 +1604,16 @@ public class CallbackUnitTest {
         return address;
     }
 
+    private AionAddress getNewAddressInRepo(
+        RepositoryForTesting repo, BigInteger balance, BigInteger nonce, VmType vmType) {
+        AionAddress address = getNewAddress();
+        repo.createAccount(address);
+        repo.addBalance(address, balance);
+        repo.setNonce(address, nonce);
+        repo.setVmType(address, vmType);
+        return address;
+    }
+
     private AionAddress getNewAddressInRepo(BigInteger balance, BigInteger nonce) {
         AionAddress address = getNewAddress();
         dummyRepo.createAccount(address);
@@ -1811,11 +1868,13 @@ public class CallbackUnitTest {
             FastVmResultCode resultCode) {
 
         ExecutionContext ctx = Callback.context();
-        checkInternalTransaction(
-                context,
-                ctx.getSideEffects().getInternalTransactions().get(0),
-                isCreateContract,
-                true);
+        if (!ctx.getSideEffects().getInternalTransactions().isEmpty()) {
+            checkInternalTransaction(
+                    context,
+                    ctx.getSideEffects().getInternalTransactions().get(0),
+                    isCreateContract,
+                    true);
+        }
         checkPerformCallBalances(
                 context.getSenderAddress(),
                 callerBalance,
@@ -1903,6 +1962,28 @@ public class CallbackUnitTest {
      * callerBalance and recipientBalance respectively.
      */
     private ExecutionContext setupTestForPerformCall(
+        BigInteger callerBalance,
+        BigInteger recipientBalance,
+        boolean septForkEnabled,
+        TransactionKind kind,
+        byte[] code,
+        boolean contractExists,
+        boolean dataIsEmpty,
+        long nrgLimit) {
+        return setupTestForPerformCall(
+                callerBalance,
+                recipientBalance,
+                septForkEnabled,
+                kind,
+                code,
+                contractExists,
+                dataIsEmpty,
+                nrgLimit,
+                null);
+    }
+
+
+    private ExecutionContext setupTestForPerformCall(
             BigInteger callerBalance,
             BigInteger recipientBalance,
             boolean septForkEnabled,
@@ -1910,7 +1991,8 @@ public class CallbackUnitTest {
             byte[] code,
             boolean contractExists,
             boolean dataIsEmpty,
-            long nrgLimit) {
+            long nrgLimit,
+            VmType vmType) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         RepositoryForTesting repo = RepositoryForTesting.newRepository();
@@ -1925,7 +2007,12 @@ public class CallbackUnitTest {
         if (code == null) {
             recipient = getNewAddress();
         } else {
-            recipient = getNewAddressInRepo(repo, recipientBalance, BigInteger.ZERO);
+            if (vmType != null) {
+                recipient = getNewAddressInRepo(repo, recipientBalance, BigInteger.ZERO, vmType);
+            } else {
+                recipient = getNewAddressInRepo(repo, recipientBalance, BigInteger.ZERO);
+            }
+
             repo.saveCode(recipient, code);
         }
         ExecutionContext context =
