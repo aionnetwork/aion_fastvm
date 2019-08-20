@@ -254,7 +254,7 @@ public interface IExternalStateForFvm {
      *
      * @return the current block difficulty.
      */
-    long getBlockDifficulty();
+    FvmDataWord getBlockDifficulty();
 
     /**
      * Returns the block hash of the block whose block number is the specified number, or

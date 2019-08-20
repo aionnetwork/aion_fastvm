@@ -1406,7 +1406,7 @@ public class CallbackUnitTest {
         ExecutionContext context = mock(ExecutionContext.class);
         when(context.getBlockNumber()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getBlockTimestamp()).thenReturn(RandomUtils.nextLong(0, 10_000));
-        when(context.getBlockDifficulty()).thenReturn(RandomUtils.nextLong(0, 10_000));
+        when(context.getBlockDifficulty()).thenReturn(FvmDataWord.fromLong(RandomUtils.nextLong(0, 10_000)));
         when(context.getBlockEnergyLimit()).thenReturn(RandomUtils.nextLong(0, 10_000));
         when(context.getMinerAddress()).thenReturn(getNewAddress());
         when(context.getSenderAddress()).thenReturn(getNewAddress());
@@ -1622,7 +1622,7 @@ public class CallbackUnitTest {
                 previous.getBlockNumber(),
                 previous.getBlockTimestamp(),
                 previous.getBlockEnergyLimit(),
-                FvmDataWord.fromLong(previous.getBlockDifficulty()));
+                previous.getBlockDifficulty());
     }
 
     /**

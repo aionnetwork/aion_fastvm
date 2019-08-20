@@ -287,7 +287,6 @@ public final class FastVirtualMachine {
      */
     public static ExecutionContext constructTransactionContext(
             Transaction transaction, AionAddress contract, IExternalStateForFvm externalState) {
-        //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
-        return ExecutionContext.fromTransaction(transaction, contract, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), FvmDataWord.fromLong(externalState.getBlockDifficulty()));
+        return ExecutionContext.fromTransaction(transaction, contract, externalState.getMinerAddress(), externalState.getBlockNumber(), externalState.getBlockTimestamp(), externalState.getBlockEnergyLimit(), externalState.getBlockDifficulty());
     }
 }

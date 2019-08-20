@@ -297,6 +297,6 @@ public class ExecutionContextUnitTest {
         end += FvmDataWord.SIZE;
         assertEquals(
                 context.getBlockDifficulty(),
-                FvmDataWord.fromBytes(Arrays.copyOfRange(encoding, start, end)).toLong());
+                FvmDataWord.fromBytes(Arrays.copyOfRange(encoding, start, end)));
     }
 }

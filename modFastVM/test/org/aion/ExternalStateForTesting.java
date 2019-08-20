@@ -406,8 +406,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @return the current block difficulty.
      */
     @Override
-    public long getBlockDifficulty() {
-        return this.blockDifficulty.toLong();
+    public FvmDataWord getBlockDifficulty() {
+        return this.blockDifficulty;
     }
 
     /**

@@ -399,8 +399,7 @@ public class Callback {
         long blockTimestamp = prev.getBlockTimestamp();
         long blockNrgLimit = prev.getBlockEnergyLimit();
 
-        //TODO: AKI-288 difficulty is capped as a long, this is probably not what we want, especially for Unity?
-        FvmDataWord blockDifficulty = FvmDataWord.fromLong(prev.getBlockDifficulty());
+        FvmDataWord blockDifficulty = prev.getBlockDifficulty();
 
         return ExecutionContext.from(txHash, destination, origin, sender, nrgPrice, nrgLimit, callValue, callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit, blockDifficulty);
     }

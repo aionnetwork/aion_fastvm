@@ -325,8 +325,8 @@ public class ExecutionContext {
     }
 
     /** @return the block difficulty. */
-    public long getBlockDifficulty() {
-        return blockDifficulty.toLong();
+    public FvmDataWord getBlockDifficulty() {
+        return blockDifficulty;
     }
 
     /** @return the transaction helper. */

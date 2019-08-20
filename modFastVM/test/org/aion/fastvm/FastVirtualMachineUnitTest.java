@@ -41,7 +41,7 @@ public class FastVirtualMachineUnitTest {
         Transaction transaction = Transaction.contractCallTransaction(sender, destination, new byte[32], BigInteger.ZERO, value, data, energyLimit, energyPrice);
 
         AionAddress miner = randomAddress();
-        long blockDifficulty = 235;
+        BigInteger blockDifficulty = BigInteger.valueOf(235);
         long blockNumber = 2387;
         long blockTimestamp = 129831;
         long blockEnergyLimit = 500000;
@@ -64,7 +64,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(blockNumber, context.getBlockNumber());
         Assert.assertEquals(blockTimestamp, context.getBlockTimestamp());
         Assert.assertEquals(blockEnergyLimit, context.getBlockEnergyLimit());
-        Assert.assertEquals(blockDifficulty, context.getBlockDifficulty());
+        Assert.assertEquals(blockDifficulty, context.getBlockDifficulty().toBigInteger());
         Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getHashOfOriginTransaction());
         Assert.assertTrue(context.getSideEffects().getInternalTransactions().isEmpty());
         Assert.assertTrue(context.getSideEffects().getAddressesToBeDeleted().isEmpty());
@@ -81,7 +81,7 @@ public class FastVirtualMachineUnitTest {
         Transaction transaction = Transaction.contractCreateTransaction(sender, new byte[32], BigInteger.ZERO, value, data, energyLimit, energyPrice);
 
         AionAddress miner = randomAddress();
-        long blockDifficulty = Long.MAX_VALUE;
+        BigInteger blockDifficulty = BigInteger.valueOf(Long.MAX_VALUE);
         long blockNumber = 2387;
         long blockTimestamp = 129831;
         long blockEnergyLimit = 500000;
@@ -106,7 +106,7 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(blockNumber, context.getBlockNumber());
         Assert.assertEquals(blockTimestamp, context.getBlockTimestamp());
         Assert.assertEquals(blockEnergyLimit, context.getBlockEnergyLimit());
-        Assert.assertEquals(blockDifficulty, context.getBlockDifficulty());
+        Assert.assertEquals(blockDifficulty, context.getBlockDifficulty().toBigInteger());
         Assert.assertArrayEquals(transaction.copyOfTransactionHash(), context.getHashOfOriginTransaction());
         Assert.assertTrue(context.getSideEffects().getInternalTransactions().isEmpty());
         Assert.assertTrue(context.getSideEffects().getAddressesToBeDeleted().isEmpty());
@@ -797,11 +797,11 @@ public class FastVirtualMachineUnitTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return newState(randomAddress(), 0L, 0L, 0L, 15_000_000L);
+        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L);
     }
 
-    private static ExternalStateForTesting newState(AionAddress miner, long blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
-        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromLong(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit);
+    private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit);
     }
 
     private static AionAddress randomAddress() {
