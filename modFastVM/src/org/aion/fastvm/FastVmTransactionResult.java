@@ -27,7 +27,7 @@ public final class FastVmTransactionResult {
      */
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining) {
         this.code = code;
-        this.energyRemaining = energyRemaining;
+        this.energyRemaining = checkNegativeEnergy(energyRemaining);
         this.output = new byte[0];
     }
 
@@ -41,7 +41,7 @@ public final class FastVmTransactionResult {
     public FastVmTransactionResult(FastVmResultCode code, long energyRemaining, byte[] output) {
         this.code = code;
         this.output = (output == null) ? new byte[0] : output;
-        this.energyRemaining = energyRemaining;
+        this.energyRemaining = checkNegativeEnergy(energyRemaining);
     }
 
     /**
@@ -123,5 +123,10 @@ public final class FastVmTransactionResult {
                 + ", energy remaining = "
                 + this.energyRemaining
                 + "}";
+    }
+
+    // Ensure that the returned result does not have a negative energy remaining.
+    private static long checkNegativeEnergy(long energyRemaining) {
+        return Math.max(energyRemaining, 0);
     }
 }
