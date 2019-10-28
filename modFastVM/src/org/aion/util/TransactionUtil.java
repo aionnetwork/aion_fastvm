@@ -16,6 +16,16 @@ public final class TransactionUtil {
             + nonZeroes * FvmConstants.NONZERO_BYTE_FEE;
     }
 
+    public static long computeTransactionCost(boolean isCreate, byte[] data) {
+        long nonZeroes = nonZeroBytesInData(data);
+        long zeroes = zeroBytesInData(data);
+
+        return (isCreate ? FvmConstants.CREATE_TRANSACTION_FEE : 0)
+            + FvmConstants.TRANSACTION_BASE_FEE
+            + zeroes * FvmConstants.ZERO_BYTE_FEE
+            + nonZeroes * FvmConstants.NONZERO_BYTE_FEE;
+    }
+
     private static long nonZeroBytesInData(byte[] data) {
         int total = (data == null) ? 0 : data.length;
 

@@ -956,7 +956,8 @@ public class NrgCostTest {
             false,
             blockNumber,
             blockTimestamp,
-            blockNrgLimit);
+            blockNrgLimit,
+            false);
     }
 
     private ExecutionContext newExecutionContext() {

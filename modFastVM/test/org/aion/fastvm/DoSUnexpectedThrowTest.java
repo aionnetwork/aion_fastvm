@@ -320,6 +320,7 @@ public class DoSUnexpectedThrowTest {
             false,
             blockNumber,
             blockTimestamp,
-            blockNrgLimit);
+            blockNrgLimit,
+            false);
     }
 }

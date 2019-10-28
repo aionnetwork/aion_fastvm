@@ -126,7 +126,8 @@ public class MultiThreadTest {
                                                 false,
                                                 blockNumber,
                                                 blockTimestamp,
-                                                blockNrgLimit));
+                                                blockNrgLimit,
+                                                false));
                             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                         }
                     });
@@ -191,7 +192,8 @@ public class MultiThreadTest {
                                     false,
                                     blockNumber,
                                     blockTimestamp,
-                                    blockNrgLimit));
+                                    blockNrgLimit,
+                                    false));
                         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
                     }
                 });

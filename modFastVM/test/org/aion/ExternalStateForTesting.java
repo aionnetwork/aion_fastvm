@@ -23,6 +23,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final long blockTimestamp;
     private final long blockEnergyLimit;
     private final FvmDataWord blockDifficulty;
+    private final boolean unityHardForkEnabled;
 
     public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         this.repository = repository;
@@ -35,6 +36,21 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
         this.blockNumber = blockNumber;
         this.blockTimestamp = blockTimestamp;
         this.blockEnergyLimit = blockEnergyLimit;
+        this.unityHardForkEnabled = false;
+    }
+
+    public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean unityHardForkEnabled) {
+        this.repository = repository;
+        this.blockchain = blockchain;
+        this.miner = miner;
+        this.blockDifficulty = blockDifficulty;
+        this.isLocalCall = isLocalCall;
+        this.allowNonceIncrement = allowNonceIncrement;
+        this.isFork040enabled = isFork040enabled;
+        this.blockNumber = blockNumber;
+        this.blockTimestamp = blockTimestamp;
+        this.blockEnergyLimit = blockEnergyLimit;
+        this.unityHardForkEnabled = unityHardForkEnabled;
     }
 
     /**
@@ -68,7 +84,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public ExternalStateForTesting newChildExternalState() {
-        return new ExternalStateForTesting(this.repository.newChildRepository(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit);
+        return new ExternalStateForTesting(this.repository.newChildRepository(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit, this.unityHardForkEnabled);
     }
 
     /**
@@ -261,7 +277,15 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public boolean isValidEnergyLimitForCreate(long energyLimit, byte[] data) {
-        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForCreate(energyLimit, data);
+        if (this.isLocalCall) {
+            return true;
+        } else {
+            if (this.unityHardForkEnabled) {
+                return EnergyLimitRuleForTesting.isValidEnergyLimitForCreateAfterUnity(energyLimit, data);
+            } else {
+                return EnergyLimitRuleForTesting.isValidEnergyLimitForCreate(energyLimit);
+            }
+        }
     }
 
     /**
@@ -276,7 +300,15 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public boolean isValidEnergyLimitForNonCreate(long energyLimit, byte[] data) {
-        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreate(energyLimit, data);
+        if (this.isLocalCall) {
+            return true;
+        } else {
+            if (this.unityHardForkEnabled) {
+                return EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreateAfterUnity(energyLimit, data);
+            } else {
+                return EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreate(energyLimit);
+            }
+        }
     }
 
     /**

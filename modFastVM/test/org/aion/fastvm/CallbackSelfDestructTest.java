@@ -225,7 +225,7 @@ public class CallbackSelfDestructTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L);
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromInt(0), false, true, false, 0L, 0L, 0L, false);
     }
 
     private static AionAddress randomAddress() {

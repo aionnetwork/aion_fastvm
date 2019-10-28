@@ -680,6 +680,154 @@ public class FastVirtualMachineIntegTest {
         Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
     }
 
+    @Test
+    public void testContractDeployRejectedRunBeforeUnity() {
+        AionAddress sender = randomAddress();
+        BigInteger senderNonce = BigInteger.valueOf(12);
+        byte[] data = RandomUtils.nextBytes(3110);
+
+        long energyLimit = TransactionUtil.computeTransactionCost(true, data);
+        long energyPrice = 4L;
+
+        // Set up the accounts. The sender does not have enough energy limit to cover the transaction.
+        BigInteger energyCost = BigInteger.valueOf(energyLimit).multiply(BigInteger.valueOf(energyPrice));
+        BigInteger senderBalance = energyCost.subtract(BigInteger.ONE);
+
+        ExternalStateForTesting state = newState(true);
+        state.setNonce(sender, senderNonce);
+        state.addBalance(sender, senderBalance);
+
+        // We attempt to deploy a nonsensical contract, this is why we fail!
+        Transaction transaction = Transaction.contractCreateTransaction(sender, new byte[32], senderNonce, BigInteger.ZERO, data, energyLimit, energyPrice);
+
+        AionAddress destination = capabilities.computeNewContractAddress(sender, senderNonce);
+
+        // Run the transaction.
+        TransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false).result;
+        TransactionStatus status = TransactionResultUtil.transactionStatusFromFvmResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
+        Assert.assertEquals(status, result.transactionStatus);
+
+        // Verify the destination has no code.
+        Assert.assertNull(state.getCode(destination));
+
+        // Verify the account nonces did not change.
+        Assert.assertEquals(senderNonce, state.getNonce(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getNonce(destination));
+
+        // Verify the account balances did not change.
+        Assert.assertEquals(senderBalance, state.getBalance(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
+    }
+
+    @Test
+    public void testContractDeployRejectedRunAfterUnity() {
+        AionAddress sender = randomAddress();
+        BigInteger senderNonce = BigInteger.valueOf(12);
+        byte[] data = RandomUtils.nextBytes(3110);
+
+        long energyLimit = TransactionUtil.computeTransactionCost(true, data) - 1;
+        long energyPrice = 4L;
+
+        // Set up the accounts. The sender does not have enough energy limit to cover the transaction.
+        BigInteger energyCost = BigInteger.valueOf(energyLimit).multiply(BigInteger.valueOf(energyPrice));
+        BigInteger senderBalance = energyCost.subtract(BigInteger.ONE);
+
+        ExternalStateForTesting state = newState(true);
+        state.setNonce(sender, senderNonce);
+        state.addBalance(sender, senderBalance);
+
+        // We attempt to deploy a nonsensical contract, this is why we fail!
+        Transaction transaction = Transaction.contractCreateTransaction(sender, new byte[32], senderNonce, BigInteger.ZERO, data, energyLimit, energyPrice);
+
+        AionAddress destination = capabilities.computeNewContractAddress(sender, senderNonce);
+
+        // Run the transaction.
+        TransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false).result;
+        TransactionStatus status = TransactionResultUtil.transactionStatusFromFvmResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
+        Assert.assertEquals(status, result.transactionStatus);
+
+        // Verify the destination has no code.
+        Assert.assertNull(state.getCode(destination));
+
+        // Verify the account nonces did not change.
+        Assert.assertEquals(senderNonce, state.getNonce(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getNonce(destination));
+
+        // Verify the account balances did not change.
+        Assert.assertEquals(senderBalance, state.getBalance(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
+    }
+
+    @Test
+    public void testTransactionRejectedRunBeforeUnity() {
+        AionAddress sender = randomAddress();
+        AionAddress destination = randomAddress();
+        BigInteger senderNonce = BigInteger.valueOf(12);
+        byte[] data = RandomUtils.nextBytes(3110);
+
+        long energyLimit = TransactionUtil.computeTransactionCost(false, data);
+        long energyPrice = 4L;
+
+        // Set up the accounts. The sender does not have enough energy limit to cover the transaction.
+        BigInteger energyCost = BigInteger.valueOf(energyLimit).multiply(BigInteger.valueOf(energyPrice));
+        BigInteger senderBalance = energyCost.subtract(BigInteger.ONE);
+
+        ExternalStateForTesting state = newState(true);
+        state.setNonce(sender, senderNonce);
+        state.addBalance(sender, senderBalance);
+
+        // We attempt to deploy a nonsensical contract, this is why we fail!
+        Transaction transaction = Transaction.contractCallTransaction(sender, destination, new byte[32], senderNonce, BigInteger.ZERO, data, energyLimit, energyPrice);
+
+        // Run the transaction.
+        TransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false).result;
+        TransactionStatus status = TransactionResultUtil.transactionStatusFromFvmResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
+        Assert.assertEquals(status, result.transactionStatus);
+
+        // Verify the account nonces did not change.
+        Assert.assertEquals(senderNonce, state.getNonce(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getNonce(destination));
+
+        // Verify the account balances did not change.
+        Assert.assertEquals(senderBalance, state.getBalance(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
+    }
+
+    @Test
+    public void testTransactionRejectedRunAfterUnity() {
+        AionAddress sender = randomAddress();
+        AionAddress destination = randomAddress();
+        BigInteger senderNonce = BigInteger.valueOf(12);
+        byte[] data = RandomUtils.nextBytes(3110);
+
+        long energyLimit = TransactionUtil.computeTransactionCost(false, data) - 1;
+        long energyPrice = 4L;
+
+        // Set up the accounts. The sender does not have enough energy limit to cover the transaction.
+        BigInteger energyCost = BigInteger.valueOf(energyLimit).multiply(BigInteger.valueOf(energyPrice));
+        BigInteger senderBalance = energyCost.subtract(BigInteger.ONE);
+
+        ExternalStateForTesting state = newState(true);
+        state.setNonce(sender, senderNonce);
+        state.addBalance(sender, senderBalance);
+
+        // We attempt to deploy a nonsensical contract, this is why we fail!
+        Transaction transaction = Transaction.contractCallTransaction(sender, destination, new byte[32], senderNonce, BigInteger.ZERO, data, energyLimit, energyPrice);
+
+        // Run the transaction.
+        TransactionResult result = FastVirtualMachine.run(state, new ExternalCapabilitiesForTesting(), transaction, false).result;
+        TransactionStatus status = TransactionResultUtil.transactionStatusFromFvmResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
+        Assert.assertEquals(status, result.transactionStatus);
+
+        // Verify the account nonces did not change.
+        Assert.assertEquals(senderNonce, state.getNonce(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getNonce(destination));
+
+        // Verify the account balances did not change.
+        Assert.assertEquals(senderBalance, state.getBalance(sender));
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(destination));
+    }
+
     private static byte[] encodeCallToDefaultPayableContract(DefaultPayableFunction function) {
         switch (function) {
             case NON_PAYABLE: return HexUtil.hexStringToBytes("52da86d5");
@@ -724,7 +872,11 @@ public class FastVirtualMachineIntegTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromLong(0L), false, true, false, 0L, 0L, 15_000_000L);
+        return newState(false);
+    }
+
+    private static ExternalStateForTesting newState(boolean afterUnity) {
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), randomAddress(), FvmDataWord.fromLong(0L), false, true, false, 0L, 0L, 15_000_000L, afterUnity);
     }
 
     private static AionAddress randomAddress() {

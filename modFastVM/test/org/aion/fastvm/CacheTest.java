@@ -103,7 +103,8 @@ public class CacheTest {
                             false,
                             blockNumber,
                             blockTimestamp,
-                            blockNrgLimit));
+                            blockNrgLimit,
+                            false));
             assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
 
             if (i % 100 == 0) {

@@ -1445,7 +1445,8 @@ public class CallbackUnitTest {
                                 false,
                                 0L,
                                 0L,
-                                0L));
+                                0L,
+                                false));
         return pair;
     }
 
@@ -2227,6 +2228,6 @@ public class CallbackUnitTest {
 
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
-                cache, new BlockchainForTesting(), new AionAddress(new byte[32]), FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L);
+                cache, new BlockchainForTesting(), new AionAddress(new byte[32]), FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L, false);
     }
 }

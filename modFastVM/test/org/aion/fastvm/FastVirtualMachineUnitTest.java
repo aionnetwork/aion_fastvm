@@ -137,6 +137,29 @@ public class FastVirtualMachineUnitTest {
     }
 
     @Test
+    public void testCallEnergyLimitRejectionChecksAfterUnity() {
+        // Test the minimum.
+        long energyLimitTooLowForCall = EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT - 1;
+        Transaction transaction = randomCallTransaction(energyLimitTooLowForCall);
+        ExternalStateForTesting state = newState();
+        FastVmTransactionResult result = newSuccessfulResult(energyLimitTooLowForCall);
+
+        FastVirtualMachine.performRejectionChecks(state, transaction, result);
+        Assert.assertEquals(FastVmResultCode.INVALID_NRG_LIMIT, result.getResultCode());
+        Assert.assertEquals(energyLimitTooLowForCall, result.getEnergyRemaining());
+
+        // Test the maximum.
+        long energyLimitTooHighForCall = EnergyLimitRuleForTesting.MAX_NON_CREATE_ENERGY_LIMIT + 1;
+        transaction = randomCallTransaction(energyLimitTooHighForCall);
+        state = newState();
+        result = newSuccessfulResult(energyLimitTooHighForCall);
+
+        FastVirtualMachine.performRejectionChecks(state, transaction, result);
+        Assert.assertEquals(FastVmResultCode.INVALID_NRG_LIMIT, result.getResultCode());
+        Assert.assertEquals(energyLimitTooHighForCall, result.getEnergyRemaining());
+    }
+
+    @Test
     public void testCreateEnergyLimitRejectionChecks() {
         // Test the minimum.
         long energyLimitTooLowForCreate = EnergyLimitRuleForTesting.MIN_CREATE_ENERGY_LIMIT - 1;
@@ -797,11 +820,19 @@ public class FastVirtualMachineUnitTest {
     }
 
     private static ExternalStateForTesting newState() {
-        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L);
+        return newState(false);
+    }
+
+    private static ExternalStateForTesting newState(boolean afterUnity) {
+        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L, afterUnity);
     }
 
     private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
-        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit);
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit, false);
+    }
+
+    private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean afterUnity) {
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit, afterUnity);
     }
 
     private static AionAddress randomAddress() {

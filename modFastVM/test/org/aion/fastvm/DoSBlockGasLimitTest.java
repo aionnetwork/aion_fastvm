@@ -86,7 +86,8 @@ public class DoSBlockGasLimitTest {
                     false,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit));
+                    blockNrgLimit,
+                    false));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -115,7 +116,8 @@ public class DoSBlockGasLimitTest {
                 false,
                 blockNumber,
                 blockTimestamp,
-                blockNrgLimit));
+                blockNrgLimit,
+                false));
         System.out.println(result);
         assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
     }
@@ -146,7 +148,8 @@ public class DoSBlockGasLimitTest {
                     false,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit));
+                    blockNrgLimit,
+                    false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -177,7 +180,8 @@ public class DoSBlockGasLimitTest {
                 false,
                 blockNumber,
                 blockTimestamp,
-                blockNrgLimit));
+                blockNrgLimit,
+                false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -208,7 +212,8 @@ public class DoSBlockGasLimitTest {
                     false,
                     blockNumber,
                     blockTimestamp,
-                    blockNrgLimit));
+                    blockNrgLimit,
+                    false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
@@ -239,7 +244,8 @@ public class DoSBlockGasLimitTest {
                 false,
                 blockNumber,
                 blockTimestamp,
-                blockNrgLimit));
+                blockNrgLimit,
+                false));
         System.out.println(result);
         assertEquals(FastVmResultCode.OUT_OF_NRG, result.getResultCode());
     }
