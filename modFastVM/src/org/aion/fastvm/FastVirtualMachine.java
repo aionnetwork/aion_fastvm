@@ -256,13 +256,13 @@ public final class FastVirtualMachine {
         long energyLimit = transaction.energyLimit;
 
         if (transaction.isCreate) {
-            if (!externalState.isValidEnergyLimitForCreate(energyLimit)) {
+            if (!externalState.isValidEnergyLimitForCreate(energyLimit, transaction.copyOfTransactionData())) {
                 result.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 result.setEnergyRemaining(energyLimit);
                 return;
             }
         } else {
-            if (!externalState.isValidEnergyLimitForNonCreate(energyLimit)) {
+            if (!externalState.isValidEnergyLimitForNonCreate(energyLimit, transaction.copyOfTransactionData())) {
                 result.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);
                 result.setEnergyRemaining(energyLimit);
                 return;

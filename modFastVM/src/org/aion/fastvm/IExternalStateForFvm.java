@@ -160,18 +160,20 @@ public interface IExternalStateForFvm {
      * {@code false}.
      *
      * @param energyLimit The energy limit to check.
+     * @param data The transaction data for calculating the storage cost.
      * @return whether the limit is valid or not.
      */
-    boolean isValidEnergyLimitForCreate(long energyLimit);
+    boolean isValidEnergyLimitForCreate(long energyLimit, byte[] data);
 
     /**
      * Returns {@code true} if the given energy limit is valid for non-CREATE contracts. Otherwise
      * {@code false}.
      *
      * @param energyLimit The energy limit to check.
+     * @param  data The transaction data for calculating the storage cost.
      * @return whether the limit is valid or not.
      */
-    boolean isValidEnergyLimitForNonCreate(long energyLimit);
+    boolean isValidEnergyLimitForNonCreate(long energyLimit, byte[] data);
 
     /**
      * Returns {@code true} only if the nonce of the address is equal to the given nonce or not.

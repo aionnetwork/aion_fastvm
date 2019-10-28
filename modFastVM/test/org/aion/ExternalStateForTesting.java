@@ -260,8 +260,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @return whether the energy limit is valid.
      */
     @Override
-    public boolean isValidEnergyLimitForCreate(long energyLimit) {
-        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForCreate(energyLimit);
+    public boolean isValidEnergyLimitForCreate(long energyLimit, byte[] data) {
+        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForCreate(energyLimit, data);
     }
 
     /**
@@ -275,8 +275,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      * @return whether the energy limit is valid.
      */
     @Override
-    public boolean isValidEnergyLimitForNonCreate(long energyLimit) {
-        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreate(energyLimit);
+    public boolean isValidEnergyLimitForNonCreate(long energyLimit, byte[] data) {
+        return (this.isLocalCall) ? true : EnergyLimitRuleForTesting.isValidEnergyLimitForNonCreate(energyLimit, data);
     }
 
     /**
