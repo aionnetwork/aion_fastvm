@@ -3,8 +3,8 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import org.aion.types.AionAddress;
 import org.aion.types.Transaction;
-import org.aion.util.TransactionResultUtil;
-import org.aion.util.TransactionUtil;
+import org.aion.fastvm.util.TransactionResultUtil;
+import org.aion.fastvm.util.TransactionUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 public final class FastVirtualMachine {

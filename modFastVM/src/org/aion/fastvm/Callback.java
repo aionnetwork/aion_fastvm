@@ -12,7 +12,7 @@ import org.aion.types.AionAddress;
 import org.aion.types.InternalTransaction.RejectedStatus;
 import org.aion.types.Log;
 import org.aion.types.InternalTransaction;
-import org.aion.util.ByteUtil;
+import org.aion.fastvm.util.ByteUtil;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 

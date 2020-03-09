@@ -26,9 +26,9 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.aion.types.AionAddress;
-import org.aion.util.ByteUtil;
+import org.aion.fastvm.util.ByteUtil;
 import org.aion.types.Transaction;
-import org.aion.util.TransactionUtil;
+import org.aion.fastvm.util.TransactionUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**

@@ -6,7 +6,7 @@ import java.io.InputStream;
 import org.aion.solidity.CompilationResult;
 import org.aion.solidity.Compiler;
 import org.aion.solidity.Compiler.Options;
-import org.aion.util.HexUtil;
+import org.aion.fastvm.util.HexUtil;
 
 public class ContractUtils {
 

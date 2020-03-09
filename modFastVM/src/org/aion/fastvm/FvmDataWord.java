@@ -3,7 +3,7 @@ package org.aion.fastvm;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import org.aion.util.HexUtil;
+import org.aion.fastvm.util.HexUtil;
 
 /**
  * A data word implementation consisting of 16 bytes.

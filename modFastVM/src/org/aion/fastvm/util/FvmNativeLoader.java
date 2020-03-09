@@ -1,4 +1,4 @@
-package org.aion.util;
+package org.aion.fastvm.util;
 
 import java.io.File;
 import java.io.IOException;

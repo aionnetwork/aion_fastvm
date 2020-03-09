@@ -10,7 +10,7 @@ import org.aion.repository.EnergyLimitRuleForTesting;
 import org.aion.repository.RepositoryForTesting;
 import org.aion.types.AionAddress;
 import org.aion.types.Transaction;
-import org.aion.util.TransactionUtil;
+import org.aion.fastvm.util.TransactionUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;

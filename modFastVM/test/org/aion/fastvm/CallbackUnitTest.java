@@ -22,7 +22,7 @@ import org.aion.ExternalStateForTesting;
 import org.aion.repository.BlockchainForTesting;
 import org.aion.types.AionAddress;
 import org.aion.types.Log;
-import org.aion.util.ByteUtil;
+import org.aion.fastvm.util.ByteUtil;
 import org.aion.types.InternalTransaction;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;

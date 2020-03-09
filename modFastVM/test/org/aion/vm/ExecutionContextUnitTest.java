@@ -12,7 +12,7 @@ import org.aion.fastvm.FvmDataWord;
 import org.aion.fastvm.TransactionKind;
 import org.aion.types.AionAddress;
 import org.aion.fastvm.ExecutionContext;
-import org.aion.util.HexUtil;
+import org.aion.fastvm.util.HexUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;

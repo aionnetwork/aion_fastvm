@@ -1,6 +1,6 @@
 package org.aion.repository;
 
-import org.aion.util.TransactionUtil;
+import org.aion.fastvm.util.TransactionUtil;
 
 public final class EnergyLimitRuleForTesting {
     public static final long MAX_CREATE_ENERGY_LIMIT = 5_000_000L;

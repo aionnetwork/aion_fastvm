@@ -1,7 +1,7 @@
 package org.aion;
 
 import java.util.Arrays;
-import org.aion.util.HexUtil;
+import org.aion.fastvm.util.HexUtil;
 
 public final class ByteArrayWrapper {
     private final byte[] bytes;

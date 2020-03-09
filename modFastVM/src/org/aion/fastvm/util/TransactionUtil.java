@@ -1,4 +1,4 @@
-package org.aion.util;
+package org.aion.fastvm.util;
 
 import org.aion.fastvm.FvmConstants;
 import org.aion.types.Transaction;

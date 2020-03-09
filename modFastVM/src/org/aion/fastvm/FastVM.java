@@ -1,6 +1,6 @@
 package org.aion.fastvm;
 
-import org.aion.util.FvmNativeLoader;
+import org.aion.fastvm.util.FvmNativeLoader;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
