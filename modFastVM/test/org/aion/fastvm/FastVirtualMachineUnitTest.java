@@ -196,13 +196,13 @@ public class FastVirtualMachineUnitTest {
         Transaction transaction = randomCallTransaction(sender, nonce.subtract(BigInteger.ONE), EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT);
         FastVirtualMachine.performRejectionChecks(state, transaction, result);
         Assert.assertEquals(FastVmResultCode.INVALID_NONCE, result.getResultCode());
-        Assert.assertEquals(0, result.getEnergyRemaining());
+        Assert.assertEquals(EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT, result.getEnergyRemaining());
 
         // Now try with a nonce that is too large.
         transaction = randomCallTransaction(sender, nonce.add(BigInteger.ONE), EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT);
         FastVirtualMachine.performRejectionChecks(state, transaction, result);
         Assert.assertEquals(FastVmResultCode.INVALID_NONCE, result.getResultCode());
-        Assert.assertEquals(0, result.getEnergyRemaining());
+        Assert.assertEquals(EnergyLimitRuleForTesting.MIN_NON_CREATE_ENERGY_LIMIT, result.getEnergyRemaining());
     }
 
     @Test
@@ -223,7 +223,7 @@ public class FastVirtualMachineUnitTest {
 
         FastVirtualMachine.performRejectionChecks(state, transaction, result);
         Assert.assertEquals(FastVmResultCode.INSUFFICIENT_BALANCE, result.getResultCode());
-        Assert.assertEquals(0, result.getEnergyRemaining());
+        Assert.assertEquals(energyLimit, result.getEnergyRemaining());
     }
 
     @Test

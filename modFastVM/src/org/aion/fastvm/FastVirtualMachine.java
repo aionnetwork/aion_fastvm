@@ -271,7 +271,7 @@ public final class FastVirtualMachine {
 
         if (!externalState.accountNonceEquals(transaction.senderAddress, transaction.nonce)) {
             result.setResultCode(FastVmResultCode.INVALID_NONCE);
-            result.setEnergyRemaining(0);
+            result.setEnergyRemaining(energyLimit);
             return;
         }
 
@@ -279,7 +279,7 @@ public final class FastVirtualMachine {
                 energyPrice.multiply(BigInteger.valueOf(energyLimit)).add(transaction.value);
         if (!externalState.accountBalanceIsAtLeast(transaction.senderAddress, transactionCost)) {
             result.setResultCode(FastVmResultCode.INSUFFICIENT_BALANCE);
-            result.setEnergyRemaining(0);
+            result.setEnergyRemaining(energyLimit);
         }
     }
 
