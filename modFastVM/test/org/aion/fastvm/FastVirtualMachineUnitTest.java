@@ -555,7 +555,46 @@ public class FastVirtualMachineUnitTest {
     }
 
     @Test
-    public void testRunCreatePost040ForkSuccessfulWhenDestinationIsRegularAccount() {
+    public void testRunCreatePost040ForkSuccessfulWhenDestinationHasBalance() {
+        AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
+        BigInteger value = BigInteger.valueOf(2378);
+        byte[] data = new byte[1];
+        long energyLimit = 100_000L;
+
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        ExternalStateForTesting state = newState();
+        FastVmTransactionResult result = newSuccessfulResult(energyLimit);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
+
+        // Give the sender sufficient balance.
+        state.addBalance(sender, value);
+
+        // We expect to see the post 040 successful result, which we can identify primarily by its remaining energy.
+        byte[] code = RandomUtils.nextBytes(38);
+        long energyRemaining = 81L;
+        FastVmForTesting fvm = new FastVmForTesting();
+        fvm.pre040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
+        fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining, code);
+
+        // Run the create.
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, true);
+        Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
+        Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
+
+        // Verify the destination has been marked as an FVM contract.
+        Assert.assertEquals(VmType.FVM, state.getVmType(contract));
+
+        // Verify the code has been saved to the contract.
+        Assert.assertArrayEquals(code, state.getCode(contract));
+
+        // Verify the balance was transferred.
+        Assert.assertEquals(BigInteger.ZERO, state.getBalance(sender));
+        Assert.assertEquals(value, state.getBalance(contract));
+    }
+
+    @Test
+    public void testRunCreatePost040ForkFailWithNonce() {
         AionAddress sender = randomAddress();
         AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
         BigInteger value = BigInteger.valueOf(2378);
@@ -582,18 +621,40 @@ public class FastVirtualMachineUnitTest {
 
         // Run the create.
         FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, true);
-        Assert.assertEquals(FastVmResultCode.SUCCESS, runResult.getResultCode());
-        Assert.assertEquals(energyRemaining, runResult.getEnergyRemaining());
+        Assert.assertEquals(FastVmResultCode.FAILURE, runResult.getResultCode());
+        Assert.assertEquals(0, runResult.getEnergyRemaining());
+    }
 
-        // Verify the destination has been marked as an FVM contract.
-        Assert.assertEquals(VmType.FVM, state.getVmType(contract));
+    @Test
+    public void testRunCreatePost040ForkFailWithStorage() {
+        AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
+        BigInteger value = BigInteger.valueOf(2378);
+        byte[] data = new byte[1];
+        long energyLimit = 100_000L;
 
-        // Verify the code has been saved to the contract.
-        Assert.assertArrayEquals(code, state.getCode(contract));
+        Transaction transaction = randomCreateTransaction(sender, value, data, energyLimit, 1L);
+        ExternalStateForTesting state = newState();
+        FastVmTransactionResult result = newSuccessfulResult(energyLimit);
+        ExecutionContext context = FastVirtualMachine.constructTransactionContext(transaction, contract, state);
 
-        // Verify the balance was transferred.
-        Assert.assertEquals(BigInteger.ZERO, state.getBalance(sender));
-        Assert.assertEquals(value, state.getBalance(contract));
+        // Give the sender sufficient balance.
+        state.addBalance(sender, value);
+
+    // Give the destination some account state, no code.
+    state.addStorageValue(contract, FvmDataWord.fromInt(1), FvmDataWord.fromInt(2));
+
+        // We expect to see the post 040 successful result, which we can identify primarily by its remaining energy.
+        byte[] code = RandomUtils.nextBytes(38);
+        long energyRemaining = 81L;
+        FastVmForTesting fvm = new FastVmForTesting();
+        fvm.pre040ForkResult = new FastVmTransactionResult(FastVmResultCode.BAD_INSTRUCTION, 0);
+        fvm.post040ForkResult = new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining, code);
+
+        // Run the create.
+        FastVmTransactionResult runResult = FastVirtualMachine.runContractCreationTransaction(fvm, state, new ExternalCapabilitiesForTesting(), context, transaction, result, true);
+        Assert.assertEquals(FastVmResultCode.FAILURE, runResult.getResultCode());
+        Assert.assertEquals(0, runResult.getEnergyRemaining());
     }
 
     @Test
@@ -648,9 +709,6 @@ public class FastVirtualMachineUnitTest {
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
-
-        // Give the destination some account state, but no code.
-        state.incrementNonce(contract);
 
         // We expect to see the post 040 result.
         FastVmForTesting fvm = new FastVmForTesting();
@@ -762,9 +820,6 @@ public class FastVirtualMachineUnitTest {
 
         // Give the sender sufficient balance.
         state.addBalance(sender, value);
-
-        // Give the destination some account state, but no code.
-        state.incrementNonce(contract);
 
         // We do not expect to see either result, since we gave no data the vm won't be run.
         FastVmForTesting fvm = new FastVmForTesting();

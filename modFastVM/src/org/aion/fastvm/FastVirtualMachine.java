@@ -129,6 +129,19 @@ public final class FastVirtualMachine {
                 result.setEnergyRemaining(0);
                 return result;
             }
+
+            BigInteger nonce = externalState.getNonce(contractAddress);
+            if (!nonce.equals(BigInteger.ZERO)) {
+                result.setResultCode(FastVmResultCode.FAILURE);
+                result.setEnergyRemaining(0);
+                return result;
+            }
+
+            if (externalState.hasStorage(contractAddress)) {
+                result.setResultCode(FastVmResultCode.FAILURE);
+                result.setEnergyRemaining(0);
+                return result;
+            }
         } else {
             externalState.createAccount(contractAddress);
         }

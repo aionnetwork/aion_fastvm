@@ -102,6 +102,15 @@ public interface IExternalStateForFvm {
     void putCode(AionAddress address, byte[] code);
 
     /**
+     * Returns {@code true} only if the specified account has non-empty storage associated with it.
+     * Otherwise {@code false}.
+     *
+     * @param address The account address.
+     * @return whether the account has non-empty storage or not.
+     */
+    boolean hasStorage(AionAddress address);
+
+    /**
      * Returns {@code true} only if the specified account has state associated with it.
      * Otherwise {@code false}.
      *

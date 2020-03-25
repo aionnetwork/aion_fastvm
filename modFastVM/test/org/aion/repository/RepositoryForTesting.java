@@ -356,6 +356,14 @@ public final class RepositoryForTesting {
         }
     }
 
+    public boolean hasStorageKeys(AionAddress address) {
+        if (this.storage.containsKey(address)) {
+            return !this.storage.get(address).isEmpty();
+        } else {
+            return (this.parent == null) ? false : this.parent.hasStorageKeys(address);
+        }
+    }
+
     private boolean hasStorage(AionAddress address) {
         if (this.storage.containsKey(address)) {
             return true;
