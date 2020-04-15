@@ -275,4 +275,6 @@ public interface IExternalStateForFvm {
      * @return the block hash.
      */
     byte[] getBlockHashByNumber(long blockNumber);
+
+    boolean isForkSignatureSwapEnabled();
 }

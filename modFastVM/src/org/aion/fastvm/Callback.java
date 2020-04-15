@@ -252,7 +252,11 @@ public class Callback {
 
             // execute transaction
             if (ArrayUtils.isNotEmpty(code)) {
-                result = jit.runPre040Fork(code, ctx, childState);
+                if (childState.isForkSignatureSwapEnabled()) {
+                    result = jit.runPost040Fork(code, ctx, childState);
+                } else {
+                    result = jit.runPre040Fork(code, ctx, childState);
+                }
             }
         }
 
@@ -336,7 +340,11 @@ public class Callback {
             result.setResultCodeAndEnergyRemaining(FastVmResultCode.FAILURE, 0);
         } else {
             if (ArrayUtils.isNotEmpty(ctx.getTransactionData())) {
-                result = jit.runPre040Fork(ctx.getTransactionData(), ctx, childState);
+                if (childState.isForkSignatureSwapEnabled()) {
+                    result = jit.runPost040Fork(ctx.getTransactionData(), ctx, childState);
+                } else {
+                    result = jit.runPre040Fork(ctx.getTransactionData(), ctx, childState);
+                }
             }
         }
 

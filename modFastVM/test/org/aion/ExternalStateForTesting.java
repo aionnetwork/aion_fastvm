@@ -24,6 +24,8 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     private final long blockEnergyLimit;
     private final FvmDataWord blockDifficulty;
     private final boolean unityHardForkEnabled;
+    private final boolean signatureSwapForkEnabled;
+
 
     public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         this.repository = repository;
@@ -37,6 +39,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
         this.blockTimestamp = blockTimestamp;
         this.blockEnergyLimit = blockEnergyLimit;
         this.unityHardForkEnabled = false;
+        this.signatureSwapForkEnabled = false;
     }
 
     public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean unityHardForkEnabled) {
@@ -51,6 +54,22 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
         this.blockTimestamp = blockTimestamp;
         this.blockEnergyLimit = blockEnergyLimit;
         this.unityHardForkEnabled = unityHardForkEnabled;
+        this.signatureSwapForkEnabled = false;
+    }
+
+    public ExternalStateForTesting(RepositoryForTesting repository, BlockchainForTesting blockchain, AionAddress miner, FvmDataWord blockDifficulty, boolean isLocalCall, boolean allowNonceIncrement, boolean isFork040enabled, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean unityHardForkEnabled, boolean signatureSwapForkEnabled) {
+        this.repository = repository;
+        this.blockchain = blockchain;
+        this.miner = miner;
+        this.blockDifficulty = blockDifficulty;
+        this.isLocalCall = isLocalCall;
+        this.allowNonceIncrement = allowNonceIncrement;
+        this.isFork040enabled = isFork040enabled;
+        this.blockNumber = blockNumber;
+        this.blockTimestamp = blockTimestamp;
+        this.blockEnergyLimit = blockEnergyLimit;
+        this.unityHardForkEnabled = unityHardForkEnabled;
+        this.signatureSwapForkEnabled = signatureSwapForkEnabled;
     }
 
     /**
@@ -464,6 +483,11 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
     @Override
     public byte[] getBlockHashByNumber(long blockNumber) {
         return this.blockchain.getBlockHashByNumber(blockNumber);
+    }
+
+    @Override
+    public boolean isForkSignatureSwapEnabled() {
+        return this.signatureSwapForkEnabled;
     }
 
     public void setNonce(AionAddress address, BigInteger nonce) {
