@@ -1088,6 +1088,71 @@ public class CallbackUnitTest {
         }
     }
 
+    @Test
+    public void testPerformCallDelegateCallSignatureSwapForkDisabled() {
+        byte[] code = RandomUtils.nextBytes(50);
+        ExecutionContext context =
+            setupTestForPerformCall(
+                BigInteger.valueOf(RandomUtils.nextLong(10, 10_000)),
+                BigInteger.valueOf(RandomUtils.nextLong(0, 10_000)),
+                true,
+                TransactionKind.DELEGATE_CALL,
+                code,
+                true,
+                false,
+                FvmConstants.ENERGY_CODE_DEPOSIT);
+
+        FastVmTransactionResult mockedResult =
+            new FastVmTransactionResult(FastVmResultCode.FAILURE, FvmConstants.ENERGY_CODE_DEPOSIT, code);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
+
+        runPerformCallAndCheck(
+            context,
+            vm,
+            mockedResult,
+            false,
+            TransactionKind.DELEGATE_CALL,
+            true,
+            false,
+            code);
+        checkContextHelper(true);
+    }
+
+    @Test
+    public void testPerformCallDelegateCallSignatureSwapForkEnabled() {
+        byte[] code = RandomUtils.nextBytes(50);
+        boolean signatureSwapForkEnabled = true;
+
+        ExecutionContext context =
+            setupTestForPerformCall(
+                BigInteger.valueOf(RandomUtils.nextLong(10, 10_000)),
+                BigInteger.valueOf(RandomUtils.nextLong(0, 10_000)),
+                true,
+                TransactionKind.DELEGATE_CALL,
+                code,
+                true,
+                false,
+                FvmConstants.ENERGY_CODE_DEPOSIT,
+                VmType.FVM,
+                signatureSwapForkEnabled);
+
+        FastVmTransactionResult mockedResult =
+            new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT, code);
+
+        FastVM vm = mockFastVMPost040Fork(mockedResult);
+
+        runPerformCallAndCheck(
+            context,
+            vm,
+            mockedResult,
+            false,
+            TransactionKind.DELEGATE_CALL,
+            true,
+            true,
+            code);
+        checkContextHelper(true);
+    }
+
     // <----------METHODS BELOW ARE TESTS THAT ARE SHARED BY MULTIPLE TESTS AND SO REUSED---------->
     private void performCallIsPrecompiledNotSuccessSeptForkEnabledwithAVMCheck(TransactionKind kind) {
         for (FastVmResultCode code : FastVmResultCode.values()) {
@@ -1105,7 +1170,8 @@ public class CallbackUnitTest {
                         false,
                         false,
                         nrgLimit,
-                        VmType.AVM);
+                        VmType.AVM,
+                        false);
 
                 FastVmTransactionResult mockedResult = new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, 0);
                 FastVM vm = mockFastVMPre040Fork(mockedResult);
@@ -1990,7 +2056,8 @@ public class CallbackUnitTest {
                 contractExists,
                 dataIsEmpty,
                 nrgLimit,
-                null);
+                null,
+                false);
     }
 
 
@@ -2003,7 +2070,8 @@ public class CallbackUnitTest {
             boolean contractExists,
             boolean dataIsEmpty,
             long nrgLimit,
-            VmType vmType) {
+            VmType vmType,
+            boolean signatureSwapForkEnabled) {
 
         BigInteger callerNonce = BigInteger.valueOf(RandomUtils.nextLong(0, 10_000));
         RepositoryForTesting repo = RepositoryForTesting.newRepository();
@@ -2038,7 +2106,7 @@ public class CallbackUnitTest {
 
         Pair pair = mockEmptyPair();
         when(pair.getLeft()).thenReturn(context);
-        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo));
+        when(pair.getRight()).thenReturn(wrapInKernelInterface(repo, signatureSwapForkEnabled));
         Callback.push(pair);
         return context;
     }
@@ -2239,5 +2307,10 @@ public class CallbackUnitTest {
     private static IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache) {
         return new ExternalStateForTesting(
                 cache, new BlockchainForTesting(), new AionAddress(new byte[32]), FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L, false);
+    }
+
+    private static IExternalStateForFvm wrapInKernelInterface(RepositoryForTesting cache, boolean signatureSwapForkEnabled) {
+        return new ExternalStateForTesting(
+            cache, new BlockchainForTesting(), new AionAddress(new byte[32]), FvmDataWord.fromBytes(new byte[0]), false, true, false, 0L, 0L, 0L, false, signatureSwapForkEnabled);
     }
 }
