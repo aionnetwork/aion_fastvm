@@ -103,7 +103,7 @@ public final class ExternalStateForTesting implements IExternalStateForFvm {
      */
     @Override
     public ExternalStateForTesting newChildExternalState() {
-        return new ExternalStateForTesting(this.repository.newChildRepository(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit, this.unityHardForkEnabled);
+        return new ExternalStateForTesting(this.repository.newChildRepository(), this.blockchain, this.miner, this.blockDifficulty, this.isLocalCall, this.allowNonceIncrement, this.isFork040enabled, this.blockNumber, this.blockTimestamp, this.blockEnergyLimit, this.unityHardForkEnabled, this.signatureSwapForkEnabled);
     }
 
     /**

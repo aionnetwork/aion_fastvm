@@ -680,7 +680,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -713,7 +713,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -747,7 +747,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -784,7 +784,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.FAILURE, 0);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -821,7 +821,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -855,7 +855,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
-        FastVM vm = mockFastVM(null); // we bypass vm
+        FastVM vm = mockFastVMPre040Fork(null); // we bypass vm
 
         runPerformCallAndCheck(
                 context,
@@ -889,7 +889,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         mockedResult.setResultCodeAndEnergyRemaining(
                 FastVmResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
@@ -925,7 +925,7 @@ public class CallbackUnitTest {
 
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT);
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         mockedResult.setResultCodeAndEnergyRemaining(
                 FastVmResultCode.FAILURE, 0); // nrgLimit causes failure post-execution.
@@ -962,7 +962,7 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT, code);
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         runPerformCallAndCheck(
                 context,
@@ -997,7 +997,7 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, FvmConstants.ENERGY_CODE_DEPOSIT, code);
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         runPerformCallAndCheck(
                 context,
@@ -1033,7 +1033,7 @@ public class CallbackUnitTest {
                 byte[] code = RandomUtils.nextBytes(50);
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(resCode, FvmConstants.ENERGY_CODE_DEPOSIT, code);
-                FastVM vm = mockFastVM(mockedResult);
+                FastVM vm = mockFastVMPre040Fork(mockedResult);
 
                 runPerformCallAndCheck(
                         context,
@@ -1071,7 +1071,7 @@ public class CallbackUnitTest {
                 byte[] code = RandomUtils.nextBytes(50);
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(resCode, FvmConstants.ENERGY_CODE_DEPOSIT, code);
-                FastVM vm = mockFastVM(mockedResult);
+                FastVM vm = mockFastVMPre040Fork(mockedResult);
 
                 runPerformCallAndCheck(
                         context,
@@ -1108,7 +1108,7 @@ public class CallbackUnitTest {
                         VmType.AVM);
 
                 FastVmTransactionResult mockedResult = new FastVmTransactionResult(FastVmResultCode.INCOMPATIBLE_CONTRACT_CALL, 0);
-                FastVM vm = mockFastVM(mockedResult);
+                FastVM vm = mockFastVMPre040Fork(mockedResult);
 
                 runPerformCallAndCheck(
                     context, vm, mockedResult, false, kind, false, false, null);
@@ -1149,7 +1149,7 @@ public class CallbackUnitTest {
 
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-            FastVM vm = mockFastVM(mockedResult);
+            FastVM vm = mockFastVMPre040Fork(mockedResult);
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
@@ -1186,7 +1186,7 @@ public class CallbackUnitTest {
 
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-            FastVM vm = mockFastVM(mockedResult);
+            FastVM vm = mockFastVMPre040Fork(mockedResult);
 
             // There is no recipient hence vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
@@ -1223,7 +1223,7 @@ public class CallbackUnitTest {
 
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-            FastVM vm = mockFastVM(mockedResult);
+            FastVM vm = mockFastVMPre040Fork(mockedResult);
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
@@ -1260,7 +1260,7 @@ public class CallbackUnitTest {
 
             FastVmTransactionResult mockedResult =
                     new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-            FastVM vm = mockFastVM(mockedResult);
+            FastVM vm = mockFastVMPre040Fork(mockedResult);
 
             // The recipient's code is empty, hence the vm gets bad code.
             // Since VM didn't execute code it always returns success as default.
@@ -1297,7 +1297,7 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         runPerformCallAndCheck(context, vm, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
@@ -1330,7 +1330,7 @@ public class CallbackUnitTest {
 
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-                FastVM vm = mockFastVM(mockedResult);
+                FastVM vm = mockFastVMPre040Fork(mockedResult);
 
                 runPerformCallAndCheck(
                         context, vm, mockedResult, false, kind, false, false, null);
@@ -1366,7 +1366,7 @@ public class CallbackUnitTest {
         FastVmTransactionResult mockedResult =
                 new FastVmTransactionResult(
                         FastVmResultCode.SUCCESS, RandomUtils.nextLong(0, 10_000));
-        FastVM vm = mockFastVM(mockedResult);
+        FastVM vm = mockFastVMPre040Fork(mockedResult);
 
         runPerformCallAndCheck(context, vm, mockedResult, false, kind, false, false, null);
         checkContextHelper(true);
@@ -1399,7 +1399,7 @@ public class CallbackUnitTest {
 
                 FastVmTransactionResult mockedResult =
                         new FastVmTransactionResult(code, RandomUtils.nextLong(0, 10_000));
-                FastVM vm = mockFastVM(mockedResult);
+                FastVM vm = mockFastVMPre040Fork(mockedResult);
 
                 runPerformCallAndCheck(
                         context, vm, mockedResult, false, kind, false, false, null);
@@ -1837,13 +1837,23 @@ public class CallbackUnitTest {
     }
 
     /** Returns a mocked FastVM whose run method returns result. */
-    private FastVM mockFastVM(FastVmTransactionResult result) {
+    private FastVM mockFastVMPre040Fork(FastVmTransactionResult result) {
         FastVM vm = mock(FastVM.class);
         when(vm.runPre040Fork(
                         Mockito.any(byte[].class),
                         Mockito.any(ExecutionContext.class),
                         Mockito.any(IExternalStateForFvm.class)))
                 .thenReturn(result);
+        return vm;
+    }
+
+    private FastVM mockFastVMPost040Fork(FastVmTransactionResult result) {
+        FastVM vm = mock(FastVM.class);
+        when(vm.runPost040Fork(
+            Mockito.any(byte[].class),
+            Mockito.any(ExecutionContext.class),
+            Mockito.any(IExternalStateForFvm.class)))
+            .thenReturn(result);
         return vm;
     }
 
