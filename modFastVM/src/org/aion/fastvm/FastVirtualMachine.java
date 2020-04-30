@@ -274,6 +274,12 @@ public final class FastVirtualMachine {
                 result.setEnergyRemaining(energyLimit);
                 return;
             }
+
+            if (externalState.isForkSignatureSwapEnabled()) {
+                result.setResultCode(FastVmResultCode.REJECT_DEPLOY);
+                result.setEnergyRemaining(energyLimit);
+                return;
+            }
         } else {
             if (!externalState.isValidEnergyLimitForNonCreate(energyLimit, transaction.copyOfTransactionData())) {
                 result.setResultCode(FastVmResultCode.INVALID_NRG_LIMIT);

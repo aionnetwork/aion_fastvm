@@ -842,6 +842,48 @@ public class FastVirtualMachineUnitTest {
         Assert.assertEquals(value, state.getBalance(contract));
     }
 
+    @Test
+    public void testContractDeployRejectionChecksAfterSignatureSchemeSwap() {
+        AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
+        BigInteger value = BigInteger.valueOf(2378);
+        long energyLimit = 2_000_000L;
+
+        Transaction transaction = randomCreateTransaction(sender, value, energyLimit, 1L);
+
+        ExternalStateForTesting state = newState(true, true);
+        FastVmTransactionResult result = newSuccessfulResult(energyLimit);
+
+        // Give the sender sufficient balance.
+        state.addBalance(sender, value);
+
+        // Run the performRejectionChecks.
+        FastVirtualMachine.performRejectionChecks(state, transaction, result);
+        Assert.assertEquals(FastVmResultCode.REJECT_DEPLOY, result.getResultCode());
+        Assert.assertEquals(energyLimit, result.getEnergyRemaining());
+    }
+
+    @Test
+    public void testContractDeployRejectionChecksBeforeSignatureSchemeSwap() {
+        AionAddress sender = randomAddress();
+        AionAddress contract = capabilities.computeNewContractAddress(sender, BigInteger.ZERO);
+        byte[] data = new byte[1];
+        long energyLimit = 250_000L;
+        BigInteger value = BigInteger.valueOf(energyLimit);
+
+        Transaction transaction = randomCreateTransaction(sender, BigInteger.ZERO, data, energyLimit, 1L);
+        ExternalStateForTesting state = newState(true, false);
+        FastVmTransactionResult result = newSuccessfulResult(energyLimit);
+
+        // Give the sender sufficient balance.
+        state.addBalance(sender, value);
+
+        // Run the performRejectionChecks.
+        FastVirtualMachine.performRejectionChecks(state, transaction, result);
+        Assert.assertEquals(FastVmResultCode.SUCCESS, result.getResultCode());
+        Assert.assertEquals(energyLimit, result.getEnergyRemaining());
+    }
+
     private static FastVmTransactionResult newSuccessfulResult(long energyRemaining) {
         return new FastVmTransactionResult(FastVmResultCode.SUCCESS, energyRemaining);
     }
@@ -879,15 +921,19 @@ public class FastVirtualMachineUnitTest {
     }
 
     private static ExternalStateForTesting newState(boolean afterUnity) {
-        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L, afterUnity);
+        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L, afterUnity, false);
+    }
+
+    private static ExternalStateForTesting newState(boolean afterUnity, boolean afterSignatureSchemeSwap) {
+        return newState(randomAddress(), BigInteger.ZERO, 0L, 0L, 15_000_000L, afterUnity, afterSignatureSchemeSwap);
     }
 
     private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit) {
         return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit, false);
     }
 
-    private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean afterUnity) {
-        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit, afterUnity);
+    private static ExternalStateForTesting newState(AionAddress miner, BigInteger blockDifficulty, long blockNumber, long blockTimestamp, long blockEnergyLimit, boolean afterUnity, boolean afterSignatureSchemeSwap) {
+        return new ExternalStateForTesting(RepositoryForTesting.newRepository(), new BlockchainForTesting(), miner, FvmDataWord.fromBigInteger(blockDifficulty), false, true, false, blockNumber, blockTimestamp, blockEnergyLimit, afterUnity, afterSignatureSchemeSwap);
     }
 
     private static AionAddress randomAddress() {

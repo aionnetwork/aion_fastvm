@@ -36,6 +36,8 @@ public enum FastVmResultCode {
 
     ABORT(11, ResultCategory.FAILED),
 
+    REJECT_DEPLOY(104, ResultCategory.REJECTED),
+
     VM_REJECTED(-1, ResultCategory.FATAL),
 
     VM_INTERNAL_ERROR(-2, ResultCategory.FATAL);
